@@ -15,7 +15,7 @@ FROM golang:1.23-alpine AS backend-build
 
 WORKDIR /app
 
-RUN apk add --no-cache git
+RUN apk update && apk add --no-cache git curl
 
 COPY go.mod go.sum ./
 RUN go mod download
