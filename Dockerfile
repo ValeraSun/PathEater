@@ -1,24 +1,43 @@
-# Базовый образ с Go
-FROM golang:1.23-alpine
+# 1. Сборка фронтенда
+FROM node:20-alpine AS frontend-build
 
-# Устанавливаем полезные утилиты (опционально)
-RUN apk add --no-cache git curl
+WORKDIR /app/frontend
 
-# Создаем рабочую директорию
+COPY frontend/package*.json ./
+RUN npm install
+
+COPY frontend/ ./
+RUN npm run build
+
+
+# 2. Сборка Go backend
+FROM golang:1.23-alpine AS backend-build
+
 WORKDIR /app
 
-# Копируем файлы зависимостей для кэширования слоев
+RUN apk add --no-cache git
+
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Копируем весь исходный код
 COPY . .
 
-# Собираем бинарник
-#RUN go build -o /app/main ./cmd/main.go
+COPY --from=frontend-build /app/web ./web
 
-# Открываем порт (замените на ваш, если нужно)
+RUN go build -o /app/main .
+
+
+# 3. Финальный контейнер
+FROM golang:1.23-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache ca-certificates
+
+COPY --from=backend-build /app/main /app/main
+COPY --from=backend-build /app/web /app/web
+COPY --from=backend-build /app/configs /app/configs
+
 EXPOSE 8080
 
-# Запускаем приложение
-#CMD ["/app/main"]
+CMD ["/app/main"]

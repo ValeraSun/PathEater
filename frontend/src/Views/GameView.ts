@@ -1,0 +1,69 @@
+import * as THREE from "three";
+import { ShipView } from "./ShipView";
+import { SpaceView } from "./SpaceView";
+import { WindowResize } from "../Utils/WindowResize";
+import { PlayerView } from "./PlayerView";
+
+export class GameView 
+{
+    public Render(): void 
+    {
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    public Init(): void 
+    {
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        const container = document.getElementById("app");
+        container?.appendChild(this.renderer.domElement);
+
+        this.camera.position.set(0, 5, 12);
+        this.camera.lookAt(0, 0, 1);
+
+        this.addLights();
+
+        this.scene.add(this.spaceView.GetObject());
+        this.scene.add(this.shipView.GetObject());
+        this.scene.add(this.playerView.mesh);
+
+        WindowResize.Handle(this.camera, this.renderer);
+    }
+
+    public GetCamera(): THREE.PerspectiveCamera 
+    {
+        return this.camera;
+    }
+
+    public GetRendererDomElement(): HTMLCanvasElement 
+    {
+        return this.renderer.domElement;
+    }
+
+    private scene: THREE.Scene;
+    private camera: THREE.PerspectiveCamera;
+    private renderer: THREE.WebGLRenderer;
+
+    private shipView: ShipView;
+    private spaceView: SpaceView;
+    private playerView = new PlayerView();
+
+    constructor(playerView: PlayerView) 
+    {
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.renderer = new THREE.WebGLRenderer({antialias: true,});
+        this.shipView = new ShipView();
+        this.spaceView = new SpaceView();
+        this.playerView = playerView;
+    }
+
+    private addLights(): void 
+    {
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        this.scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(10, 10, 10);
+        this.scene.add(directionalLight);
+    }  
+}
