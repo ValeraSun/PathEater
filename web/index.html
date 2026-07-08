@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест WebSocket</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        #log { 
+            height: 400px; 
+            overflow-y: scroll; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            margin: 10px 0;
+            background: #f5f5f5;
+        }
+        .sent { color: blue; }
+        .received { color: green; }
+        .system { color: gray; font-style: italic; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Тест WebSocket соединения</h1>
+    <div>
+        <input type="text" id="messageInput" placeholder="Введите сообщение" style="width: 300px;">
+        <button onclick="sendMessage()">Отправить</button>
+        <button onclick="connect()">Подключиться</button>
+        <button onclick="disconnect()">Отключиться</button>
+        <button onclick="clearLog()">Очистить лог</button>
+    </div>
+    <div id="log"></div>
+    <div>
+        <strong>Статус:</strong> <span id="status">Отключен</span>
+    </div>
+
+    <script>
+        let ws = null;
+        const logElement = document.getElementById('log');
+        const statusElement = document.getElementById('status');
+
+        function addLog(message, type = 'system') {
+            const className = type;
+            logElement.innerHTML += `<div class="${className}">${message}</div>`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLog() {
+            logElement.innerHTML = '';
+        }
+
+        function updateStatus(text, color = 'gray') {
+            statusElement.textContent = text;
+            statusElement.style.color = color;
+        }
+
+        function connect() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                addLog('⚠️ Соединение уже установлено', 'system');
+                return;
+            }
+
+            // Замените порт если ваш сервер на другом порту
+            const url = 'ws://localhost:8080/ws';
+            addLog(`🔄 Подключение к ${url}...`, 'system');
+            
+            ws = new WebSocket(url);
+            
+            ws.onopen = function() {
+                addLog('✅ Соединение установлено!', 'system');
+                updateStatus('Подключен', 'green');
+            };
+
+            ws.onmessage = function(event) {
+                addLog(`📥 Получено: ${event.data}`, 'received');
+            };
+
+            ws.onclose = function(event) {
+                addLog(`❌ Соединение закрыто. Код: ${event.code}`, 'system');
+                updateStatus('Отключен', 'red');
+                ws = null;
+            };
+
+            ws.onerror = function(error) {
+                addLog(`⚠️ Ошибка: ${error}`, 'error');
+                updateStatus('Ошибка', 'red');
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+                addLog('Соединение закрыто вручную', 'system');
+                updateStatus('Отключен', 'red');
+            } else {
+                addLog('⚠️ Нет активного соединения', 'system');
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) {
+                addLog('⚠️ Введите сообщение', 'system');
+                return;
+            }
+
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addLog('⚠️ Нет активного соединения', 'system');
+                return;
+            }
+
+            ws.send(message);
+            addLog(`📤 Отправлено: ${message}`, 'sent');
+            input.value = '';
+        }
+
+        // Enter для отправки
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Автоподключение
+        window.onload = function() {
+            setTimeout(connect, 500);
+        };
+    </script>
+</body>
+</html>
