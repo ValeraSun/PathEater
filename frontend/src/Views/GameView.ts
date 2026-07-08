@@ -34,6 +34,11 @@ export class GameView
         return this.camera;
     }
 
+    public GetScene(): THREE.Scene 
+    {
+        return this.scene;
+    }
+
     public GetRendererDomElement(): HTMLCanvasElement 
     {
         return this.renderer.domElement;

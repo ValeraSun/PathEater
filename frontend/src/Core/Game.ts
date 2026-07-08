@@ -4,6 +4,8 @@ import { PlayerModel } from "../Models/PlayerModel";
 import { PlayerView } from "../Views/PlayerView";
 import { PlayerController } from "../Controllers/PlayerController";
 import { CameraController } from "../Controllers/CameraController";
+import { NetworkManager } from "../Services/NetworkManager";
+import { EntityManager } from "../Services/EntityManager";
 
 export class Game 
 {
@@ -14,6 +16,8 @@ export class Game
     private static instance: Game;
     private gameView: GameView;
     private playerController: PlayerController;
+    private entityManager: EntityManager;
+    private networkManager: NetworkManager;
 
     public static GetInstance(): Game 
     {
@@ -26,6 +30,7 @@ export class Game
 
     public Start(): void 
     {
+        this.networkManager.Connect();        
         this.gameView.Init();
         this.Animate();
     }
@@ -33,6 +38,8 @@ export class Game
     private constructor() 
     {
         this.gameView = new GameView(this.playerView);
+        this.entityManager = new EntityManager(this.gameView.GetScene());
+        this.networkManager = new NetworkManager(this.entityManager);
         this.cameraController = new CameraController(this.gameView.GetCamera(), 
                                                      this.playerModel,     
                                                      this.gameView.GetRendererDomElement()
@@ -41,7 +48,8 @@ export class Game
             this.playerModel,
             this.playerView,
             this.input,
-            this.gameView.GetCamera()
+            this.gameView.GetCamera(),
+            this.networkManager
         );
     }
 
