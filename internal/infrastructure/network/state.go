@@ -14,14 +14,8 @@ type State interface {
     OnExit(ctx context.Context, client *ws.Client)
 }
 
-struct GameState struct {
-	State
-    commands map[string]Command
-	GameID string
-}
-
-func NewGameState(gameID string) *GameState {
-    s := &GameState{
+func NewGameState(gameID string) *State {
+    s := &State{
         commands: make(map[string]Command),
         GameID:   gameID,
     }
@@ -31,13 +25,18 @@ func NewGameState(gameID string) *GameState {
     return s
 }
 
+type GameState struct {
+    commands map[string]Command
+	GameID string
+}
+
 func (s *GameState) Name() string { return "GAME" }
 
 func (s *GameState) RegisterCommand(cmd Command) {
     s.commands[cmd.Name()] = cmd
 }
 
-func (s *GameState) HandleCommand(ctx context.Context, client *ws.Client, cmdName string, payload json.RawMessage) error {
+func (s *GameState) HandleCommand(ctx context.Context, client Client, cmdName string, payload json.RawMessage) error {
     cmd, exists := s.commands[cmdName]
     if !exists {
         return errors.New("unknown command in game")
@@ -53,5 +52,5 @@ func (s *GameState) OnEnter(ctx context.Context, client *ws.Client) {
 }
 
 func (s *GameState) OnExit(ctx context.Context, client *ws.Client) {
-    // Выход из игры
+    //Выход из игры
 }

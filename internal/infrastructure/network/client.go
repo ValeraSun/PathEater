@@ -6,6 +6,7 @@ import (
     "log"
     "time"
     "sync"
+    "fmt"
     
     "github.com/gorilla/websocket"
 )
@@ -22,6 +23,11 @@ type Client struct {
     closed bool
 }
 
+func generateID() {
+    id := uuid.New()
+    fmt.Println(id.String())
+}
+
 //Создаёт нового клиента
 func NewClient(ws *websocket.Conn) *Client{
     ctx, cancel := context.WithCancel(context.Background())
@@ -32,7 +38,7 @@ func NewClient(ws *websocket.Conn) *Client{
         done:   make(chan struct{}),
         ctx:    ctx,
         cancel: cancel,
-        state:  NewMenuState(),
+        state:  NewMenuState(),z
         closed: false,
     }
 }
@@ -93,8 +99,11 @@ func (c *Client) ReadMessages() {
             }
 
             //превращение данных из json в структуру команды
-            var req Req
-            if err := json.Unmarshal(message, &req); err != nil {
+            var req struct {
+                Cmd     string          `json:"cmd"`
+                Payload json.RawMessage `json:"payload"`
+            }
+            if err := json.Unmarshal(msg, &req); err != nil {
                 c.SendError("invalid_json")
                 continue
             }
