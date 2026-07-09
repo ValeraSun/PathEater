@@ -8,7 +8,10 @@ import (
 )
 
 func main() {
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/Egor
 	network.RegisterHandlers()
 
 	http.Handle("/", http.FileServer(http.Dir("./web")))

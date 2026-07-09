@@ -17,6 +17,7 @@ type StartGameCommand struct{}
 func (c *StartGameCommand) Name() string { return "StartGame" }
 
 func (c *StartGameCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
+<<<<<<< HEAD
 	// Создаем комнату с уникальным ID
 	roomID := generateID()
 	hub := GetHub()
@@ -27,6 +28,22 @@ func (c *StartGameCommand) Execute(ctx context.Context, client *Client, payload 
 	client.SetState(NewGameState(roomID))
 	client.state.OnEnter(ctx, client)
 	return nil
+=======
+    // Создаем комнату с уникальным ID
+    roomID := generateID()
+    hub := GetHub()
+    room := hub.CreateGameRoom(roomID)
+    room.AddClient(client)
+    
+    //Передача события старта
+    e := CreateEventItemUse(itemID)
+    client.room.World.eventBus.Publish(e)
+
+    // Меняем состояние
+    client.SetState(NewGameState(roomID))
+    client.state.OnEnter(ctx, client)
+    return nil
+>>>>>>> origin/Egor
 }
 
 // ------------------------------------------------------------------------------------------------------------------
@@ -85,9 +102,15 @@ func (*ExitCommand) Execute(ctx context.Context, client *Client, payload json.Ra
 	client.SetState(NewMenuState())
 	client.state.OnEnter(ctx, client)
 
+<<<<<<< HEAD
 	//Передача события использования
 	e := CreateEventExit()
 	client.room.World.EventBus.Publish(e)
+=======
+    //Передача события выхода
+    e := CreateEventExit()
+    client.room.World.eventBus.Publish(e)
+>>>>>>> origin/Egor
 
 	return nil
 }
