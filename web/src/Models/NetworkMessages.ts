@@ -5,7 +5,7 @@ export type ClientMessage =
           type: "action";
           action: "move";
           position: Vector3D;
-          rotationY: number;
+          direction: number;
       }
     | {
           type: "action";

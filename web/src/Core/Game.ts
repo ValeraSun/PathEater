@@ -38,7 +38,7 @@ export class Game
         this.gameView.Init();
         //убрать перед защитой
         this.collisionManager.AddDebugHelpers(this.gameView.GetScene());
-        this.Animate();
+        this.GameLoop();
     }
 
     private constructor() 
@@ -60,9 +60,9 @@ export class Game
         );
     }
 
-    private Animate = (): void => 
+    private GameLoop = (): void => 
     {
-        requestAnimationFrame(this.Animate);
+        requestAnimationFrame(this.GameLoop);
         const now = performance.now();
         const dt = Math.min((now - this.lastTime) / MILLISECONDS_IN_SECOND, MAX_DELTA_TIME);
         this.lastTime = now;
