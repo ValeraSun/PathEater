@@ -32,8 +32,8 @@ func HandleConnection(w http.ResponseWriter, r *http.Request) {
 
     //Создание клиента
 	client := NewClient(wsConn)
-    hub.RegisterClient(client)
-    defer hub.UnregisterClient(client)
+    RegisterClient(client)
+    defer UnregisterClient(client)
 	
     //Запуск чтения сообщений от клиента и отправки сообщений от сервера
     go client.ReadMessages()

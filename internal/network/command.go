@@ -50,7 +50,10 @@ func(*MoveCommand) Execute(ctx context.Context, client *Client, payload json.Raw
 		return client.SendError(err)
 	}
 	return err
-	//посылаем координаты на основную логику сервера
+
+    //Передача события движения
+    e := CreateEventMove(X, Y, Z)
+    client.Room.World.EventBus.Publish(e)
 
     return nil
 }
@@ -69,47 +72,13 @@ func(*UseItemCommand) Execute(ctx context.Context, client *Client, payload json.
 	if err := json.Unmarshal(payload, &coord); err != nil {
 		return client.SendError(err)
 	}
-	//посылаем ID предмета на основную логику сервера
+
+    //Передача события использования
+    e := CreateEventItemUse(itemID)
+    client.room.World.eventBus.Publish(e)
 	
     return nil
 }
-
-
-//-----------------------------------------------------------------------------------------------------------------------------------
-//Команды выхода из игры
-type ExitCommand struct{}
-
-func (*ExitCommand) Name() string { return "ExitGame"}
-
-func(*ExitCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
-    client.state.OnExit(ctx, client)
-
-    client.SetState("Menu-1")
-
-    return nil
-}
-
-
-//------------------------------------------------------------------------------------------------------------------
-//обработка команд взаимодействия с предметами
-type UseItemCommand struct{}
-
-func (*UseItemCommand) Name() string { return "UseItem" }
-
-func(*UseItemCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {	
-	var item struct {
-	itemID    string `json:"itemID"`
-	typeUsing string `json:"typeUsing"`
-	}
-
-    err := json.Unmarshal(payload, &item)
-	if err != nil {
-		client.SendError("invalid_json")
-	}
-	return err
-	//посылаем данные на основную логику сервера
-}
-
 
 //------------------------------------------------------------------------------------------------------------------
 //обработка команд выхода
@@ -121,5 +90,10 @@ func (*ExitCommand) Execute(ctx context.Context, client *Client, payload json.Ra
     client.state.OnExit(ctx, client)
     client.SetState(NewMenuState())
     client.state.OnEnter(ctx, client)
+
+    //Передача события использования
+    e := CreateEventExit()
+    client.room.World.eventBus.Publish(e)
+
     return nil
 }

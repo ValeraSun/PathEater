@@ -17,13 +17,11 @@ type State interface {
 //состояния игры
 type GameState struct {
     commands map[string]Command
-	GameID string
 }
 
 func NewGameState(gameID string) *GameState {
     s := &GameState{
         commands: make(map[string]Command),
-        GameID:   gameID,
     }
     s.RegisterCommand(&StartGameCommand{})
     s.RegisterCommand(&MoveCommand{})

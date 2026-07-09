@@ -21,6 +21,7 @@ type Client struct {
     ctx    context.Context
     cancel context.CancelFunc
     state  State
+    room   *GameRoom
     closed bool
 }
 
@@ -40,6 +41,7 @@ func NewClient(ws *websocket.Conn) *Client{
         ctx:    ctx,
         cancel: cancel,
         state:  NewMenuState(),
+        room:   nil,
         closed: false,
     }
 }
