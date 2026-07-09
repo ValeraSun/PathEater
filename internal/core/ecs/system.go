@@ -2,6 +2,7 @@ package ecs
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -37,6 +38,8 @@ func (s *moveSystem) onEvent(event events.Event) error {
 
 	transformComponent.Direction = moveEvent.Direction
 	transformComponent.Position = moveEvent.Position
+
+	fmt.Println(transformComponent)
 
 	return nil
 }
