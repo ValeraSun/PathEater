@@ -19,7 +19,14 @@ type StartGameCommand struct{}
 func (c *StartGameCommand) Name() string { return "StartGame" }
 
 func (c *StartGameCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
-    client.SetState(NewGameState("gameID---"))
+    // Создаем комнату с уникальным ID
+    roomID := generateID()
+    hub := GetHub()
+    room := hub.CreateGameRoom(roomID)
+    room.AddClient(client)
+    
+    // Меняем состояние
+    client.SetState(NewGameState(roomID))
     client.state.OnEnter(ctx, client)
     return nil
 }
@@ -110,11 +117,9 @@ type ExitCommand struct{}
 
 func (*ExitCommand) Name() string { return "ExitGame" }
 
-func (c *ExitCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
-    if client.state != nil {
-        client.state.OnExit(ctx, client)
-    }
-    client.SetState(NewGameState("menu"))
+func (*ExitCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
+    client.state.OnExit(ctx, client)
+    client.SetState(NewMenuState())
+    client.state.OnEnter(ctx, client)
     return nil
 }
-
