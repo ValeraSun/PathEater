@@ -25,7 +25,7 @@ type Client struct {
 }
 
 //Генерация ID
-func generateID() string{
+func generateID() string {
     return uuid.New().String()
 }
 

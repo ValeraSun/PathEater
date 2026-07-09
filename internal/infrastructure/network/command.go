@@ -29,7 +29,9 @@ func (c *StartGameCommand) Execute(ctx context.Context, client *Client, payload 
 //Команды движения игрока
 type MoveCommand struct{}
 
-func (*MoveCommand) Name() string { return "Move"}
+//------------------------------------------------------------------------------------------------------------------
+//обработка команд движения
+type MoveCommand struct{}
 
 func(*MoveCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {	
 	var coord struct {
@@ -40,6 +42,7 @@ func(*MoveCommand) Execute(ctx context.Context, client *Client, payload json.Raw
 	if err := json.Unmarshal(payload, &coord); err != nil {
 		return client.SendError(err)
 	}
+	return err
 	//посылаем координаты на основную логику сервера
 
     return nil
@@ -78,3 +81,40 @@ func(*ExitCommand) Execute(ctx context.Context, client *Client, payload json.Raw
 
     return nil
 }
+
+
+//------------------------------------------------------------------------------------------------------------------
+//обработка команд взаимодействия с предметами
+type UseItemCommand struct{}
+
+func (*UseItemCommand) Name() string { return "UseItem" }
+
+func(*UseItemCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {	
+	var item struct {
+	itemID    string `json:"itemID"`
+	typeUsing string `json:"typeUsing"`
+	}
+
+    err := json.Unmarshal(payload, &item)
+	if err != nil {
+		client.SendError("invalid_json")
+	}
+	return err
+	//посылаем данные на основную логику сервера
+}
+
+
+//------------------------------------------------------------------------------------------------------------------
+//обработка команд выхода
+type ExitCommand struct{}
+
+func (*ExitCommand) Name() string { return "ExitGame" }
+
+func (c *ExitCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
+    if client.state != nil {
+        client.state.OnExit(ctx, client)
+    }
+    client.SetState(NewGameState("menu"))
+    return nil
+}
+
