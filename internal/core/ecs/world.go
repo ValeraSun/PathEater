@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 )
 
@@ -31,7 +32,7 @@ type World struct {
 	systemTimers map[string]time.Duration
 }
 
-func NewWorld(eventBus *events.EventBus) *World {
+func newWorld(eventBus *events.EventBus) *World {
 	return &World{
 		entities:       make(map[Entity]map[string]Component),
 		componentIndex: make(map[string]map[Entity]struct{}),
@@ -43,6 +44,23 @@ func NewWorld(eventBus *events.EventBus) *World {
 				return NewEntity()
 			},
 		},
+	}
+}
+
+func CreateWorld() *World {
+	eb := events.NewEventBus(100)
+	w := newWorld(eb)
+	go HandleWorld(w)
+	return w
+}
+
+func HandleWorld(world *World) {
+	ticker := time.NewTicker(config.GetMillisecondPerTick() * time.Millisecond)
+	defer ticker.Stop() // Важно: останавливаем тикер при выходе
+
+	// Бесконечный цикл для обработки тиков
+	for range ticker.C {
+		go world.Update(float64(config.GetMillisecondPerTick()))
 	}
 }
 

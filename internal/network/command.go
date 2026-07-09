@@ -3,6 +3,9 @@ package network
 import (
 	"context"
 	"encoding/json"
+	"errors"
+
+	"github.com/ValeraSun/PathEater/internal/core/ecs"
 )
 
 type Command interface {
@@ -12,12 +15,11 @@ type Command interface {
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 // Команды старта игры
-type StartGameCommand struct{}
+type StartRoomCommand struct{}
 
-func (c *StartGameCommand) Name() string { return "StartGame" }
+func (c *StartRoomCommand) Name() string { return "StartRoom" }
 
-func (c *StartGameCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
-<<<<<<< HEAD
+func (c *StartRoomCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
 	// Создаем комнату с уникальным ID
 	roomID := generateID()
 	hub := GetHub()
@@ -28,22 +30,23 @@ func (c *StartGameCommand) Execute(ctx context.Context, client *Client, payload 
 	client.SetState(NewGameState(roomID))
 	client.state.OnEnter(ctx, client)
 	return nil
-=======
-    // Создаем комнату с уникальным ID
-    roomID := generateID()
-    hub := GetHub()
-    room := hub.CreateGameRoom(roomID)
-    room.AddClient(client)
-    
-    //Передача события старта
-    e := CreateEventItemUse(itemID)
-    client.room.World.eventBus.Publish(e)
+}
 
-    // Меняем состояние
-    client.SetState(NewGameState(roomID))
-    client.state.OnEnter(ctx, client)
-    return nil
->>>>>>> origin/Egor
+type StartWorldCommand struct{}
+
+func (c *StartWorldCommand) Name() string { return "StartGame" }
+
+func (c *StartWorldCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
+
+	w := ecs.CreateWorld()
+	room := client.room
+
+	if room == nil {
+		return errors.New("Ошибка комната не найдена")
+	}
+
+	room.World = w
+	return nil
 }
 
 // ------------------------------------------------------------------------------------------------------------------
@@ -77,15 +80,15 @@ type UseItemCommand struct{}
 func (*UseItemCommand) Name() string { return "UseItem" }
 
 func (*UseItemCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
-	var coord struct {
+	var data struct {
 		ItemID string `json:"itemID"`
 	}
-	if err := json.Unmarshal(payload, &coord); err != nil {
+	if err := json.Unmarshal(payload, &data); err != nil {
 		return client.SendError(err)
 	}
 
 	//Передача события использования
-	e := CreateEventItemUse(coord)
+	e := CreateEventItemUse(data)
 	client.room.World.EventBus.Publish(e)
 
 	return nil
@@ -102,15 +105,9 @@ func (*ExitCommand) Execute(ctx context.Context, client *Client, payload json.Ra
 	client.SetState(NewMenuState())
 	client.state.OnEnter(ctx, client)
 
-<<<<<<< HEAD
 	//Передача события использования
 	e := CreateEventExit()
 	client.room.World.EventBus.Publish(e)
-=======
-    //Передача события выхода
-    e := CreateEventExit()
-    client.room.World.eventBus.Publish(e)
->>>>>>> origin/Egor
 
 	return nil
 }

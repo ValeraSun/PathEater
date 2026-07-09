@@ -26,7 +26,7 @@ func NewGameState(gameID string) *GameState {
 	s := &GameState{
 		commands: make(map[string]Command),
 	}
-	s.RegisterCommand(&StartGameCommand{})
+	s.RegisterCommand(&StartWorldCommand{})
 	s.RegisterCommand(&MoveCommand{})
 	s.RegisterCommand(&UseItemCommand{})
 	s.RegisterCommand(&ExitCommand{})
@@ -71,7 +71,7 @@ func NewMenuState() *MenuState {
 	s := &MenuState{
 		commands: make(map[string]Command),
 	}
-	s.RegisterCommand(&StartGameCommand{})
+	s.RegisterCommand(&StartRoomCommand{})
 	return s
 }
 
