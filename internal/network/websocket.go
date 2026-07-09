@@ -29,11 +29,12 @@ func HandleConnection(w http.ResponseWriter, r *http.Request) {
 	}
     defer wsConn.Close()
 	
+	hub := GetHub()
 
     //Создание клиента
 	client := NewClient(wsConn)
-    RegisterClient(client)
-    defer UnregisterClient(client)
+    hub.RegisterClient(client)
+    defer hub.UnregisterClient(client)
 	
     //Запуск чтения сообщений от клиента и отправки сообщений от сервера
     go client.ReadMessages()

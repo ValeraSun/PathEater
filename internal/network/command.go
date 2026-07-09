@@ -25,6 +25,10 @@ func (c *StartGameCommand) Execute(ctx context.Context, client *Client, payload 
     room := hub.CreateGameRoom(roomID)
     room.AddClient(client)
     
+    //Передача события старта
+    e := CreateEventItemUse(itemID)
+    client.room.World.eventBus.Publish(e)
+
     // Меняем состояние
     client.SetState(NewGameState(roomID))
     client.state.OnEnter(ctx, client)
@@ -91,7 +95,7 @@ func (*ExitCommand) Execute(ctx context.Context, client *Client, payload json.Ra
     client.SetState(NewMenuState())
     client.state.OnEnter(ctx, client)
 
-    //Передача события использования
+    //Передача события выхода
     e := CreateEventExit()
     client.room.World.eventBus.Publish(e)
 

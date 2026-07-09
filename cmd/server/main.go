@@ -7,8 +7,6 @@ import (
 )
 
 func main() {
-	hub := GetHub()
-
 	network.RegisterHandlers()
 	
 	http.Handle("/", http.FileServer(http.Dir("./web")))
