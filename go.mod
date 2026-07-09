@@ -1,4 +1,4 @@
-module server
+module github.com/ValeraSun/PathEater
 
 go 1.26.4
 

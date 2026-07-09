@@ -1,4 +1,3 @@
-// internal/core/ecs/world.go
 package ecs
 
 import (
@@ -20,7 +19,7 @@ type World struct {
 	systems []System
 
 	// eventBus для межсистемной коммуникации
-	eventBus *events.EventBus
+	EventBus *events.EventBus
 
 	// entityPool для переиспользования удаленных сущностей
 	entityPool sync.Pool
@@ -37,7 +36,7 @@ func NewWorld(eventBus *events.EventBus) *World {
 		entities:       make(map[Entity]map[string]Component),
 		componentIndex: make(map[string]map[Entity]struct{}),
 		systems:        make([]System, 0),
-		eventBus:       eventBus,
+		EventBus:       eventBus,
 		systemTimers:   make(map[string]time.Duration),
 		entityPool: sync.Pool{
 			New: func() interface{} {

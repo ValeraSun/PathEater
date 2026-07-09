@@ -4,20 +4,10 @@ package events
 import (
 	"fmt"
 	"sync"
-	"time"
 )
 
 type Event interface {
 	Type() string
-	Timestamp() time.Time
-}
-
-type BaseEvent struct {
-	timestamp time.Time
-}
-
-func (e BaseEvent) Timestamp() time.Time {
-	return e.timestamp
 }
 
 type EventHandler func(event Event) error
