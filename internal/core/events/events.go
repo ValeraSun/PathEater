@@ -1,26 +1,34 @@
 package events
 
-type EventMove struct {
-    X float32
-    Y float32
-    Z float32
+import (
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
+	"github.com/ValeraSun/PathEater/internal/core/types"
+)
+
+// локальные event через маленькую
+// глобальные event через большую
+
+type MoveEvent struct {
+	Id        types.Entity
+	Position  geometry.Vector3
+	Direction geometry.Vector3
 }
 
-func (e *EventMove) Type() string{ return "Move" }
+func (e *MoveEvent) Type() string { return "Move" }
 
-func CreateEventMove(X float32, Y float32, Z float32) EventMove {
-	return EventMove{
-		X: X,
-		Y: Y,
-		Z: Z,
+func CreateEventMove(position geometry.Vector3, direction geometry.Vector3, id types.Entity) *MoveEvent {
+	return &MoveEvent{
+		Id:        id,
+		Position:  position,
+		Direction: direction,
 	}
 }
 
-type EventUseItem struct{
+type EventUseItem struct {
 	ItemID string
 }
 
-func (e *EventUseItem) Type() string{ return "UseItem" }
+func (e *EventUseItem) Type() string { return "UseItem" }
 
 func CreateEventUseItem(itemID string) EventUseItem {
 	return EventUseItem{
@@ -30,7 +38,7 @@ func CreateEventUseItem(itemID string) EventUseItem {
 
 type EventExit struct{}
 
-func (e *EventExit) Type() string{ return "Exit" }
+func (e *EventExit) Type() string { return "Exit" }
 
 func CreateEventExit() EventExit {
 	return EventExit{}

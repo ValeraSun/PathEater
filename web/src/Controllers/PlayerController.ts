@@ -79,14 +79,7 @@ export class PlayerController
 
         if (movedInput && now - this.lastSendTime > NETWORK_SEND_INTERVAL) 
         {
-            this.networkManager.SendMove(
-                {
-                    x: this.model.position.x,
-                    y: this.model.position.y,
-                    z: this.model.position.z,
-                },
-                this.camera.rotation.y
-            );
+            this.networkManager.SendMove(this.camera.position, this.camera.rotation);
 
             this.lastSendTime = now;
         }

@@ -3,7 +3,7 @@ package network
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
 )
 
 type State interface {
@@ -13,84 +13,52 @@ type State interface {
 	OnExit(ctx context.Context, client *Client)
 }
 
-// -----------------------------------------------------------------------------------------------------------------
-// состояния меню
-// type
-// -----------------------------------------------------------------------------------------------------------------
-// состояния игры
-type GameState struct {
+// BaseState содержит общую реализацию State.
+type BaseState struct {
+	name     string
 	commands map[string]Command
 }
 
-func NewGameState(gameID string) *GameState {
-	s := &GameState{
+func NewBaseState(name string) *BaseState {
+	return &BaseState{
+		name:     name,
 		commands: make(map[string]Command),
 	}
-	s.RegisterCommand(&StartWorldCommand{})
-	s.RegisterCommand(&MoveCommand{})
-	s.RegisterCommand(&UseItemCommand{})
-	s.RegisterCommand(&ExitCommand{})
-	return s
 }
 
-func (s *GameState) Name() string { return "GAME" }
+func (s *BaseState) Name() string { return s.name }
 
-func (s *GameState) RegisterCommand(cmd Command) {
+func (s *BaseState) RegisterCommand(cmd Command) {
 	s.commands[cmd.Name()] = cmd
 }
 
-func (s *GameState) HandleCommand(ctx context.Context, client *Client, cmdName string, payload json.RawMessage) error {
+func (s *BaseState) HandleCommand(ctx context.Context, client *Client, cmdName string, payload json.RawMessage) error {
 	cmd, exists := s.commands[cmdName]
 	if !exists {
-		return errors.New("unknown command in game")
+		return fmt.Errorf("неизвестная команда в состоянии %q", s.name)
 	}
 	return cmd.Execute(ctx, client, payload)
 }
 
-func (s *GameState) OnEnter(ctx context.Context, client *Client) {
-	client.SendMessage("STATE_CHANGE", map[string]string{
-		"state": "GAME",
-	})
-}
+func (s *BaseState) OnEnter(ctx context.Context, client *Client) {}
+func (s *BaseState) OnExit(ctx context.Context, client *Client)  {}
 
-func (s *GameState) OnExit(ctx context.Context, client *Client) {
-	//Выход из игры
-}
+// Реализации State
 
-// -----------------------------------------------------------------------------------------------------------------
-// состояния меню
-type MenuState struct {
-	commands map[string]Command
-}
-
-func (s *MenuState) RegisterCommand(cmd Command) {
-	s.commands[cmd.Name()] = cmd
-}
-
-func NewMenuState() *MenuState {
-	s := &MenuState{
-		commands: make(map[string]Command),
-	}
-	s.RegisterCommand(&StartRoomCommand{})
+func NewMainMenuState() State {
+	s := NewBaseState("mainMenu")
+	s.RegisterCommand(&createRoomCommand{})
 	return s
 }
 
-func (s *MenuState) Name() string { return "MENU" }
-
-func (s *MenuState) HandleCommand(ctx context.Context, client *Client, cmdName string, payload json.RawMessage) error {
-	cmd, exists := s.commands[cmdName]
-	if !exists {
-		return errors.New("unknown command in menu")
-	}
-	return cmd.Execute(ctx, client, payload)
+func NewRoomMenuState() State {
+	s := NewBaseState("roomMenu")
+	s.RegisterCommand(&createRoomCommand{})
+	return s
 }
 
-func (s *MenuState) OnEnter(ctx context.Context, client *Client) {
-	client.SendMessage("STATE_CHANGE", map[string]string{
-		"state": "MENU",
-	})
-}
-
-func (s *MenuState) OnExit(ctx context.Context, client *Client) {
-	// Выход из меню
+func NewPlayerControlState() State {
+	s := NewBaseState("playerControl")
+	s.RegisterCommand(&createRoomCommand{})
+	return s
 }

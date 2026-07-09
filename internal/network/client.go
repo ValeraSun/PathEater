@@ -41,7 +41,7 @@ func NewClient(ws *websocket.Conn) *Client {
 		done:   make(chan struct{}),
 		ctx:    ctx,
 		cancel: cancel,
-		state:  NewMenuState(),
+		state:  NewMainMenuState(),
 		room:   nil,
 		closed: false,
 	}

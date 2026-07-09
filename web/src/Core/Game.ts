@@ -38,6 +38,9 @@ export class Game
         this.gameView.Init();
         //убрать перед защитой
         this.collisionManager.AddDebugHelpers(this.gameView.GetScene());
+        this.networkManager.Connect();
+        this.networkManager.CreateRoom();
+        this.networkManager.CreateGameSession();
         this.GameLoop();
     }
 

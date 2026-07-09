@@ -6,6 +6,9 @@ import (
 	"errors"
 
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
+	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
+	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 type Command interface {
@@ -15,11 +18,11 @@ type Command interface {
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 // Команды старта игры
-type StartRoomCommand struct{}
+type createRoomCommand struct{}
 
-func (c *StartRoomCommand) Name() string { return "StartRoom" }
+func (c *createRoomCommand) Name() string { return "сreateRoom" }
 
-func (c *StartRoomCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
+func (c *createRoomCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
 	// Создаем комнату с уникальным ID
 	roomID := generateID()
 	hub := GetHub()
@@ -27,16 +30,16 @@ func (c *StartRoomCommand) Execute(ctx context.Context, client *Client, payload 
 	room.AddClient(client)
 
 	// Меняем состояние
-	client.SetState(NewGameState(roomID))
+	client.SetState(NewRoomMenuState())
 	client.state.OnEnter(ctx, client)
 	return nil
 }
 
-type StartWorldCommand struct{}
+type createGameSessionCommand struct{}
 
-func (c *StartWorldCommand) Name() string { return "StartGame" }
+func (c *createGameSessionCommand) Name() string { return "startGame" }
 
-func (c *StartWorldCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
+func (c *createGameSessionCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
 
 	w := ecs.CreateWorld()
 	room := client.room
@@ -53,21 +56,20 @@ func (c *StartWorldCommand) Execute(ctx context.Context, client *Client, payload
 // обработка команд движения
 type MoveCommand struct{}
 
-func (c *MoveCommand) Name() string { return "Move" }
+func (c *MoveCommand) Name() string { return "move" }
 
 func (*MoveCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
-	var coord struct {
-		X float32 `json:"X"`
-		Y float32 `json:"Y"`
-		Z float32 `json:"Z"`
+	var transform struct {
+		Id        types.Entity
+		Position  geometry.Vector3
+		Direction geometry.Vector3
 	}
-	if err := json.Unmarshal(payload, &coord); err != nil {
+	if err := json.Unmarshal(payload, &transform); err != nil {
 		return client.SendError(err)
 	}
-	return nil
 
 	//Передача события движения
-	e := CreateEventMove(coord)
+	e := events.CreateEventMove(transform.Position, transform.Direction, transform.Id)
 	client.room.World.EventBus.Publish(e)
 
 	return nil
@@ -77,7 +79,7 @@ func (*MoveCommand) Execute(ctx context.Context, client *Client, payload json.Ra
 // Команды взаимодействия с предметами
 type UseItemCommand struct{}
 
-func (*UseItemCommand) Name() string { return "UseItem" }
+func (*UseItemCommand) Name() string { return "useItem" }
 
 func (*UseItemCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
 	var data struct {
@@ -88,26 +90,26 @@ func (*UseItemCommand) Execute(ctx context.Context, client *Client, payload json
 	}
 
 	//Передача события использования
-	e := CreateEventItemUse(data)
-	client.room.World.EventBus.Publish(e)
+	// e := CreateEventItemUse(data)
+	// client.room.World.EventBus.Publish(e)
 
 	return nil
 }
 
 // ------------------------------------------------------------------------------------------------------------------
 // обработка команд выхода
-type ExitCommand struct{}
+type ExitGameSeccionCommand struct{}
 
-func (*ExitCommand) Name() string { return "ExitGame" }
+func (*ExitGameSeccionCommand) Name() string { return "exitGameSeccion" }
 
-func (*ExitCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
+func (*ExitGameSeccionCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
 	client.state.OnExit(ctx, client)
-	client.SetState(NewMenuState())
+	client.SetState(NewMainMenuState())
 	client.state.OnEnter(ctx, client)
 
 	//Передача события использования
-	e := CreateEventExit()
-	client.room.World.EventBus.Publish(e)
+	// e := CreateEventExit()
+	// client.room.World.EventBus.Publish(e)
 
 	return nil
 }

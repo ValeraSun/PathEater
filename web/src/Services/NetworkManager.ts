@@ -39,13 +39,25 @@ export class NetworkManager
         };
     }
 
-    public SendMove(position: Vector3D, rotationY: number): void 
+    public CreateGameSession(): void 
+    {
+         this.Send(
+            {action: "createGameSession"}
+        )
+    }
+    public CreateRoom(): void 
+    {
+        this.Send(
+            {action: "createRoom"}
+        )
+    }
+
+    public SendMove(position: Vector3D, direction: Vector3D): void 
     {
         this.Send({
-            type: "action",
             action: "move",
             position,
-            rotationY
+            direction
         });
     }
 

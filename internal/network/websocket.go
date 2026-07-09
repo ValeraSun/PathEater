@@ -28,27 +28,12 @@ func HandleConnection(w http.ResponseWriter, r *http.Request) {
 		log.Println("Ошибка установления ws-связи:", err)
 		return
 	}
-<<<<<<< HEAD
 	defer wsConn.Close()
-=======
-    defer wsConn.Close()
-	
-	hub := GetHub()
->>>>>>> origin/Egor
 
 	//Создание клиента
 	client := NewClient(wsConn)
-<<<<<<< HEAD
 	hub.RegisterClient(client)
 	defer hub.UnregisterClient(client)
-=======
-    hub.RegisterClient(client)
-    defer hub.UnregisterClient(client)
-	
-    //Запуск чтения сообщений от клиента и отправки сообщений от сервера
-    go client.ReadMessages()
-    go client.WriteMessages()
->>>>>>> origin/Egor
 
 	//Запуск чтения сообщений от клиента и отправки сообщений от сервера
 	go client.ReadMessages()
