@@ -4,8 +4,10 @@ import (
     "context"
     "errors"
     "log"
-    "time"
     "sync"
+    "fmt"
+    "encoding/json"
+    "github.com/google/uuid"
     
     "github.com/gorilla/websocket"
 )
@@ -22,6 +24,11 @@ type Client struct {
     closed bool
 }
 
+//Генерация ID
+func generateID() string {
+    return uuid.New().String()
+}
+
 //Создаёт нового клиента
 func NewClient(ws *websocket.Conn) *Client{
     ctx, cancel := context.WithCancel(context.Background())
@@ -35,6 +42,12 @@ func NewClient(ws *websocket.Conn) *Client{
         state:  NewMenuState(),
         closed: false,
     }
+}
+
+func (c *Client) SetState(s State) {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    c.state = s
 }
 
 //Закрывает клиента
@@ -73,18 +86,20 @@ func (c *Client) Close() error {
 func (c *Client) ReadMessages() {
     defer c.Close()
     for {
+        c.mu.Lock()
+        if c.closed || c.done == nil || c.conn == nil || c.msg == nil {
+            c.mu.Unlock()
+            return
+        }
+        done := c.done
+        conn := c.conn
+        msgCh := c.msg
+        c.mu.Unlock()
+
         select {
-        case <-c.done:
+        case <- done:
             return
         default:
-            c.mu.Lock()
-            if c.conn == nil {
-                c.mu.Unlock()
-                return
-            }
-            conn := c.conn
-            c.mu.Unlock()
-
             //чтение сообщения
             _, msg, err := conn.ReadMessage()
             if err != nil {
@@ -93,15 +108,18 @@ func (c *Client) ReadMessages() {
             }
 
             //превращение данных из json в структуру команды
-            var req Req
-            if err := json.Unmarshal(message, &req); err != nil {
-                c.SendError("invalid_json")
+            var req struct {
+                Cmd     string          `json:"cmd"`
+                Payload json.RawMessage `json:"payload"`
+            }
+            if err := json.Unmarshal(msg, &req); err != nil {
+                c.SendError(err)
                 continue
             }
     
             //обработка команды
-            if err := c.State.HandleCommand(c.ctx, c, req.Cmd, req.Payload); err != nil {
-                c.SendError(err.Error())
+            if err := c.state.HandleCommand(c.ctx, c, req.Cmd, req.Payload); err != nil {
+                c.SendError(err)
             }
         }
     }
@@ -111,17 +129,20 @@ func (c *Client) ReadMessages() {
 func (c *Client) WriteMessages() {
     defer c.Close()
     for {
-        select {
-        case <-c.done:
-            return
-        case msg := <-c.msg:
-            c.mu.Lock()
-            if c.conn == nil {
-                c.mu.Unlock()
-                return
-            }
-            conn := c.conn
+        c.mu.Lock()
+        if c.closed || c.done == nil || c.conn == nil || c.msg == nil {
             c.mu.Unlock()
+            return
+        }
+        done := c.done
+        conn := c.conn
+        msgCh := c.msg
+        c.mu.Unlock()
+
+        select {
+        case <- done:
+            return
+        case msg := <-msgCh:
             err := conn.WriteMessage(websocket.TextMessage, msg)
             if err != nil {
                 log.Println("Ошибка записи:", err)
@@ -147,4 +168,42 @@ func (c *Client) Send(msg []byte) error {
     default:
         return errors.New("канал сообщений переполнен")
     }
+}
+
+//Передаёт сообщение клиентам
+func (c *Client) SendMessage(typeMsg string, data interface{}) error {
+    c.mu.Lock()
+    
+    if c.conn == nil {
+        c.mu.Unlock()
+        return errors.New("нет соединения")
+    }
+
+    c.mu.Unlock()
+    
+    message := struct {
+        Type string      `json:"type"`
+        Data interface{} `json:"data"`
+    }{
+        Type: typeMsg,
+        Data: data,
+    }
+    
+    jsonData, err := json.Marshal(message)
+    if err != nil {
+        return fmt.Errorf("ошибка создания json: %w", err)
+    }
+    
+    
+    if err = c.Send(jsonData); err != nil {
+        return fmt.Errorf("ошибка отправки: %w", err)
+    }
+    
+    return nil
+}
+
+func (c *Client) SendError(err error) error {   
+    return c.SendMessage("error", map[string]interface{}{
+        "message": err.Error(),
+    })
 }
