@@ -4,9 +4,9 @@ import (
     "context"
     "errors"
     "log"
-    "time"
     "sync"
-    "fmt"
+    "encoding/json"
+    "github.com/google/uuid"
     
     "github.com/gorilla/websocket"
 )
@@ -23,9 +23,8 @@ type Client struct {
     closed bool
 }
 
-func generateID() {
-    id := uuid.New()
-    fmt.Println(id.String())
+func generateID() string {
+    return uuid.New().String()
 }
 
 //Создаёт нового клиента
@@ -38,7 +37,7 @@ func NewClient(ws *websocket.Conn) *Client{
         done:   make(chan struct{}),
         ctx:    ctx,
         cancel: cancel,
-        state:  NewMenuState(),z
+        state:  NewGameState("TESTER"),
         closed: false,
     }
 }
@@ -109,7 +108,7 @@ func (c *Client) ReadMessages() {
             }
     
             //обработка команды
-            if err := c.State.HandleCommand(c.ctx, c, req.Cmd, req.Payload); err != nil {
+            if err := c.state.HandleCommand(c.ctx, c, req.Cmd, req.Payload); err != nil {
                 c.SendError(err.Error())
             }
         }
@@ -156,4 +155,31 @@ func (c *Client) Send(msg []byte) error {
     default:
         return errors.New("канал сообщений переполнен")
     }
+}
+
+//Передаёт данные клиентам
+func (c *Client) SendMessage(msgType string, data interface{}) error {
+    msg := map[string]interface{}{
+        "type": msgType,
+        "data": data,
+    }
+    jsonData, err := json.Marshal(msg)
+    if err != nil {
+        return err
+    }
+    return c.Send(jsonData)
+}
+
+//Передаёт ошибки клиентам
+func (c *Client) SendError(errMsg string) error {
+    return c.SendMessage("ERROR", map[string]string{
+        "error": errMsg,
+    })
+}
+
+//Задаёт состояние клиенту
+func (c *Client) SetState(s State) {
+    c.mu.Lock()
+    c.state = s
+    c.mu.Unlock()
 }

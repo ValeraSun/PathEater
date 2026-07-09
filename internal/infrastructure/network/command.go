@@ -3,41 +3,87 @@ package network
 import (
     "context"
     "encoding/json"
-    "errors"
-    "ws/internal/ws"
 )
 
 type Command interface {
     Name() string
-    Execute(ctx context.Context, client *ws.Client, payload json.RawMessage) error
+    Execute(ctx context.Context, client *Client, payload json.RawMessage) error
 }
 
+//------------------------------------------------------------------------------------------------------------------
+//обработка команд начала
 type StartGameCommand struct{}
 
 func (c *StartGameCommand) Name() string { return "StartGame" }
 
-func (c *StartGameCommand) Execute(ctx context.Context, client *ws.Client, payload json.RawMessage) error {
-	
-    client.SetState(NewGameState("game-123"))
-    client.State.OnEnter(ctx, client)
+func (c *StartGameCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
+    if client.state != nil {
+        client.state.OnExit(ctx, client)
+    }
+
+    client.SetState(NewGameState("game"))
+
+    if client.state != nil {
+        client.state.OnEnter(ctx, client)
+    }
     return nil
 }
 
-type MoveCommand struct{
-	X, Y, Z float32
-}
 
-func (*MoveCommand) Name() string { return "Move"}
+//------------------------------------------------------------------------------------------------------------------
+//обработка команд движения
+type MoveCommand struct{}
 
-func(*MoveCommand) Execute(ctx context.Context, client Client, payload json.RawMessage) {	
+func (*MoveCommand) Name() string { return "Move" }
+
+func(*MoveCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {	
 	var coord struct {
-		X string  `json:"X"`
+		X float32 `json:"X"`
 		Y float32 `json:"Y"`
 		Z float32 `json:"Z"`
 	}
-	if err := json.Unmarshal(message, &coord); err != nil {
+    
+	err := json.Unmarshal(payload, &coord)
+	if err != nil {
 		client.SendError("invalid_json")
-		continue
 	}
+	return err
 	//посылаем координаты на основную логику сервера
 }
+
+
+//------------------------------------------------------------------------------------------------------------------
+//обработка команд взаимодействия с предметами
+type UseItemCommand struct{}
+
+func (*UseItemCommand) Name() string { return "UseItem" }
+
+func(*UseItemCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {	
+	var item struct {
+	itemID    string `json:"itemID"`
+	typeUsing string `json:"typeUsing"`
+	}
+
+    err := json.Unmarshal(payload, &item)
+	if err != nil {
+		client.SendError("invalid_json")
+	}
+	return err
+	//посылаем данные на основную логику сервера
+}
+
+
+//------------------------------------------------------------------------------------------------------------------
+//обработка команд выхода
+type ExitCommand struct{}
+
+func (*ExitCommand) Name() string { return "ExitGame" }
+
+func (c *ExitCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
+    if client.state != nil {
+        client.state.OnExit(ctx, client)
+    }
+    client.SetState(NewGameState("menu"))
+    return nil
+}
+

@@ -2,9 +2,7 @@ package network
 
 import (
 	"log"
-	"net"
 	"net/http"
-    "time"
 
 	"github.com/gorilla/websocket"
 )
@@ -36,6 +34,6 @@ func HandleConnection(w http.ResponseWriter, r *http.Request) {
 	client := NewClient(wsConn)
 	
     //Запуск чтения сообщений от клиента и отправки сообщений от сервера
-    go client.ReadMessages(wsConn)
-    go client.WriteMessages(wsConn)
+    go client.ReadMessages()
+    go client.WriteMessages()
 }
