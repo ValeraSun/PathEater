@@ -10,7 +10,7 @@ import (
 func main() {
 	network.RegisterHandlers()
 
-	http.Handle("/", http.FileServer(http.Dir("./web")))
+	http.Handle("/", http.FileServer(http.Dir("./app/web")))
 
 	port := ":8080"
 	log.Println("Сервер запущен на http://localhost", port)
