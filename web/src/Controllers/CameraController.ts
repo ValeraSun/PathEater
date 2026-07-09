@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
 import { PlayerModel } from "../Models/PlayerModel";
+import { CAMERA_SHIFT_Y, MOUSE_SENSITIVITY } from "../Config/CameraConfig";
 
 export class CameraController 
 {
@@ -14,7 +15,7 @@ export class CameraController
         this.playerModel = playerModel;
 
         this.controls = new PointerLockControls(this.camera, domElement);
-
+        this.controls.pointerSpeed = MOUSE_SENSITIVITY;
         document.addEventListener("click", () => {
             this.controls.lock();
         });
@@ -22,10 +23,7 @@ export class CameraController
 
     public Update(): void 
     {
-        this.camera.position.set(
-            this.playerModel.position.x,
-            this.playerModel.position.y + 1,
-            this.playerModel.position.z
-        );
+        this.camera.position.copy(this.playerModel.position);
+        this.camera.position.y += CAMERA_SHIFT_Y;
     }
 }

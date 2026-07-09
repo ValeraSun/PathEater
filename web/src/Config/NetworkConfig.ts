@@ -1,0 +1,1 @@
+export const NETWORK_SEND_INTERVAL = 100;

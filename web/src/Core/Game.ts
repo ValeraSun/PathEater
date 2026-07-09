@@ -3,23 +3,26 @@ import { InputController } from "../Controllers/InputController";
 import { PlayerModel } from "../Models/PlayerModel";
 import { PlayerView } from "../Views/PlayerView";
 import { PlayerController } from "../Controllers/PlayerController";
-import { CameraController } from "../Controllers/CameraController";
 import { NetworkManager } from "../Services/NetworkManager";
 import { EntityManager } from "../Services/EntityManager";
 import { CollisionManager } from "../Physics/CollisionManager";
+import { CameraController } from "../Controllers/CameraController";
+import { MAX_DELTA_TIME, MILLISECONDS_IN_SECOND } from "../Config/GameConfig";
 
 export class Game 
 {
+    private static instance: Game;
     private input = new InputController();
     private playerModel = new PlayerModel();
     private playerView = new PlayerView();
     private cameraController: CameraController;
-    private static instance: Game;
     private gameView: GameView;
     private playerController: PlayerController;
     private entityManager: EntityManager;
     private networkManager: NetworkManager;
     private collisionManager = new CollisionManager();
+
+    private lastTime = performance.now();
 
     public static GetInstance(): Game 
     {
@@ -31,12 +34,10 @@ export class Game
     }
 
     public async Start(): Promise<void> {
-        await this.collisionManager.LoadShipColliders();
-
+        await this.collisionManager.LoadShipColliders("/data/ship_wall_colliders_v1.json");
         this.gameView.Init();
-
+        //убрать перед защитой
         this.collisionManager.AddDebugHelpers(this.gameView.GetScene());
-
         this.Animate();
     }
 
@@ -62,7 +63,10 @@ export class Game
     private Animate = (): void => 
     {
         requestAnimationFrame(this.Animate);
-        this.playerController.Update();
+        const now = performance.now();
+        const dt = Math.min((now - this.lastTime) / MILLISECONDS_IN_SECOND, MAX_DELTA_TIME);
+        this.lastTime = now;
+        this.playerController.Update(dt);
         this.cameraController.Update();
         this.gameView.Render();
     };
