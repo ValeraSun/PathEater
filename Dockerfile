@@ -1,17 +1,17 @@
 # 1. Сборка фронтенда
 FROM node:20-alpine AS frontend-build
 
-WORKDIR /app/frontend
+WORKDIR /app/web
 
-COPY frontend/package*.json ./
+COPY web/package*.json ./
 RUN npm install
 
-COPY frontend/ ./
+COPY web/ ./
 RUN npm run build
 
 
 # 2. Сборка Go backend
-FROM golang:1.23-alpine AS backend-build
+FROM golang:1.26-alpine AS backend-build
 
 WORKDIR /app
 
@@ -22,13 +22,15 @@ RUN go mod download
 
 COPY . .
 
-COPY --from=frontend-build /app/web ./web
+# Берём собранный Vite build из web/dist
+RUN rm -rf ./web
+COPY --from=frontend-build /app/web/dist ./web
 
 RUN go build -o /app/main .
 
 
 # 3. Финальный контейнер
-FROM golang:1.23-alpine
+FROM golang:1.26-alpine
 
 WORKDIR /app
 

@@ -6,6 +6,7 @@ import { PlayerController } from "../Controllers/PlayerController";
 import { CameraController } from "../Controllers/CameraController";
 import { NetworkManager } from "../Services/NetworkManager";
 import { EntityManager } from "../Services/EntityManager";
+import { CollisionManager } from "../Physics/CollisionManager";
 
 export class Game 
 {
@@ -18,6 +19,7 @@ export class Game
     private playerController: PlayerController;
     private entityManager: EntityManager;
     private networkManager: NetworkManager;
+    private collisionManager = new CollisionManager();
 
     public static GetInstance(): Game 
     {
@@ -28,10 +30,13 @@ export class Game
         return Game.instance;
     }
 
-    public Start(): void 
-    {
-        this.networkManager.Connect();        
+    public async Start(): Promise<void> {
+        await this.collisionManager.LoadShipColliders();
+
         this.gameView.Init();
+
+        this.collisionManager.AddDebugHelpers(this.gameView.GetScene());
+
         this.Animate();
     }
 
@@ -49,7 +54,8 @@ export class Game
             this.playerView,
             this.input,
             this.gameView.GetCamera(),
-            this.networkManager
+            this.networkManager,
+            this.collisionManager
         );
     }
 

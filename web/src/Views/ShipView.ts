@@ -17,7 +17,7 @@ export class ShipView
 
         const loader = new GLTFLoader();
 
-        loader.load("/models/ship_hull_detailed_v5.glb", (gltf) => {
+        loader.load("/models/ship_hull_detailed_v8.glb", (gltf) => {
 
             gltf.scene.scale.set(1, 1, 1);
 
