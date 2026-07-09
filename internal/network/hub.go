@@ -35,6 +35,7 @@ type GameRoom struct {
     Mutex     sync.RWMutex
     GameState map[string]interface{}
     Hub       *Hub
+    World     *World
 }
 
 var (
@@ -387,6 +388,7 @@ func (r *GameRoom) AddClient(client *Client) {
     r.Mutex.Lock()
     defer r.Mutex.Unlock()
     r.Clients[client.ID] = client
+    client.room = r
     log.Printf("Клиент %s добавлен в комнату %s", client.ID, r.ID)
 }
 
@@ -394,6 +396,7 @@ func (r *GameRoom) AddClient(client *Client) {
 func (r *GameRoom) RemoveClient(clientID string) {
     r.Mutex.Lock()
     defer r.Mutex.Unlock()
+    r.Clients[clientID].room = nil
     delete(r.Clients, clientID)
     log.Printf("Клиент %s удален из комнаты %s", clientID, r.ID)
 
