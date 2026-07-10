@@ -16,7 +16,6 @@ type Component interface {
 // System - интерфейс для всех систем
 type System interface {
 	Update(world *World, dt float64) error
-	RequiredComponents() []string
 }
 
 // NewEntity создает новый уникальный идентификатор

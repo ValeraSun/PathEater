@@ -56,9 +56,7 @@ func GameRoomState() State {
 
 func GameState() State {
 	s := NewBaseState("game")
-	s.RegisterCommand(&movementCommand{})
-	s.RegisterCommand(&useItemCommand{})
-	s.RegisterCommand(&attackCommand{})
+	s.RegisterCommand(&playerStateCommand{})
 	s.RegisterCommand(&exitGameCommand{})
 	return s
 }

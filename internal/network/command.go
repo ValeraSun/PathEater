@@ -145,54 +145,37 @@ func (c *startGameCommand) Execute(client *Client, payload json.RawMessage) erro
 //Команды игры
 
 //движение
-type movementCommand struct {}
+type playerStateCommand struct {}
 
-func (c *movementCommand) Name() string { return "movement" }
+type MoveState struct {
+    MoveFront bool
+    MoveRight bool
+    MoveBack  bool
+    MoveLeft  bool
+    Interact  bool
+    Attack    bool
+    //Direction Vector3
+}
 
-func (c *movementCommand) Execute(client *Client, payload json.RawMessage) error {
-    var coord struct {
-		X float32 `json:"X"`
-		Y float32 `json:"Y"`
-		Z float32 `json:"Z"`
+func (c *playerStateCommand) Name() string { return "movement" }
+
+func (c *playerStateCommand) Execute(client *Client, payload json.RawMessage) error {
+    var state MoveState {
+		MoveFront bool `json:"move_front"`
+		MoveRight bool `json:"move_right"`
+		MoveBack  bool `json:"move_back"`
+		MoveLeft  bool `json:"move_left"`
+        Interact  bool `json:"interact"`
+        Attack    bool `json:"attack"`
+        //Direction Vector3 `json:"direction"`
 	}
-	if err := json.Unmarshal(payload, &coord); err != nil {
+	if err := json.Unmarshal(payload, &state); err != nil {
 		return client.SendError(err)
 	}
     
     //действия на сервере
-
-    e := events.NewMoveEvent(coord)
+    e := events.NewPlayerStateEvent(client.ID, state)
     client.room.world.EventBus.Publish(e)
-
-    return nil
-}
-
-//использование предмета
-type useItemCommand struct {}
-
-func (c *useItemCommand) Name() string { return "useItem" }
-
-func (c *useItemCommand) Execute(client *Client, payload json.RawMessage) error {
-    var itemID struct {
-		ItemID float32 `json:"itemID"`
-	}
-	if err := json.Unmarshal(payload, &itemID); err != nil {
-		return client.SendError(err)
-	}
-    
-    //действия на сервере
-
-    return nil
-}
-
-//атака ближнего боя
-type attackCommand struct {}
-
-func (c *attackCommand) Name() string { return "attack" }
-
-func (c *attackCommand) Execute(client *Client, payload json.RawMessage) error {
-    
-    //действия на сервере
 
     return nil
 }

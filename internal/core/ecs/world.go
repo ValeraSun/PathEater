@@ -33,6 +33,8 @@ type World struct {
 }
 
 func NewWorld(eventBus *events.EventBus) *World {
+	s := NewPlayerControllerSystem()
+	eb.Subscribe("playerState", s.OnEvent)
 	return &World{
 		entities:       make(map[Entity]map[string]Component),
 		componentIndex: make(map[string]map[Entity]struct{}),

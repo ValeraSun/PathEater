@@ -1,37 +1,25 @@
 package events
 
-type EventMove struct {
-    X float32
-    Y float32
-    Z float32
+type EventState struct {
+	MoveFront bool
+	MoveRight bool 
+	MoveBack  bool 
+	MoveLeft  bool
+	Interact  bool 
+	Attack    bool 
+	//Direction Vector3
 }
 
-func (e *EventMove) Type() string{ return "Move" }
+func (e *EventState) Type() string{ return "playerState" }
 
-func CreateEventMove(X float32, Y float32, Z float32) EventMove {
-	return EventMove{
-		X: X,
-		Y: Y,
-		Z: Z,
+func NewPlayerStateEvent(id string, moveState MoveState) EventState {
+	return EventState{
+		ID:        id,
+		MoveFront: moveState.MoveFront,
+		MoveRight: moveState.MoveRight,
+		MoveBack:  moveState.MoveBack,
+		MoveLeft:  moveState.MoveLeft,
+		Interact:  moveState.Interact,
+		Attack:    moveState.Attack,
 	}
-}
-
-type EventUseItem struct{
-	ItemID string
-}
-
-func (e *EventUseItem) Type() string{ return "UseItem" }
-
-func CreateEventUseItem(itemID string) EventUseItem {
-	return EventUseItem{
-		ItemID: itemID,
-	}
-}
-
-type EventExit struct{}
-
-func (e *EventExit) Type() string{ return "Exit" }
-
-func CreateEventExit() EventExit {
-	return EventExit{}
 }
