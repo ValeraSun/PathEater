@@ -9,6 +9,16 @@ import { CollisionManager } from "../Physics/CollisionManager";
 import { CameraController } from "../Controllers/CameraController";
 import { MAX_DELTA_TIME, MILLISECONDS_IN_SECOND } from "../Config/GameConfig";
 
+export class Timer {
+    static wait(seconds: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+    }
+    
+    static waitMs(milliseconds: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, milliseconds));
+    }
+}
+
 export class Game 
 {
     private static instance: Game;
@@ -39,6 +49,7 @@ export class Game
         //убрать перед защитой
         this.collisionManager.AddDebugHelpers(this.gameView.GetScene());
         this.networkManager.Connect();
+        while (!this.networkManager.Connected) {await Timer.waitMs(100);}
         this.networkManager.CreateRoom();
         this.networkManager.CreateGameSession();
         this.GameLoop();

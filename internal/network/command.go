@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -20,7 +21,7 @@ type Command interface {
 // Команды старта игры
 type createRoomCommand struct{}
 
-func (c *createRoomCommand) Name() string { return "сreateRoom" }
+func (c *createRoomCommand) Name() string { return "createRoom" }
 
 func (c *createRoomCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
 	// Создаем комнату с уникальным ID
@@ -37,7 +38,7 @@ func (c *createRoomCommand) Execute(ctx context.Context, client *Client, payload
 
 type createGameSessionCommand struct{}
 
-func (c *createGameSessionCommand) Name() string { return "startGame" }
+func (c *createGameSessionCommand) Name() string { return "createGameSession" }
 
 func (c *createGameSessionCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
 
@@ -49,6 +50,10 @@ func (c *createGameSessionCommand) Execute(ctx context.Context, client *Client, 
 	}
 
 	room.World = w
+
+	client.SetState(NewPlayerControlState())
+	client.state.OnEnter(ctx, client)
+
 	return nil
 }
 
@@ -65,7 +70,8 @@ func (*MoveCommand) Execute(ctx context.Context, client *Client, payload json.Ra
 		Direction geometry.Vector3
 	}
 	if err := json.Unmarshal(payload, &transform); err != nil {
-		return client.SendError(err)
+		log.Println(err)
+		return nil
 	}
 
 	//Передача события движения

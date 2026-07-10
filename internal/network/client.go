@@ -107,7 +107,7 @@ func (c *Client) ReadMessages() {
 		default:
 			//чтение сообщения
 			_, msg, err := conn.ReadMessage()
-			log.Println("зашли в селект")
+			log.Println("зашли в селект", msg)
 			if err != nil {
 				log.Println("Ошибка чтения:", err)
 				return

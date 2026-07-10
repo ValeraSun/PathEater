@@ -35,7 +35,10 @@ func (s *BaseState) RegisterCommand(cmd Command) {
 func (s *BaseState) HandleCommand(ctx context.Context, client *Client, cmdName string, payload json.RawMessage) error {
 	cmd, exists := s.commands[cmdName]
 	if !exists {
-		log.Println("неизвестная команда в состоянии ", s.name)
+		log.Println("неизвестная команда в состоянии ", s.name, cmdName, payload)
+		log.Println("Пришло", []byte(cmdName))
+		crc := &createRoomCommand{}
+		log.Println("Надо", []byte(crc.Name()))
 		return nil
 	}
 	log.Println("команда прошла:", cmd.Name())
@@ -55,12 +58,12 @@ func NewMainMenuState() State {
 
 func NewRoomMenuState() State {
 	s := NewBaseState("roomMenu")
-	s.RegisterCommand(&createRoomCommand{})
+	s.RegisterCommand(&createGameSessionCommand{})
 	return s
 }
 
 func NewPlayerControlState() State {
 	s := NewBaseState("playerControl")
-	s.RegisterCommand(&createRoomCommand{})
+	s.RegisterCommand(&MoveCommand{})
 	return s
 }

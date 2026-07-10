@@ -5,10 +5,12 @@ export class NetworkManager
 {
     private socket: WebSocket | null = null;
     private entityManager: EntityManager;
+    public Connected: boolean;
 
     constructor(entityManager: EntityManager) 
     {
         this.entityManager = entityManager;
+        this.Connected = false;
     }
 
     public Connect(): void 
@@ -22,6 +24,7 @@ export class NetworkManager
         this.socket = new WebSocket(url);
 
         this.socket.onopen = () => {
+            this.Connected = true;
             console.log("WebSocket connected:", url);
         };
 
@@ -62,7 +65,7 @@ export class NetworkManager
 
     public SendMove(position: Vector3D, direction: Vector3D): void 
     {
-        console.log("попытка передать координату");
+        console.log("попытка создать руму сессию");
         this.Send({
             cmd: "move",
             payload: {

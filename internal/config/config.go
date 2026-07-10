@@ -21,7 +21,7 @@ type WorldConfig struct {
 }
 
 func getTickPerSecond() int {
-	data, err := os.ReadFile("config.yaml")
+	data, err := os.ReadFile("/app/internal/config/config.yaml")
 	if err != nil {
 		log.Fatal(err)
 	}
