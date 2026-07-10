@@ -20,9 +20,15 @@ export type ClientMessage =
    }
    |  
    {
-      cmd: "interact";
+      cmd: "playerState";
       payload: {
-          targetId: string;
+          move_front: boolean;
+          move_left: boolean;
+          move_right: boolean;
+          move_back: boolean; 
+          interact: boolean;
+          attack: boolean;  
+          direction: Vector3D;
        };
    }
 
@@ -32,13 +38,13 @@ export type ServerMessage =
           id: string;
           kind: "player" | "monster" | "door" | "cargo";
           position: Vector3D;
-          rotationY?: number;
+          rotation: Vector3D;
       }
     | {
           type: "entity_update";
           id: string;
           position?: Vector3D;
-          rotationY?: number;
+          rotation?: number;
       }
     | {
           type: "entity_delete";

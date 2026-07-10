@@ -41,7 +41,7 @@ func CreateWorld() *World {
 	log.Println("создалась сессия")
 	eb := events.NewEventBus(100)
 	w := newWorld(eb)
-	_, _ = w.AddEntity(components.NewTransformComponent())
+	w.AddEntity(components.NewTransformComponent())
 
 	s := NewMoveSystem(w)
 
