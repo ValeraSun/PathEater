@@ -9,6 +9,7 @@ import (
 func main() {
 	network.RegisterHandlers()
 	
+	//Возможно, потом стоит поменять
 	http.Handle("/", http.FileServer(http.Dir("./web")))
 	
 	port := ":8080"

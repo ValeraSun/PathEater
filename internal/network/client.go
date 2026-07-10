@@ -26,7 +26,7 @@ type Client struct {
 }
 
 //Генерация ID
-func generateID() string {
+func GenerateID() string {
     return uuid.New().String()
 }
 
@@ -35,17 +35,18 @@ func NewClient(ws *websocket.Conn) *Client{
     ctx, cancel := context.WithCancel(context.Background())
     return &Client{
         conn:   ws,
-        ID:     generateID(), 
+        ID:     GenerateID(), 
         msg:    make(chan []byte, 100),
         done:   make(chan struct{}),
         ctx:    ctx,
         cancel: cancel,
-        state:  NewMenuState(),
+        state:  MainMenuState(),
         room:   nil,
         closed: false,
     }
 }
 
+//Задаёт клиенту состояние
 func (c *Client) SetState(s State) {
     c.mu.Lock()
     defer c.mu.Unlock()
@@ -120,7 +121,7 @@ func (c *Client) ReadMessages() {
             }
     
             //обработка команды
-            if err := c.state.HandleCommand(c.ctx, c, req.Cmd, req.Payload); err != nil {
+            if err := c.state.HandleCommand(c, req.Cmd, req.Payload); err != nil {
                 c.SendError(err)
             }
         }

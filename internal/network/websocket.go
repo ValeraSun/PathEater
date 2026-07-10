@@ -15,20 +15,26 @@ var upgrade = websocket.Upgrader{
 
 func RegisterHandlers() {
 	http.HandleFunc("/ws", func(writer http.ResponseWriter, request *http.Request) {
-		HandleConnection(writer, request)
+		handleConnection(writer, request)
 	})
+	/*возможно, стоит добавить для реализации меню 
+		http.HandleFunc("/http", func(writer http.ResponseWriter, request *http.Request) {
+		HandleConnectionHttp(writer, request)
+	})
+	*/
 }
 
-func HandleConnection(w http.ResponseWriter, r *http.Request) {
+func handleConnection(w http.ResponseWriter, r *http.Request) {
     //Установка websocket-связи
 	wsConn, err := upgrade.Upgrade(w, r, nil)
     //обработка ошибок
 	if err != nil {
-		log.Println("Ошибка установления ws-связи:", err)
+		log.Println("Ошибка установления ws-связи: ", err)
 		return
 	}
     defer wsConn.Close()
 	
+	//Инициализация/определение хаба
 	hub := GetHub()
 
     //Создание клиента
@@ -40,5 +46,6 @@ func HandleConnection(w http.ResponseWriter, r *http.Request) {
     go client.ReadMessages()
     go client.WriteMessages()
 
+	//ожидание конца работы клиента
     <-client.done
 }

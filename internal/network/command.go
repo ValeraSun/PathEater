@@ -4,48 +4,153 @@ import (
     "context"
     "encoding/json"
     "errors"
+    "fmt"
 )
 
 type Command interface {
     Name() string
-    Execute(ctx context.Context, client *Client, payload json.RawMessage) error
+    Execute(client *Client, payload json.RawMessage) error
 }
 
 
 //-----------------------------------------------------------------------------------------------------------------------------------
-//Команды старта игры
-type StartGameCommand struct{}
+//Команды меню игры
 
-func (c *StartGameCommand) Name() string { return "StartGame" }
+//создание комнаты
+type createRoomCommand struct {}
 
-func (c *StartGameCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
-    // Создаем комнату с уникальным ID
-    roomID := generateID()
+func (c *createRoomCommand) Name() string { return "createRoom" }
+
+func (c *createRoomCommand) Execute(client *Client, payload json.RawMessage) error {
+    // Создаём комнату с уникальным ID
+    roomID := GenerateID()
     hub := GetHub()
-    room := hub.CreateGameRoom(roomID)
+    room := hub.NewGameRoom(roomID)
     room.AddClient(client)
     
-    //Передача события старта
-    e := CreateEventItemUse(itemID)
-    client.room.World.eventBus.Publish(e)
+    //действия на сервере
 
     // Меняем состояние
-    client.SetState(NewGameState(roomID))
-    client.state.OnEnter(ctx, client)
+    client.SetState(GameRoomState())
+    return nil
+}
+
+//удаление комнаты
+type removeRoomCommand struct {}
+
+func (c *removeRoomCommand) Name() string { return "removeRoom" }
+
+func (c *removeRoomCommand) Execute(client *Client, payload json.RawMessage) error {
+    var roomID struct {
+		RoomID string `json:"roomID"`
+	}
+	if err := json.Unmarshal(payload, &roomID); err != nil {
+		return client.SendError(err)
+	}
+    hub := GetHub()
+    room, exists := hub.GetGameRoom(roomID)
+    if !exists {
+        return fmt.Errorf("Комнаты с таким ID не существует")
+    }
+    room.Close()
+    
+    //действия на сервере
+
+    // Меняем состояние
+    if client.state == GameRoomState() {
+      client.SetState(MainMenuState())
+    } 
+    return nil
+}
+
+//присоединение к комнате
+type joinRoomCommand struct {}
+
+func (c *joinRoomCommand) Name() string { return "joinRoom" }
+
+func (c *joinRoomCommand) Execute(client *Client, payload json.RawMessage) error {
+    var roomID struct {
+		RoomID string `json:"roomID"`
+	}
+	if err := json.Unmarshal(payload, &roomID); err != nil {
+		return client.SendError(err)
+	}
+    hub := GetHub()
+    room, exists := hub.GetGameRoom(roomID)
+    if !exists {
+        return fmt.Errorf("Комнаты с таким ID не существует")
+    }
+    room.AddClient(client)
+    
+    //действия на сервере
+
+    // Меняем состояние
+    client.SetState(GameRoomState())
+    return nil
+}
+
+//выход из меню (выход из всей игры) - отключение клиента
+type exitMenuCommand struct {}
+
+func (c *exitMenuCommand) Name() string { return "exitMenu" }
+
+func (c *exitMenuCommand) Execute(client *Client, payload json.RawMessage) error {
+    hub := GetHub()
+    hub.UnregisterClient(client)
+    client.Close()
+    
+    //действия на сервере
+
     return nil
 }
 
 
 //-----------------------------------------------------------------------------------------------------------------------------------
-//Команды движения игрока
-type MoveCommand struct{}
+//Команды комнат
 
-//------------------------------------------------------------------------------------------------------------------
-//обработка команд движения
-type MoveCommand struct{}
+//Выход из комнаты
+type exitRoomCommand struct {}
 
-func(*MoveCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {	
-	var coord struct {
+func (c *exitRoomCommand) Name() string { return "exitRoom" }
+
+func (c *exitRoomCommand) Execute(client *Client, payload json.RawMessage) error {
+    var roomID struct {
+		RoomID string `json:"roomID"`
+	}
+	if err := json.Unmarshal(payload, &roomID); err != nil {
+		return client.SendError(err)
+	}
+    hub := GetHub()
+    room := hub.GetGameRoom(roomID)
+    room.RemoveClient(client)
+    
+    //действия на сервере
+
+    return nil
+}
+
+//начало игры
+type startGameCommand struct {}
+
+func (c *startGameCommand) Name() string { return "startGame" }
+
+func (c *startGameCommand) Execute(client *Client, payload json.RawMessage) error {
+    
+    //действия на сервере
+
+    return nil
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------------
+//Команды игры
+
+//движение
+type movementCommand struct {}
+
+func (c *movementCommand) Name() string { return "movement" }
+
+func (c *movementCommand) Execute(client *Client, payload json.RawMessage) error {
+    var coord struct {
 		X float32 `json:"X"`
 		Y float32 `json:"Y"`
 		Z float32 `json:"Z"`
@@ -53,51 +158,52 @@ func(*MoveCommand) Execute(ctx context.Context, client *Client, payload json.Raw
 	if err := json.Unmarshal(payload, &coord); err != nil {
 		return client.SendError(err)
 	}
-	return err
-
-    //Передача события движения
-    e := CreateEventMove(X, Y, Z)
-    client.Room.World.EventBus.Publish(e)
+    
+    //действия на сервере
 
     return nil
 }
 
+//использование предмета
+type useItemCommand struct {}
 
-//-----------------------------------------------------------------------------------------------------------------------------------
-//Команды взаимодействия с предметами
-type UseItemCommand struct{}
+func (c *useItemCommand) Name() string { return "useItem" }
 
-func (*UseItemCommand) Name() string { return "UseItem"}
-
-func(*UseItemCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {	
-	var coord struct {
-		itemID string `json:"itemID"`
+func (c *useItemCommand) Execute(client *Client, payload json.RawMessage) error {
+    var itemID struct {
+		ItemID float32 `json:"itemID"`
 	}
-	if err := json.Unmarshal(payload, &coord); err != nil {
+	if err := json.Unmarshal(payload, &itemID); err != nil {
 		return client.SendError(err)
 	}
+    
+    //действия на сервере
 
-    //Передача события использования
-    e := CreateEventItemUse(itemID)
-    client.room.World.eventBus.Publish(e)
-	
     return nil
 }
 
-//------------------------------------------------------------------------------------------------------------------
-//обработка команд выхода
-type ExitCommand struct{}
+//атака ближнего боя
+type attackCommand struct {}
 
-func (*ExitCommand) Name() string { return "ExitGame" }
+func (c *attackCommand) Name() string { return "attack" }
 
-func (*ExitCommand) Execute(ctx context.Context, client *Client, payload json.RawMessage) error {
-    client.state.OnExit(ctx, client)
-    client.SetState(NewMenuState())
-    client.state.OnEnter(ctx, client)
+func (c *attackCommand) Execute(client *Client, payload json.RawMessage) error {
+    
+    //действия на сервере
 
-    //Передача события выхода
-    e := CreateEventExit()
-    client.room.World.eventBus.Publish(e)
+    return nil
+}
 
+//выход в комнату (в лобби)
+type exitGameCommand struct {}
+
+func (c *exitGameCommand) Name() string { return "exitGame" }
+
+func (c *exitGameCommand) Execute(client *Client, payload json.RawMessage) error {
+    
+    //действия на сервере
+
+    // Меняем состояние
+    client.SetState(GameRoomState())
     return nil
 }
