@@ -17,6 +17,7 @@ export class PlayerController
     private networkManager: NetworkManager;
     private collisionManager: CollisionManager;
     private lastSendTime = START_SEND_TIME_VALUE;
+    private inputLocked = false;
 
     constructor(model: PlayerModel, view: PlayerView,input: InputController, camera: THREE.PerspectiveCamera, networkManager: NetworkManager, collisionManager: CollisionManager) 
     {
@@ -30,6 +31,11 @@ export class PlayerController
 
     public Update(dt: number): void 
     {
+        if (this.inputLocked) 
+        {
+            return;
+        }
+        
         const forward = new THREE.Vector3();
 
         this.camera.getWorldDirection(forward);
@@ -90,5 +96,15 @@ export class PlayerController
 
             this.lastSendTime = now;
         }
+    }
+
+    public LockInput(): void 
+    {
+        this.inputLocked = true;
+    }
+
+    public UnlockInput(): void 
+    {
+        this.inputLocked = false;
     }
 }
