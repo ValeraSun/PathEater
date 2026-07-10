@@ -8,8 +8,6 @@ import (
 type State interface {
 	Name() string
 	HandleCommand(client *Client, cmd string, payload json.RawMessage) error
-	OnEnter(client *Client)
-	OnExit(client *Client)
 }
 
 // BaseState содержит общую реализацию State.
@@ -38,9 +36,6 @@ func (s *BaseState) HandleCommand(client *Client, cmdName string, payload json.R
 	}
 	return cmd.Execute(client, payload)
 }
-
-func (s *BaseState) OnEnter(client *Client) {}
-func (s *BaseState) OnExit(client *Client)  {}
 
 func MainMenuState() State {
 	s := NewBaseState("mainMenu")
