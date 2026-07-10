@@ -41,32 +41,45 @@ export class NetworkManager
 
     public CreateGameSession(): void 
     {
+        console.log("попытка создать гейм сессию");
          this.Send(
-            {action: "createGameSession"}
+            {
+                cmd: "createGameSession",
+                payload: {}
+            }
         )
     }
     public CreateRoom(): void 
     {
+        console.log("попытка создать руму сессию");
         this.Send(
-            {action: "createRoom"}
+            {
+                cmd: "createRoom",
+                payload: {}
+            }
         )
     }
 
     public SendMove(position: Vector3D, direction: Vector3D): void 
     {
+        console.log("попытка передать координату");
         this.Send({
-            action: "move",
-            position,
-            direction
+            cmd: "move",
+            payload: {
+                position,
+                direction
+            }
+
         });
     }
 
     public SendInteract(targetId: string): void 
     {
         this.Send({
-            type: "action",
-            action: "interact",
-            targetId
+            cmd: "interact",
+            payload: {
+                targetId
+            }
         });
     }
 

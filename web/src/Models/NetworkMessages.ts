@@ -1,22 +1,30 @@
 export type Vector3D = { x: number; y: number; z: number; };
 
 export type ClientMessage =
-       {
-          action: "createRoom";
-       }
-    |   {
-          action: "createGameSession";
-       }
-    |   {
-          action: "move";
-          position: Vector3D;
-          direction: Vector3D;
-       }
-    |  {
-          type: "action";
-          action: "interact";
+   {
+      cmd: "createRoom";
+      payload: {}
+   }
+   | 
+   {
+      cmd: "createGameSession";
+      payload: {}
+   }
+   |   
+   {
+      cmd: "move";
+      payload: {
+         position: Vector3D;
+         direction: Vector3D;
+      }
+   }
+   |  
+   {
+      cmd: "interact";
+      payload: {
           targetId: string;
        };
+   }
 
 export type ServerMessage =
     | {

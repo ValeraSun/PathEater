@@ -3,7 +3,7 @@ package network
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log"
 )
 
 type State interface {
@@ -35,8 +35,10 @@ func (s *BaseState) RegisterCommand(cmd Command) {
 func (s *BaseState) HandleCommand(ctx context.Context, client *Client, cmdName string, payload json.RawMessage) error {
 	cmd, exists := s.commands[cmdName]
 	if !exists {
-		return fmt.Errorf("неизвестная команда в состоянии %q", s.name)
+		log.Println("неизвестная команда в состоянии ", s.name)
+		return nil
 	}
+	log.Println("команда прошла:", cmd.Name())
 	return cmd.Execute(ctx, client, payload)
 }
 

@@ -2,6 +2,7 @@ package ecs
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -37,6 +38,7 @@ func newWorld(eventBus *events.EventBus) *World {
 }
 
 func CreateWorld() *World {
+	log.Println("создалась сессия")
 	eb := events.NewEventBus(100)
 	w := newWorld(eb)
 	_, _ = w.AddEntity(components.NewTransformComponent())

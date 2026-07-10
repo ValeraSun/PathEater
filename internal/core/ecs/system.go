@@ -22,6 +22,7 @@ func (*moveSystem) Update(dt float32) error {
 }
 
 func (s *moveSystem) onEvent(event events.Event) error {
+	log.Println("moveSystem принял event")
 	moveEvent, ok := event.(*events.MoveEvent)
 
 	if !ok {

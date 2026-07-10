@@ -87,10 +87,12 @@ func (c *Client) Close() error {
 
 // Читает сообщения с клиента
 func (c *Client) ReadMessages() {
+	log.Println("Пытается обрабатывать команду")
 	defer c.Close()
 	for {
 		c.mu.Lock()
 		if c.closed || c.done == nil || c.conn == nil || c.msg == nil {
+			log.Println("Клиент не удволетворяет", c)
 			c.mu.Unlock()
 			return
 		}
@@ -100,10 +102,12 @@ func (c *Client) ReadMessages() {
 
 		select {
 		case <-done:
+			log.Println("Клиент закрылся")
 			return
 		default:
 			//чтение сообщения
 			_, msg, err := conn.ReadMessage()
+			log.Println("зашли в селект")
 			if err != nil {
 				log.Println("Ошибка чтения:", err)
 				return
@@ -116,11 +120,14 @@ func (c *Client) ReadMessages() {
 			}
 			if err := json.Unmarshal(msg, &req); err != nil {
 				c.SendError(err)
+				log.Println("Json проблемы", err)
 				continue
 			}
 
 			//обработка команды
+			log.Println("HandleCommand ")
 			if err := c.state.HandleCommand(c.ctx, c, req.Cmd, req.Payload); err != nil {
+				log.Println("Не удвалетворила команда обрабатывать команду")
 				c.SendError(err)
 			}
 		}
