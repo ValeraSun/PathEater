@@ -161,6 +161,9 @@ func (c *movementCommand) Execute(client *Client, payload json.RawMessage) error
     
     //действия на сервере
 
+    e := events.NewMoveEvent(coord)
+    client.room.world.EventBus.Publish(e)
+
     return nil
 }
 
