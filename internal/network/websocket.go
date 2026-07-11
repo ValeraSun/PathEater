@@ -13,6 +13,7 @@ var upgrade = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true }, //ИЗМЕНИТЬ!!!
 }
 
+//обрабатывает /ws запросы
 func RegisterHandlers() {
 	http.HandleFunc("/ws", func(writer http.ResponseWriter, request *http.Request) {
 		HandleConnection(writer, request)

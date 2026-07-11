@@ -1,16 +1,13 @@
 package network
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 )
 
 type State interface {
 	Name() string
-	HandleCommand(ctx context.Context, client *Client, cmd string, payload json.RawMessage) error
-	OnEnter(ctx context.Context, client *Client)
-	OnExit(ctx context.Context, client *Client)
+	HandleCommand(client *Client, cmd string, payload json.RawMessage) error
 }
 
 // BaseState содержит общую реализацию State.
@@ -32,38 +29,37 @@ func (s *BaseState) RegisterCommand(cmd Command) {
 	s.commands[cmd.Name()] = cmd
 }
 
-func (s *BaseState) HandleCommand(ctx context.Context, client *Client, cmdName string, payload json.RawMessage) error {
+func (s *BaseState) HandleCommand(client *Client, cmdName string, payload json.RawMessage) error {
 	cmd, exists := s.commands[cmdName]
 	if !exists {
 		log.Println("неизвестная команда в состоянии ", s.name, cmdName, payload)
-		log.Println("Пришло", []byte(cmdName))
-		crc := &createRoomCommand{}
-		log.Println("Надо", []byte(crc.Name()))
 		return nil
 	}
-	log.Println("команда прошла:", cmd.Name())
-	return cmd.Execute(ctx, client, payload)
+	return cmd.Execute(client, payload)
 }
-
-func (s *BaseState) OnEnter(ctx context.Context, client *Client) {}
-func (s *BaseState) OnExit(ctx context.Context, client *Client)  {}
 
 // Реализации State
 
-func NewMainMenuState() State {
+func MainMenuState() State {
 	s := NewBaseState("mainMenu")
 	s.RegisterCommand(&createRoomCommand{})
+	s.RegisterCommand(&deleteRoomCommand{})
+	s.RegisterCommand(&joinRoomCommand{})
+	s.RegisterCommand(&exitMenuCommand{})
 	return s
 }
 
-func NewRoomMenuState() State {
+func GameRoomState() State {
 	s := NewBaseState("roomMenu")
-	s.RegisterCommand(&createGameSessionCommand{})
+	s.RegisterCommand(&deleteRoomCommand{})
+	s.RegisterCommand(&exitRoomCommand{})
+	s.RegisterCommand(&startGameCommand{})
 	return s
 }
 
-func NewPlayerControlState() State {
+func PlayerControlState() State {
 	s := NewBaseState("playerControl")
-	s.RegisterCommand(&MoveCommand{})
+	s.RegisterCommand(&playerStateCommand{})
+	s.RegisterCommand(&exitGameCommand{})
 	return s
 }
