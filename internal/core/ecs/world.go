@@ -25,22 +25,29 @@ type World struct {
 
 	entityCount  int64
 	systemTimers map[string]time.Duration
+
+	Room *GameRoom
 }
 
-func newWorld(eventBus *events.EventBus) *World {
+type GameRoom interface {
+	SendToAll(any)
+}
+
+func newWorld(eventBus *events.EventBus, room *GameRoom) *World {
 	return &World{
 		entities:       make(map[types.Entity]map[string]types.Component),
 		componentIndex: make(map[string]map[types.Entity]struct{}),
 		systems:        make([]types.System, 0),
 		EventBus:       eventBus,
 		systemTimers:   make(map[string]time.Duration),
+		Room:           room,
 	}
 }
 
-func CreateWorld() *World {
+func CreateWorld(room *GameRoom) *World {
 	log.Println("создалась сессия")
 	eb := events.NewEventBus(100)
-	w := newWorld(eb)
+	w := newWorld(eb, room)
 	w.AddEntity(components.NewTransformComponent())
 
 	s := NewMoveSystem(w)
