@@ -32,7 +32,6 @@ func (r *GameRoom) RemoveClient(client *Client) {
     }
 }
 
-
 //закрывает комнату
 func (r *GameRoom) Close() {
 	r.Mutex.Lock()

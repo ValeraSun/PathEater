@@ -41,7 +41,7 @@ func NewClient(ws *websocket.Conn) *Client {
 		done:   make(chan struct{}),
 		ctx:    ctx,
 		cancel: cancel,
-		state:  NewMainMenuState(),
+		state:  MainMenuState(),
 		room:   nil,
 		closed: false,
 	}
@@ -92,7 +92,6 @@ func (c *Client) ReadMessages() {
 	for {
 		c.mu.Lock()
 		if c.closed || c.done == nil || c.conn == nil || c.msg == nil {
-			log.Println("Клиент не удволетворяет", c)
 			c.mu.Unlock()
 			return
 		}
@@ -102,12 +101,10 @@ func (c *Client) ReadMessages() {
 
 		select {
 		case <-done:
-			log.Println("Клиент закрылся")
 			return
 		default:
 			//чтение сообщения
 			_, msg, err := conn.ReadMessage()
-			log.Println("зашли в селект", msg)
 			if err != nil {
 				log.Println("Ошибка чтения:", err)
 				return
@@ -120,21 +117,19 @@ func (c *Client) ReadMessages() {
 			}
 			if err := json.Unmarshal(msg, &req); err != nil {
 				c.SendError(err)
-				log.Println("Json проблемы", err)
 				continue
 			}
 
 			//обработка команды
 			log.Println("HandleCommand ")
-			if err := c.state.HandleCommand(c.ctx, c, req.Cmd, req.Payload); err != nil {
-				log.Println("Не удвалетворила команда обрабатывать команду")
+			if err := c.state.HandleCommand(c, req.Cmd, req.Payload); err != nil {
 				c.SendError(err)
 			}
 		}
 	}
 }
 
-// Рассылает сообщения от сервера к клиентам
+// Рассылает сообщения от сервера к клиенту
 func (c *Client) WriteMessages() {
 	defer c.Close()
 	for {
@@ -161,7 +156,7 @@ func (c *Client) WriteMessages() {
 	}
 }
 
-// Передаёт сообщение клиентам
+// Передаёт сообщение клиенту
 func (c *Client) Send(msg []byte) error {
 	c.mu.Lock()
 	if c.closed || c.msg == nil {
@@ -179,7 +174,7 @@ func (c *Client) Send(msg []byte) error {
 	}
 }
 
-// Передаёт сообщение клиентам
+// Передаёт данные клиенту
 func (c *Client) SendMessage(typeMsg string, data interface{}) error {
 	c.mu.Lock()
 
@@ -210,8 +205,21 @@ func (c *Client) SendMessage(typeMsg string, data interface{}) error {
 	return nil
 }
 
+//передаёт ошибку клиенту
 func (c *Client) SendError(err error) error {
 	return c.SendMessage("error", map[string]interface{}{
 		"message": err.Error(),
 	})
+}
+
+//передаёт клиенту текстовое сообщение
+func (c *Client) SendText(TypeMsg string, text string) error {
+	return c.SendMessage(TypeMsg, map[string]interface{}{
+		"message": text,
+	})
+}
+
+//передаёт клиенту данные
+func (c *Client) SendData(data interface{}) error {
+     
 }
