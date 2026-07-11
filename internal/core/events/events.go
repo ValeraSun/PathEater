@@ -1,8 +1,6 @@
 package events
 
 import (
-	"log"
-
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
@@ -10,20 +8,26 @@ import (
 // локальные event через маленькую
 // глобальные event через большую
 
-type MoveEvent struct {
-	Id        types.Entity
-	Position  geometry.Vector3
-	Direction geometry.Vector3
+type PlayerState struct {
+	MoveFront bool             `json:"move_front"`
+	MoveLeft  bool             `json:"move_left"`
+	MoveRight bool             `json:"move_right"`
+	MoveBack  bool             `json:"move_back"`
+	Interact  bool             `json:"interact"`
+	Attack    bool             `json:"attack"`
+	Direction geometry.Vector3 `json:"direction"`
 }
 
-func (e *MoveEvent) Type() string { return "Move" }
+type SetPlayerStateEvent struct {
+	PlayerState PlayerState
+	Id          types.Entity
+}
 
-func CreateEventMove(position geometry.Vector3, direction geometry.Vector3, id types.Entity) *MoveEvent {
-	log.Println("создан EventMove", id)
-	return &MoveEvent{
-		Id:        id,
-		Position:  position,
-		Direction: direction,
+func (*SetPlayerStateEvent) Type() string { return "SetPlayerState" }
+func NewSetPlayerStateEvent(ps PlayerState, id types.Entity) *SetPlayerStateEvent {
+	return &SetPlayerStateEvent{
+		PlayerState: ps,
+		Id:          id,
 	}
 }
 
