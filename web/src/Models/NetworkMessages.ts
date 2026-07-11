@@ -1,4 +1,21 @@
-export type Vector3D = { x: number; y: number; z: number; };
+export type Vector3D = {
+    x: number;
+    y: number;
+    z: number;
+};
+
+export type EntityKind =
+    | "player"
+    | "monster"
+    | "door"
+    | "cargo";
+
+export type NetworkEntity = {
+    id: string;
+    kind: EntityKind;
+    position: Vector3D;
+    rotationY?: number;
+};
 
 export type ClientMessage =
    {
@@ -36,7 +53,7 @@ export type ServerMessage =
     | {
           type: "entity_create";
           id: string;
-          kind: "player" | "monster" | "door" | "cargo";
+          kind: EntityKind;
           position: Vector3D;
           rotation: Vector3D;
       }
@@ -52,10 +69,29 @@ export type ServerMessage =
       }
     | {
           type: "snapshot";
-          entities: Array<{
+          entities: NetworkEntity[];
+      }
+    | {
+          type: "computer_state";
+          computerId: string;
+          lockedBy: string | null;
+      }
+    | {
+          type: "navigation_state";
+          ship: {
+              x: number;
+              z: number;
+              rotationY: number;
+              hp: number;
+          };
+          asteroids: Array<{
               id: string;
-              kind: "player" | "monster" | "door" | "cargo";
-              position: Vector3D;
-              rotationY?: number;
+              x: number;
+              z: number;
+          }>;
+          monsters: Array<{
+              id: string;
+              x: number;
+              z: number;
           }>;
       };
