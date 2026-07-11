@@ -8,6 +8,9 @@ import { EntityManager } from "../Services/EntityManager";
 import { CollisionManager } from "../Physics/CollisionManager";
 import { CameraController } from "../Controllers/CameraController";
 import { MAX_DELTA_TIME, MILLISECONDS_IN_SECOND } from "../Config/GameConfig";
+import { InteractionView } from "../Views/InteractionView";
+import { InteractionController } from "../Controllers/InteractionController";
+import { ComputerController } from "../Controllers/ComputerController";
 
 export class Timer {
     static wait(seconds: number): Promise<void> {
@@ -31,6 +34,9 @@ export class Game
     private entityManager: EntityManager;
     private networkManager: NetworkManager;
     private collisionManager = new CollisionManager();
+    private interactionView = new InteractionView();
+    private interactionController: InteractionController;
+    private computerController: ComputerController;
 
     private lastTime = performance.now();
 
@@ -44,7 +50,7 @@ export class Game
     }
 
     public async Start(): Promise<void> {
-        await this.collisionManager.LoadShipColliders("/data/ship_wall_colliders_v1.json");
+        await this.collisionManager.LoadShipColliders("/data/ship_wall_colliders_v3.json");
         this.gameView.Init();
         //убрать перед защитой
         this.collisionManager.AddDebugHelpers(this.gameView.GetScene());
@@ -72,6 +78,22 @@ export class Game
             this.networkManager,
             this.collisionManager
         );
+        const computerView = this.gameView.GetComputerView();
+
+        this.interactionController = new InteractionController(
+            this.input,
+            this.playerModel,
+            computerView,
+            this.interactionView,
+            this.networkManager
+        );
+
+        this.computerController = new ComputerController(
+            this.input,
+            this.networkManager,
+            this.playerController,
+            computerView.GetId()
+        );
     }
 
     private GameLoop = (): void => 
@@ -82,6 +104,8 @@ export class Game
         this.lastTime = now;
         this.playerController.Update(dt);
         this.cameraController.Update();
+        this.interactionController.Update();
+        this.computerController.Update();
         this.gameView.Render();
     };
 }

@@ -1,5 +1,28 @@
-import type { ClientMessage, ServerMessage, Vector3D} from "../Models/NetworkMessages";
+import type { ClientMessage, ServerMessage, Vector3D } from "../Models/NetworkMessages";
+
 import { EntityManager } from "./EntityManager";
+
+type NavigationState = 
+{
+    ship: {
+        x: number;
+        z: number;
+        rotationY: number;
+        hp: number;
+    };
+
+    asteroids: Array<{
+        id: string;
+        x: number;
+        z: number;
+    }>;
+
+    monsters: Array<{
+        id: string;
+        x: number;
+        z: number;
+    }>;
+};
 
 export class NetworkManager 
 {
@@ -7,7 +30,18 @@ export class NetworkManager
     private entityManager: EntityManager;
     public Connected: boolean;
 
-    constructor(entityManager: EntityManager) 
+    private computerStateHandler:
+        | ((
+              computerId: string,
+              lockedBy: string | null
+          ) => void)
+        | null = null;
+
+    private navigationStateHandler:
+        | ((state: NavigationState) => void)
+        | null = null;
+
+    public constructor(entityManager: EntityManager) 
     {
         this.entityManager = entityManager;
         this.Connected = false;
@@ -17,27 +51,37 @@ export class NetworkManager
     {
         const protocol = window.location.protocol === "https:" ? "wss" : "ws";
 
-        const url = window.location.port === "5173"
-                    ? "ws://localhost:8080/ws"
-                    : `${protocol}://${window.location.host}/ws`;
+        const url = window.location.port === "5173" ? "ws://localhost:8080/ws" : `${protocol}://${window.location.host}/ws`;
 
         this.socket = new WebSocket(url);
 
-        this.socket.onopen = () => {
-            this.Connected = true;
-            console.log("WebSocket connected:", url);
+        this.socket.onopen = (): void => { console.log("WebSocket connected:", url); };
+
+        this.socket.onmessage = (
+            event: MessageEvent
+        ): void => {
+            try {
+                const message = JSON.parse(
+                    String(event.data)
+                ) as ServerMessage;
+
+                this.HandleMessage(message);
+            } catch (error) {
+                console.error(
+                    "Некорректное сообщение от сервера:",
+                    event.data,
+                    error
+                );
+            }
         };
 
-        this.socket.onmessage = (event: MessageEvent) => {
-            const message = JSON.parse(event.data) as ServerMessage;
-            this.HandleMessage(message);
-        };
-
-        this.socket.onclose = () => {
+        this.socket.onclose = (): void => {
             console.log("WebSocket closed");
         };
 
-        this.socket.onerror = (error) => {
+        this.socket.onerror = (
+            error: Event
+        ): void => {
             console.error("WebSocket error:", error);
         };
     }
@@ -86,6 +130,46 @@ export class NetworkManager
         });
     }
 
+    public SendUseComputer(computerId: string): void 
+    {
+        this.Send({
+            type: "use_computer",
+            computerId
+        });
+    }
+
+    public SendReleaseComputer(computerId: string): void 
+    {
+        this.Send({
+            type: "release_computer",
+            computerId
+        });
+    }
+
+    public SendShipInput(computerId: string, inputX: number, inputZ: number): void 
+    {
+        this.Send({
+            type: "ship_input",
+            computerId,
+            inputX,
+            inputZ
+        });
+    }
+
+    public OnComputerState(
+        handler: (
+            computerId: string,
+            lockedBy: string | null
+        ) => void
+    ): void {
+        this.computerStateHandler = handler;
+    }
+
+    public OnNavigationState(handler: (state: NavigationState) => void): void 
+    {
+        this.navigationStateHandler = handler;
+    }
+
     private Send(message: ClientMessage): void 
     {
         if (!this.socket || this.socket.readyState !== WebSocket.OPEN) 
@@ -123,6 +207,21 @@ export class NetworkManager
 
             case "snapshot":
                 this.entityManager.ApplySnapshot(message.entities);
+                break;
+
+            case "computer_state":
+                this.computerStateHandler?.(
+                    message.computerId,
+                    message.lockedBy
+                );
+                break;
+
+            case "navigation_state":
+                this.navigationStateHandler?.({
+                    ship: message.ship,
+                    asteroids: message.asteroids,
+                    monsters: message.monsters
+                });
                 break;
         }
     }
