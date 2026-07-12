@@ -30,9 +30,30 @@ type World struct {
 	// Метрики
 	entityCount  int64
 	systemTimers map[string]time.Duration
+<<<<<<< Updated upstream
 }
 
 func NewWorld(eventBus *events.EventBus) *World {
+=======
+
+	Room Broadcaster
+}
+
+type Broadcaster interface {
+	SendEntityCreate(EntityInfo) error
+	SendEntityUpdate(EntityInfo) error
+	SendEntityDelete(EntityInfo) error
+	SendSnapshot(types.Entity, []EntityInfo) error
+}
+
+type EntityInfo struct {
+	Id   types.Entity
+	Type string
+	Data []byte
+}
+
+func newWorld(eventBus *events.EventBus, room Broadcaster) *World {
+>>>>>>> Stashed changes
 	return &World{
 		entities:       make(map[Entity]map[string]Component),
 		componentIndex: make(map[string]map[Entity]struct{}),
@@ -47,8 +68,41 @@ func NewWorld(eventBus *events.EventBus) *World {
 	}
 }
 
+<<<<<<< Updated upstream
 // AddEntity добавляет сущность с компонентами
 func (w *World) AddEntity(components ...Component) (Entity, error) {
+=======
+func CreateWorld(room Broadcaster) *World {
+	log.Println("создалась сессия")
+	eb := events.NewEventBus(100)
+	w := newWorld(eb, room)
+	w.AddEntity(components.NewTransformComponent())
+
+	s := NewMoveSystem(w)
+
+	eb.Subscribe("move", s.onEvent)
+	go HandleWorld(w)
+	return w
+}
+
+func HandleWorld(world *World) {
+	ticker := time.NewTicker(config.GetMillisecondPerTick() * time.Millisecond)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		world.Update(float32(config.GetMillisecondPerTick()))
+	}
+}
+
+func (w *World) AddSystem(system types.System) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.systems = append(w.systems, system)
+}
+
+// RemoveSystem удаляет систему из мира
+func (w *World) RemoveSystem(system types.System) {
+>>>>>>> Stashed changes
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
