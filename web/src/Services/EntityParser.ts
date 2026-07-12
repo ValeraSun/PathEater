@@ -15,8 +15,6 @@ export class EntityParser {
                 return data as PlayerData; 
             case "monster":
                 return data as MonsterData;
-            case "door":
-                return data as any; // ... и так далее
             default:
                 throw new Error(`Неизвестный тип сущности: ${type}`);
         }
