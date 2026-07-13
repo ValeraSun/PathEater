@@ -41,7 +41,7 @@ var (
 	hubOnce     sync.Once
 )
 
-// Возвращает синглтон Hub
+// Возвращает Hub
 func GetHub() *Hub {
 	hubOnce.Do(func() {
 		hubInstance = NewHub()
@@ -203,7 +203,7 @@ func (h *Hub) GetGameRoomsCount() int {
 }
 
 // Останавливает Hub
-func (h *Hub) Shutdown() {
+func (h *Hub) Stop() {
 	h.closedMu.Lock()
 	if h.closed {
 		h.closedMu.Unlock()

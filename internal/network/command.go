@@ -5,6 +5,8 @@ import (
     "encoding/json"
     "errors"
     "fmt"
+
+	"github.com/ValeraSun/PathEater/internal/core/events"
 )
 
 type Command interface {
@@ -122,7 +124,7 @@ func (c *startGameCommand) Name() string { return "startGame" }
 
 func (c *startGameCommand) Execute(client *Client, payload json.RawMessage) error {
     
-    //действия на сервере
+    CreateWorld(client.room)
 
     return nil
 }
@@ -135,8 +137,13 @@ type playerStateCommand struct {}
 func (c *playerStateCommand) Name() string { return "startGame" }
 
 func (c *playerStateCommand) Execute(client *Client, payload json.RawMessage) error {
+    var state events.PlayerState
+
+    if err := json.Unmarshal(payload, &state); err != nil {
+		return client.SendError(err)
+	}
     
-    //действия на сервере
+    events.SendPlayerState(client.room.World.EventBus, state, client.ID)
 
     return nil
 }
