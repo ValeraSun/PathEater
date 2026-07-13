@@ -3,11 +3,7 @@ import { PlayerView } from "../Views/PlayerView";
 
 type EntityKind = "player" | "monster" | "door" | "cargo";
 
-type EntityRecord = {
-    id: string;
-    kind: EntityKind;
-    object: THREE.Object3D;
-};
+
 
 export class EntityManager 
 {

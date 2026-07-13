@@ -26,14 +26,23 @@ type World struct {
 	entityCount  int64
 	systemTimers map[string]time.Duration
 
-	Room *IGameRoom
+	Room Broadcaster
 }
 
-type IGameRoom interface {
-	SendToAll(any)
+type Broadcaster interface {
+	SendEntityCreate(EntityInfo) error
+	SendEntityUpdate(EntityInfo) error
+	SendEntityDelete(EntityInfo) error
+	SendSnapshot(types.Entity, []EntityInfo) error
 }
 
-func newWorld(eventBus *events.EventBus, room *IGameRoom) *World {
+type EntityInfo struct {
+	Id   types.Entity
+	Type string
+	Data []byte
+}
+
+func newWorld(eventBus *events.EventBus, room Broadcaster) *World {
 	return &World{
 		entities:       make(map[types.Entity]map[string]types.Component),
 		componentIndex: make(map[string]map[types.Entity]struct{}),
@@ -44,7 +53,7 @@ func newWorld(eventBus *events.EventBus, room *IGameRoom) *World {
 	}
 }
 
-func CreateWorld(room *IGameRoom) *World {
+func CreateWorld(room Broadcaster) *World {
 	log.Println("создалась сессия")
 	eb := events.NewEventBus(100)
 	w := newWorld(eb, room)
@@ -62,7 +71,7 @@ func HandleWorld(world *World) {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		go world.Update(float32(config.GetMillisecondPerTick()))
+		world.Update(float32(config.GetMillisecondPerTick()))
 	}
 }
 
@@ -72,7 +81,6 @@ func (w *World) AddSystem(system types.System) {
 	w.systems = append(w.systems, system)
 }
 
-// RemoveSystem удаляет систему из мира
 func (w *World) RemoveSystem(system types.System) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
