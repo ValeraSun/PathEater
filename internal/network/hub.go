@@ -2,38 +2,27 @@ package network
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"sync"
-
-	"github.com/ValeraSun/PathEater/internal/core/ecs"
 )
 
 type Hub struct {
 	register   chan *Client
 	unregister chan *Client
 
-	clients    map[string]*Client
-	clientsMu  sync.RWMutex
+	clients   map[string]*Client
+	clientsMu sync.RWMutex
 
-	rooms      map[string]*GameRoom
-	roomsMu    sync.RWMutex
+	rooms   map[string]*GameRoom
+	roomsMu sync.RWMutex
 
-	ctx        context.Context
-	cancel     context.CancelFunc
+	ctx    context.Context
+	cancel context.CancelFunc
 
-	wg         sync.WaitGroup
+	wg sync.WaitGroup
 
-	closed     bool
-	closedMu   sync.RWMutex
-}
-
-type GameRoom struct {
-	ID        string
-	Clients   map[string]*Client
-	Mutex     sync.RWMutex
-	Hub       *Hub
-	World     *ecs.World
+	closed   bool
+	closedMu sync.RWMutex
 }
 
 var (
@@ -120,7 +109,7 @@ func (h *Hub) unregisterClient(client *Client) {
 		delete(room.Clients, client.ID)
 		if len(room.Clients) == 0 {
 			room.Mutex.Unlock()
-			h.DeleteGameRoom(id)
+			room.Close()
 		} else {
 			room.Mutex.Unlock()
 		}
@@ -165,26 +154,25 @@ func (h *Hub) UnregisterClient(client *Client) {
 
 // Создает новую игровую комнату
 func (h *Hub) CreateGameRoom(roomID string) *GameRoom {
-	h.gamesMu.Lock()
-	defer h.gamesMu.Unlock()
+	h.roomsMu.Lock()
+	defer h.roomsMu.Unlock()
 
 	room := &GameRoom{
-		ID:        roomID,
-		Clients:   make(map[string]*Client),
-		Hub:       h,
-		GameState: make(map[string]interface{}),
+		ID:      roomID,
+		Clients: make(map[string]*Client),
+		Hub:     h,
 	}
 
-	h.games[roomID] = room
+	h.rooms[roomID] = room
 	log.Printf("Создана игровая комната %s", roomID)
 	return room
 }
 
 // Возвращает игровую комнату
 func (h *Hub) GetGameRoom(roomID string) (*GameRoom, bool) {
-	h.gamesMu.RLock()
-	defer h.gamesMu.RUnlock()
-	room, exists := h.games[roomID]
+	h.roomsMu.RLock()
+	defer h.roomsMu.RUnlock()
+	room, exists := h.rooms[roomID]
 	return room, exists
 }
 
@@ -197,9 +185,9 @@ func (h *Hub) GetClientsCount() int {
 
 // Возвращает количество комнат в хабе
 func (h *Hub) GetGameRoomsCount() int {
-	h.gamesMu.RLock()
-	defer h.gamesMu.RUnlock()
-	return len(h.games)
+	h.roomsMu.RLock()
+	defer h.roomsMu.RUnlock()
+	return len(h.rooms)
 }
 
 // Останавливает Hub

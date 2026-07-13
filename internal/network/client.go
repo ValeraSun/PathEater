@@ -205,21 +205,16 @@ func (c *Client) SendMessage(typeMsg string, data interface{}) error {
 	return nil
 }
 
-//передаёт ошибку клиенту
+// передаёт ошибку клиенту
 func (c *Client) SendError(err error) error {
 	return c.SendMessage("error", map[string]interface{}{
 		"message": err.Error(),
 	})
 }
 
-//передаёт клиенту текстовое сообщение
+// передаёт клиенту текстовое сообщение
 func (c *Client) SendText(TypeMsg string, text string) error {
 	return c.SendMessage(TypeMsg, map[string]interface{}{
 		"message": text,
 	})
-}
-
-//передаёт клиенту данные
-func (c *Client) SendData(data interface{}) error {
-     
 }
