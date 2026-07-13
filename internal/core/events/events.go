@@ -20,14 +20,14 @@ type PlayerState struct {
 
 type SetPlayerStateEvent struct {
 	PlayerState PlayerState
-	Id          types.Entity
+	ID          types.Entity
 }
 
 func (*SetPlayerStateEvent) Type() string { return "SetPlayerState" }
 func NewSetPlayerStateEvent(ps PlayerState, id types.Entity) *SetPlayerStateEvent {
 	return &SetPlayerStateEvent{
 		PlayerState: ps,
-		Id:          id,
+		ID:          id,
 	}
 }
 

@@ -2,12 +2,10 @@ package ecs
 
 import (
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
 	"github.com/ValeraSun/PathEater/internal/config"
-	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
@@ -54,14 +52,9 @@ func newWorld(eventBus *events.EventBus, room Broadcaster) *World {
 }
 
 func CreateWorld(room Broadcaster) *World {
-	log.Println("создалась сессия")
 	eb := events.NewEventBus(100)
 	w := newWorld(eb, room)
-	w.AddEntity(components.NewTransformComponent())
 
-	s := NewMoveSystem(w)
-
-	eb.Subscribe("move", s.onEvent)
 	go HandleWorld(w)
 	return w
 }
