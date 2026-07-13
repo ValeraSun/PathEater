@@ -50,8 +50,8 @@ func (r *GameRoom) Close() {
 	r.ID = ""
 }
 
-func (r *GameRoom) SendToAll(data interface{}) {
+func (r *GameRoom) SendToAll(TypeMsg string, data interface{}) {
     for _, client := range r.Clients {
-        client.SendMessage("response", data)
+        client.SendMessage(TypeMsg, data)
     }
 }

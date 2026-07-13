@@ -30,6 +30,15 @@ func (c *createRoomCommand) Execute(client *Client, payload json.RawMessage) err
     room := hub.NewGameRoom(roomID)
     room.AddClient(client)
 
+    var info struct{
+        ID   EntityInfo.Id   `json:"id"`
+    }
+	if payload, err := json.Marshal(info); err != nil {
+		return err
+	}
+
+    s.room.SendToAll("SuccessCreateRoom", payload)
+
     // Меняем состояние
     client.SetState(GameRoomState())
     return nil
@@ -54,6 +63,15 @@ func (c *deleteRoomCommand) Execute(client *Client, payload json.RawMessage) err
         return client.SendText("error", "RoomIsNotExists")
     }
     room.Close()
+
+    var info struct{
+        ID   EntityInfo.Id   `json:"id"`
+    }
+	if payload, err := json.Marshal(info); err != nil {
+		return err
+	}
+
+    s.room.SendToAll("SuccessDeleteRoom", payload)
 
     // Меняем состояние
     if client.state == GameRoomState() {
@@ -80,8 +98,15 @@ func (c *joinRoomCommand) Execute(client *Client, payload json.RawMessage) error
         return client.SendText("error", "RoomIsNotExists")
     }
     room.AddClient(client)
-    
-    //действия на сервере
+
+    var info struct{
+        ID   EntityInfo.Id   `json:"id"`
+    }
+	if payload, err := json.Marshal(info); err != nil {
+		return err
+	}
+
+    s.room.SendToAll("SuccessJoinRoom", payload)
 
     // Меняем состояние
     client.SetState(GameRoomState())
@@ -117,6 +142,60 @@ func (c *exitRoomCommand) Execute(client *Client, payload json.RawMessage) error
     return nil
 }
 
+type Sendler struct {
+    room GameRoom
+}
+
+func (s Sendler) SendEntityCreate(EntityInfo) error {
+    var info struct{
+        ID   EntityIndo.Id   `json:"id"`
+	    Type EntityIndo.Type `json:"type"`
+	    Data EntityIndo.Data `json:"data"`
+    }
+	if payload, err := json.Marshal(info); err != nil {
+		return err
+	}
+
+    s.room.SendToAll("CreateEntity", payload)
+}
+
+func (s Sendler) SendEntityUpdate(EntityInfo) error {
+    var info struct{
+        ID   EntityInfo.Id   `json:"id"`
+	    Type EntityInfo.Type `json:"type"`
+	    Data EntityInfo.Data `json:"data"`
+    }
+	if payload, err := json.Marshal(info); err != nil {
+		return err
+	}
+
+    s.room.SendToAll("UpdateEntity", payload)
+}
+
+func (s Sendler) SendEntityDelete(EntityInfo) error {
+    var info struct{
+        ID   EntityInfo.Id   `json:"id"`
+    }
+	if payload, err := json.Marshal(info); err != nil {
+		return err
+	}
+
+    s.room.SendToAll("DeleteEntity", payload)
+}
+
+func (s Sendler) SendSnapshot(types.Entity, []EntityInfo) error {
+    var info struct{
+        ID   EntityInfo.Id   `json:"id"`
+	    Type EntityInfo.Type `json:"type"`
+	    Data EntityInfo.Data `json:"data"`
+    }
+	if payload, err := json.Marshal(info); err != nil {
+		return err
+	}
+
+    s.room.SendToAll("Snapshot", payload)
+}
+
 //начало игры
 type startGameCommand struct {}
 
@@ -124,7 +203,7 @@ func (c *startGameCommand) Name() string { return "startGame" }
 
 func (c *startGameCommand) Execute(client *Client, payload json.RawMessage) error {
     
-    CreateWorld(client.room)
+    CreateWorld(Sendler)
 
     return nil
 }
