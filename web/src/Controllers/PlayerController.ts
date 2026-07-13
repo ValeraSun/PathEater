@@ -2,102 +2,102 @@ import * as THREE from "three";
 import { PlayerModel } from "../Models/PlayerModel";
 import { PlayerView } from "../Views/PlayerView";
 import { InputController } from "./InputController";
-import { NetworkManager } from "../Services/NetworkManager";
 import { CollisionManager } from "../Physics/CollisionManager";
+import { CollisionLayer } from "../Physics/OBB";
+import { NetworkManager } from "../Services/NetworkManager";
+import { DEFAULT_SPEED_Y, START_SEND_TIME_VALUE } from "../Config/GameConfig";
+import { NETWORK_SEND_INTERVAL } from "../Config/NetworkConfig";
 
-export class PlayerController
+export class PlayerController 
 {
     private model: PlayerModel;
     private view: PlayerView;
     private input: InputController;
     private camera: THREE.PerspectiveCamera;
     private networkManager: NetworkManager;
-    private lastSendTime = 0;
     private collisionManager: CollisionManager;
+    private lastSendTime = START_SEND_TIME_VALUE;
+    private inputLocked = false;
 
-    constructor(model: PlayerModel, view: PlayerView, input: InputController, camera: THREE.PerspectiveCamera, networkManager: NetworkManager, collisionManager: CollisionManager) 
+    constructor(model: PlayerModel, view: PlayerView,input: InputController, camera: THREE.PerspectiveCamera, networkManager: NetworkManager, collisionManager: CollisionManager) 
     {
         this.model = model;
         this.view = view;
         this.input = input;
         this.camera = camera;
         this.networkManager = networkManager;
-        this.collisionManager = collisionManager
+        this.collisionManager = collisionManager;
     }
 
-    public Update(): void 
+    public Update(dt: number): void 
     {
-        const direction = new THREE.Vector3();
+        if (this.inputLocked) 
+        {
+            return;
+        }
+        
+        const forward = new THREE.Vector3();
 
-        this.camera.getWorldDirection(direction);
-        direction.y = 0;
-        direction.normalize();
+        this.camera.getWorldDirection(forward);
+        forward.y = DEFAULT_SPEED_Y;
+        forward.normalize();
 
-        const right = new THREE.Vector3();
-        right.crossVectors(direction, new THREE.Vector3(0, 1, 0)).normalize();
+        const right = new THREE.Vector3().crossVectors(forward, this.camera.up).normalize();
 
-        const nextPosition = {
-            x: this.model.position.x,
-            y: this.model.position.y,
-            z: this.model.position.z
-        };
+        const wish = new THREE.Vector3();
 
-        let moved = false;
-
-        if (this.input.IsKeyDown("KeyW")) {
-            nextPosition.x += direction.x * this.model.speed;
-            nextPosition.z += direction.z * this.model.speed;
-            moved = true;
+        if (this.input.IsKeyDown("KeyW")) 
+        {
+            wish.add(forward);
         }
 
-        if (this.input.IsKeyDown("KeyS")) {
-            nextPosition.x -= direction.x * this.model.speed;
-            nextPosition.z -= direction.z * this.model.speed;
-            moved = true;
+        if (this.input.IsKeyDown("KeyS")) 
+        {
+            wish.sub(forward);
         }
 
-        if (this.input.IsKeyDown("KeyA")) {
-            nextPosition.x -= right.x * this.model.speed;
-            nextPosition.z -= right.z * this.model.speed;
-            moved = true;
+        if (this.input.IsKeyDown("KeyD")) 
+        {
+            wish.add(right);
         }
 
-        if (this.input.IsKeyDown("KeyD")) {
-            nextPosition.x += right.x * this.model.speed;
-            nextPosition.z += right.z * this.model.speed;
-            moved = true;
+        if (this.input.IsKeyDown("KeyA")) 
+        {
+            wish.sub(right);
         }
 
-        const playerBox = new THREE.Box3().setFromCenterAndSize(
-            new THREE.Vector3(
-                nextPosition.x,
-                nextPosition.y,
-                nextPosition.z
-            ),
-            new THREE.Vector3(0.8, 1.8, 0.8)
-        );
+        const movedInput = wish.lengthSq() > 0;
 
-        if (moved && this.collisionManager.CanMove(playerBox)) {
-            this.model.position.x = nextPosition.x;
-            this.model.position.y = nextPosition.y;
-            this.model.position.z = nextPosition.z;
+        if (movedInput) 
+        {
+            wish.normalize().multiplyScalar(this.model.speed);
         }
+
+        const displacement = wish.multiplyScalar(dt);
+
+        const PLAYER_MASK = CollisionLayer.Static | CollisionLayer.Item;
+
+        this.collisionManager.MoveAndSlide(this.model.body, displacement, PLAYER_MASK);
 
         this.view.Update(this.model.position);
 
         const now = performance.now();
 
-        if (moved && now - this.lastSendTime > 100) {
-            this.networkManager.SendMove(
-                {
-                    x: this.model.position.x,
-                    y: this.model.position.y,
-                    z: this.model.position.z
-                },
-                this.camera.rotation.y
-            );
+        if (movedInput && now - this.lastSendTime > NETWORK_SEND_INTERVAL) 
+        {
+            this.networkManager.SendMove(this.camera.position, this.camera.rotation);
 
             this.lastSendTime = now;
         }
+    }
+
+    public LockInput(): void 
+    {
+        this.inputLocked = true;
+    }
+
+    public UnlockInput(): void 
+    {
+        this.inputLocked = false;
     }
 }

@@ -10,9 +10,10 @@ import (
 var upgrade = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {return true}, //ИЗМЕНИТЬ!!!
+	CheckOrigin:     func(r *http.Request) bool { return true }, //ИЗМЕНИТЬ!!!
 }
 
+//обрабатывает /ws запросы
 func RegisterHandlers() {
 	http.HandleFunc("/ws", func(writer http.ResponseWriter, request *http.Request) {
 		HandleConnection(writer, request)
@@ -20,24 +21,24 @@ func RegisterHandlers() {
 }
 
 func HandleConnection(w http.ResponseWriter, r *http.Request) {
-    //Установка websocket-связи
+	hub := GetHub()
+	//Установка websocket-связи
 	wsConn, err := upgrade.Upgrade(w, r, nil)
-    //обработка ошибок
+	//обработка ошибок
 	if err != nil {
 		log.Println("Ошибка установления ws-связи:", err)
 		return
 	}
-    defer wsConn.Close()
-	
+	defer wsConn.Close()
 
-    //Создание клиента
+	//Создание клиента
 	client := NewClient(wsConn)
-    RegisterClient(client)
-    defer UnregisterClient(client)
-	
-    //Запуск чтения сообщений от клиента и отправки сообщений от сервера
-    go client.ReadMessages()
-    go client.WriteMessages()
+	hub.RegisterClient(client)
+	defer hub.UnregisterClient(client)
 
-    <-client.done
+	//Запуск чтения сообщений от клиента и отправки сообщений от сервера
+	go client.ReadMessages()
+	go client.WriteMessages()
+
+	<-client.done
 }

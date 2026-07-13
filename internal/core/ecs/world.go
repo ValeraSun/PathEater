@@ -1,40 +1,30 @@
-// internal/core/ecs/world.go
 package ecs
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
+	"github.com/ValeraSun/PathEater/internal/config"
+	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 type World struct {
-	// entities хранит все сущности и их компоненты
-	entities map[Entity]map[string]Component
+	entities map[types.Entity]map[string]types.Component
 
-	// componentIndex позволяет быстро искать сущности по типу компонента
-	componentIndex map[string]map[Entity]struct{}
+	componentIndex map[string]map[types.Entity]struct{}
 
-	// systems выполняются в порядке добавления
-	systems []System
+	systems []types.System
 
-	// eventBus для межсистемной коммуникации
-	eventBus *events.EventBus
-
-	// entityPool для переиспользования удаленных сущностей
-	entityPool sync.Pool
+	EventBus *events.EventBus
 
 	mu sync.RWMutex
 
-	// Метрики
 	entityCount  int64
 	systemTimers map[string]time.Duration
-<<<<<<< Updated upstream
-}
-
-func NewWorld(eventBus *events.EventBus) *World {
-=======
 
 	Room Broadcaster
 }
@@ -53,25 +43,16 @@ type EntityInfo struct {
 }
 
 func newWorld(eventBus *events.EventBus, room Broadcaster) *World {
->>>>>>> Stashed changes
 	return &World{
-		entities:       make(map[Entity]map[string]Component),
-		componentIndex: make(map[string]map[Entity]struct{}),
-		systems:        make([]System, 0),
-		eventBus:       eventBus,
+		entities:       make(map[types.Entity]map[string]types.Component),
+		componentIndex: make(map[string]map[types.Entity]struct{}),
+		systems:        make([]types.System, 0),
+		EventBus:       eventBus,
 		systemTimers:   make(map[string]time.Duration),
-		entityPool: sync.Pool{
-			New: func() interface{} {
-				return NewEntity()
-			},
-		},
+		Room:           room,
 	}
 }
 
-<<<<<<< Updated upstream
-// AddEntity добавляет сущность с компонентами
-func (w *World) AddEntity(components ...Component) (Entity, error) {
-=======
 func CreateWorld(room Broadcaster) *World {
 	log.Println("создалась сессия")
 	eb := events.NewEventBus(100)
@@ -100,15 +81,35 @@ func (w *World) AddSystem(system types.System) {
 	w.systems = append(w.systems, system)
 }
 
-// RemoveSystem удаляет систему из мира
 func (w *World) RemoveSystem(system types.System) {
->>>>>>> Stashed changes
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	entity := w.entityPool.Get().(Entity)
+	for i, s := range w.systems {
+		if s == system {
+			w.systems = append(w.systems[:i], w.systems[i+1:]...)
+			return
+		}
+	}
+}
 
-	w.entities[entity] = make(map[string]Component)
+// GetSystems возвращает копию списка систем (безопасно для чтения)
+func (w *World) GetSystems() []types.System {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+
+	systems := make([]types.System, len(w.systems))
+	copy(systems, w.systems)
+	return systems
+}
+
+func (w *World) AddEntity(components ...types.Component) (types.Entity, error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	entity := types.NewEntity()
+
+	w.entities[entity] = make(map[string]types.Component)
 
 	for _, comp := range components {
 		if err := w.addComponentToEntity(entity, comp); err != nil {
@@ -120,24 +121,20 @@ func (w *World) RemoveSystem(system types.System) {
 	return entity, nil
 }
 
-// addComponentToEntity добавляет компонент и обновляет индексы
-func (w *World) addComponentToEntity(entity Entity, comp Component) error {
+func (w *World) addComponentToEntity(entity types.Entity, comp types.Component) error {
 	compType := comp.Type()
 
-	// Добавляем в сущность
 	w.entities[entity][compType] = comp
 
-	// Обновляем индекс
 	if w.componentIndex[compType] == nil {
-		w.componentIndex[compType] = make(map[Entity]struct{})
+		w.componentIndex[compType] = make(map[types.Entity]struct{})
 	}
 	w.componentIndex[compType][entity] = struct{}{}
 
 	return nil
 }
 
-// GetEntity получает все компоненты сущности
-func (w *World) GetEntity(entity Entity) (map[string]Component, bool) {
+func (w *World) GetEntity(entity types.Entity) (map[string]types.Component, bool) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 
@@ -145,8 +142,7 @@ func (w *World) GetEntity(entity Entity) (map[string]Component, bool) {
 	return comps, exists
 }
 
-// GetComponent получает конкретный компонент сущности
-func (w *World) GetComponent(entity Entity, componentType string) (Component, bool) {
+func (w *World) GetComponent(entity types.Entity, componentType string) (types.Component, bool) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 
@@ -157,12 +153,11 @@ func (w *World) GetComponent(entity Entity, componentType string) (Component, bo
 	return nil, false
 }
 
-// GetEntitiesByComponent возвращает все сущности с указанным компонентом
-func (w *World) GetEntitiesByComponent(componentType string) map[Entity]Component {
+func (w *World) GetEntitiesByComponent(componentType string) map[types.Entity]types.Component {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 
-	result := make(map[Entity]Component)
+	result := make(map[types.Entity]types.Component)
 
 	if entities, exists := w.componentIndex[componentType]; exists {
 		for entity := range entities {
@@ -175,17 +170,16 @@ func (w *World) GetEntitiesByComponent(componentType string) map[Entity]Componen
 	return result
 }
 
-// Update выполняет все системы
-func (w *World) Update(dt float64) error {
+func (w *World) Update(dt float32) error {
 	w.mu.RLock()
-	systems := make([]System, len(w.systems))
+	systems := make([]types.System, len(w.systems))
 	copy(systems, w.systems)
 	w.mu.RUnlock()
 
 	for _, system := range systems {
 		start := time.Now()
 
-		if err := system.Update(w, dt); err != nil {
+		if err := system.Update(dt); err != nil {
 			return fmt.Errorf("system %T failed: %w", system, err)
 		}
 
@@ -197,22 +191,17 @@ func (w *World) Update(dt float64) error {
 	return nil
 }
 
-// RemoveEntity удаляет сущность и возвращает её в пул
-func (w *World) RemoveEntity(entity Entity) {
+func (w *World) RemoveEntity(entity types.Entity) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	// Удаляем из индексов
 	if comps, exists := w.entities[entity]; exists {
 		for compType := range comps {
 			delete(w.componentIndex[compType], entity)
 		}
 	}
 
-	// Удаляем сущность
 	delete(w.entities, entity)
 
-	// Возвращаем ID в пул
-	w.entityPool.Put(entity)
 	w.entityCount--
 }

@@ -3,6 +3,7 @@ import { ShipView } from "./ShipView";
 import { SpaceView } from "./SpaceView";
 import { WindowResize } from "../Utils/WindowResize";
 import { PlayerView } from "./PlayerView";
+import { ComputerView } from "./ComputerView";
 
 export class GameView 
 {
@@ -24,6 +25,7 @@ export class GameView
 
         this.scene.add(this.spaceView.GetObject());
         this.scene.add(this.shipView.GetObject());
+        this.scene.add(this.computerView.GetObject());
         this.scene.add(this.playerView.mesh);
 
         WindowResize.Handle(this.camera, this.renderer);
@@ -44,12 +46,18 @@ export class GameView
         return this.renderer.domElement;
     }
 
+    public GetComputerView(): ComputerView 
+    {
+        return this.computerView;
+    }
+
     private scene: THREE.Scene;
     private camera: THREE.PerspectiveCamera;
     private renderer: THREE.WebGLRenderer;
 
     private shipView: ShipView;
     private spaceView: SpaceView;
+    private computerView: ComputerView;
     private playerView = new PlayerView();
 
     constructor(playerView: PlayerView) 
@@ -60,12 +68,17 @@ export class GameView
         this.shipView = new ShipView();
         this.spaceView = new SpaceView();
         this.playerView = playerView;
+        this.computerView = new ComputerView();
     }
 
     private addLights(): void 
     {
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         this.scene.add(ambientLight);
+
+        const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444466, 1.0);
+
+        this.scene.add(hemisphereLight);
 
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
         directionalLight.position.set(10, 10, 10);

@@ -1,23 +1,12 @@
-// internal/core/events/bus.go
 package events
 
 import (
 	"fmt"
 	"sync"
-	"time"
 )
 
 type Event interface {
 	Type() string
-	Timestamp() time.Time
-}
-
-type BaseEvent struct {
-	timestamp time.Time
-}
-
-func (e BaseEvent) Timestamp() time.Time {
-	return e.timestamp
 }
 
 type EventHandler func(event Event) error
@@ -45,7 +34,6 @@ func NewEventBus(bufferSize int) *EventBus {
 		metrics:     &EventMetrics{},
 	}
 
-	// Запускаем обработчик очереди событий
 	go bus.processEvents()
 
 	return bus
@@ -65,7 +53,6 @@ func (eb *EventBus) processEvents() {
 func (eb *EventBus) handleEvent(event Event) {
 	eb.mu.RLock()
 	handlers, exists := eb.subscribers[event.Type()]
-	// Копируем хендлеры для безопасного выполнения
 	handlersCopy := make([]EventHandler, len(handlers))
 	copy(handlersCopy, handlers)
 	eb.mu.RUnlock()
@@ -74,18 +61,16 @@ func (eb *EventBus) handleEvent(event Event) {
 		return
 	}
 
-	// Выполняем все хендлеры параллельно
 	var wg sync.WaitGroup
 	for _, handler := range handlersCopy {
 		wg.Add(1)
 		go func(h EventHandler) {
 			defer wg.Done()
-
-			if err := h(event); err != nil {
+			err := h(event)
+			if err != nil {
 				eb.metrics.mu.Lock()
 				eb.metrics.Errors++
 				eb.metrics.mu.Unlock()
-				// Логируем ошибку, но не прерываем выполнение
 			}
 
 			eb.metrics.mu.Lock()
@@ -106,7 +91,6 @@ func (eb *EventBus) Subscribe(eventType string, handler EventHandler) (func(), e
 
 	eb.subscribers[eventType] = append(eb.subscribers[eventType], handler)
 
-	// Возвращаем функцию отписки
 	unsubscribe := func() {
 		eb.mu.Lock()
 		defer eb.mu.Unlock()

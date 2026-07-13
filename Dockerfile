@@ -15,22 +15,22 @@ FROM golang:1.26-alpine AS backend-build
 
 WORKDIR /app
 
-RUN apk update && apk add --no-cache git curl
+RUN apk update && apk add --no-cache git
 
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Копируем все исходники (включая internal/)
 COPY . .
 
-# Берём собранный Vite build из web/dist
 RUN rm -rf ./web
 COPY --from=frontend-build /app/web/dist ./web
 
-RUN go build -o /app/main .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/main ./cmd/app
 
 
 # 3. Финальный контейнер
-FROM golang:1.26-alpine
+FROM alpine:latest
 
 WORKDIR /app
 
@@ -38,8 +38,10 @@ RUN apk add --no-cache ca-certificates
 
 COPY --from=backend-build /app/main /app/main
 COPY --from=backend-build /app/web /app/web
-COPY --from=backend-build /app/configs /app/configs
+COPY --from=backend-build /app/internal /app/internal
 
 EXPOSE 8080
+
+USER nobody
 
 CMD ["/app/main"]
