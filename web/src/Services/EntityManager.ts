@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { PlayerView } from "../Views/PlayerView";
-import type { Vector3D } from "../Models/NetworkMessages";
 
 type EntityKind = "player" | "monster" | "door" | "cargo";
 
@@ -20,17 +19,17 @@ export class EntityManager
         this.scene = scene;
     }
 
-    public CreateEntity(id: string, kind: EntityKind, position: Vector3D, rotationY = 0): void 
+    public CreateEntity(type:string, id: string, data: unknown): void 
     {
         if (this.entities.has(id)) 
         {
-            this.UpdateEntity(id, position, rotationY);
+            this.UpdateEntity(type, id, data);
             return;
         }
 
         let object: THREE.Object3D;
 
-        switch (kind) 
+        switch (type) 
         {
             case "player": 
             {
@@ -60,19 +59,19 @@ export class EntityManager
             default: return;
         }
 
-        object.position.set(position.x, position.y, position.z);
-        object.rotation.y = rotationY;
+        object.position.set(data.position.x, data.position.y, data.position.z);
+        object.rotation.y = data.rotationY;
 
         this.scene.add(object);
 
         this.entities.set(id, {
             id,
-            kind,
+            type,
             object
         });
     }
 
-    public UpdateEntity(id: string, position?: Vector3D, rotationY?: number): void 
+    public UpdateEntity(type: string, id: string, data: unknown): void 
     {
         const entity = this.entities.get(id);
 
@@ -81,14 +80,14 @@ export class EntityManager
             return;
         }
 
-        if (position) 
+        if (data.position) 
         {
-            entity.object.position.set(position.x, position.y, position.z);
+            entity.object.position.set(data.position.x, data.position.y, data.position.z);
         }
 
-        if (rotationY !== undefined) 
+        if (data.rotationY !== undefined) 
         {
-            entity.object.rotation.y = rotationY;
+            entity.object.rotation.y = data.rotationY;
         }
     }
 
@@ -108,9 +107,8 @@ export class EntityManager
     public ApplySnapshot(
         entities: Array<{
             id: string;
-            kind: EntityKind;
-            position: Vector3D;
-            rotationY?: number;
+            type: string;
+            data: unknown;
         }>
     ): void 
     {
@@ -118,9 +116,9 @@ export class EntityManager
         {
             this.CreateEntity(
                 entity.id,
-                entity.kind,
-                entity.position,
-                entity.rotationY ?? 0
+                entity.type,
+                entity.data.position,
+                entity.data.rotationY ?? 0
             );
         }
     }
