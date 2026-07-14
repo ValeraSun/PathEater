@@ -5,6 +5,7 @@ import (
 
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/game"
 	"github.com/ValeraSun/PathEater/internal/core/transfer"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
@@ -141,7 +142,7 @@ func (c *exitRoomCommand) Execute(client *Client, payload json.RawMessage) error
 }
 
 type Sendler struct {
-	room GameRoom
+	room *GameRoom
 }
 
 func (s Sendler) SendEntityCreate(EntityInfo ecs.EntityInfo) error {
@@ -194,12 +195,12 @@ func (s Sendler) SendEntityDelete(EntityInfo ecs.EntityInfo) error {
 	return nil
 }
 
-func (s Sendler) SendSnapshot(entities []ecs.EntityInfo) error {
+func (s Sendler) SendSnapshotToAll(entities []ecs.EntityInfo) error {
 	var info struct {
-		entities []ecs.EntityInfo `json:"entities"`
+		Entities []ecs.EntityInfo `json:"entities"`
 	}
 
-	info.entities = entities
+	info.Entities = entities
 
 	payload, err := json.Marshal(info)
 	if err != nil {
@@ -210,14 +211,14 @@ func (s Sendler) SendSnapshot(entities []ecs.EntityInfo) error {
 	return nil
 }
 
-// начало игры
+// // начало игры
 type createGameSessionCommand struct{}
 
-func (c *startGameCommand) Name() string { return "startGame" }
+func (c *createGameSessionCommand) Name() string { return "startGame" }
 
-func (c *startGameCommand) Execute(client *Client, payload json.RawMessage) error {
-	var s Sendler
-	game.CreateGame(s)
+func (c *createGameSessionCommand) Execute(client *Client, payload json.RawMessage) error {
+	broadcaster := Sendler{room: client.room}
+	game.CreateGame(broadcaster)
 
 	return nil
 }

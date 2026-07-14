@@ -31,7 +31,7 @@ type Broadcaster interface {
 	SendEntityCreate(EntityInfo) error
 	SendEntityUpdate(EntityInfo) error
 	SendEntityDelete(EntityInfo) error
-	SendSnapshot(types.Entity, []EntityInfo) error
+	SendSnapshotToAll([]EntityInfo) error
 }
 
 type EntityInfo struct {
