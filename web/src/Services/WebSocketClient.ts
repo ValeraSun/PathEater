@@ -42,7 +42,7 @@ export class WebSocketClient extends EventEmitter {
                 
 
             } catch(error) {
-                console.error("Ошибка при прасинге JSON: ", error)
+                console.error("Ошибка при парсинге JSON: ", error)
             }
            
         };
@@ -53,6 +53,4 @@ export class WebSocketClient extends EventEmitter {
             this.socket.send(JSON.stringify({ cmd, payload }));
         }
     }
-
-     
 }
