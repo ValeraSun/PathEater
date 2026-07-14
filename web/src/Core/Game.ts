@@ -110,10 +110,13 @@ export class Game
             "/data/ship_wall_colliders_v3.json"
         );
         this.gameServerGateway.InitListeners();
-        this.gameServerGateway.connectToServer();
+        this.gameServerGateway.connectToServer(); 
+        await Timer.wait(1); //костыль удалить
         this.gameServerGateway.createRoom();
+        await Timer.wait(1);
         this.gameServerGateway.createGameSession();
-        
+        await Timer.wait(1);
+
         this.gameView.Init();
 
         this.lastTime = performance.now();
