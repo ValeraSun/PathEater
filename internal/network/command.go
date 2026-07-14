@@ -211,7 +211,7 @@ func (s Sendler) SendSnapshotToAll(entities []ecs.EntityInfo) error {
 	return nil
 }
 
-// // начало игры
+// начало игры
 type createGameSessionCommand struct{}
 
 func (c *createGameSessionCommand) Name() string { return "startGame" }
@@ -219,6 +219,11 @@ func (c *createGameSessionCommand) Name() string { return "startGame" }
 func (c *createGameSessionCommand) Execute(client *Client, payload json.RawMessage) error {
 	broadcaster := Sendler{room: client.room}
 	game.CreateGame(broadcaster)
+
+	for _, client := range client.room.Clients {
+		client.SetState(PlayerControlState())
+		transfer.CreatePlayer(broadcaster, client.ID)
+	}
 
 	return nil
 }
