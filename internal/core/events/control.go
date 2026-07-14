@@ -24,6 +24,7 @@ type SetPlayerStateEvent struct {
 }
 
 func (*SetPlayerStateEvent) Type() string { return "SetPlayerState" }
+
 func NewSetPlayerStateEvent(ps PlayerState, id types.Entity) *SetPlayerStateEvent {
 	return &SetPlayerStateEvent{
 		PlayerState: ps,

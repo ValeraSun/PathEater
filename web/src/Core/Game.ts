@@ -64,6 +64,7 @@ export class Game
             this.entityManager
         );
 
+
         this.cameraController = new CameraController(
             this.gameView.GetCamera(),
             this.playerModel,

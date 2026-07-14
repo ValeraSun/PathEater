@@ -37,7 +37,7 @@ func (s *ControlSystem) resetComponents(comps map[types.Entity]types.Component) 
 		if !ok {
 			log.Printf("по комоненту control вернулся не control а %+v\n", comp)
 		}
-		*c = components.ControlComponent{}
+		c.Reset()
 	}
 }
 
@@ -47,11 +47,18 @@ loop:
 	for {
 		select {
 		case e := <-s.eventQueue:
-			c, ok := comps[e.ID].(*components.ControlComponent)
-			if !ok {
-				continue
+			for _, comp := range comps {
+				c, ok := comp.(*components.ControlComponent)
+
+				if !ok {
+					continue
+				}
+
+				if c.ClientID == string(e.ID) {
+					c.Superimpose(&e.PlayerState)
+				}
 			}
-			c.Superimpose(&e.PlayerState)
+
 		default:
 			break loop
 		}

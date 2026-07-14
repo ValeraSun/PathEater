@@ -2,6 +2,7 @@ package game
 
 import (
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
+	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/systems"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
@@ -20,7 +21,7 @@ func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	w := ecs.CreateWorld(broadcaster)
 	//eb := *w.EventBus
 	initSystems(w, w)
-
+	player := entities.NewPlayer(w)
 	return w
 }
 

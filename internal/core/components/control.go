@@ -13,6 +13,7 @@ type ControlComponent struct {
 	Interact  bool
 	Attack    bool
 	Direction geometry.Vector3
+	ClientID  string
 }
 
 func (*ControlComponent) Type() string {

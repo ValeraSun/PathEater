@@ -7,7 +7,7 @@ type VelocityComponent struct {
 }
 
 func (*VelocityComponent) Type() string {
-	return "transform"
+	return "velocity"
 }
 
 func NewVelocityComponent() *VelocityComponent {

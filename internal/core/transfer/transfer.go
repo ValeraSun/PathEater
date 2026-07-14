@@ -13,3 +13,8 @@ func SendPlayerState(publisher EventPublisher, state events.PlayerState, id type
 	e := events.NewSetPlayerStateEvent(state, id)
 	return publisher.Publish(e)
 }
+
+func CreatePlayer(publisher EventPublisher, id string) error {
+	e := events.NewCreatePlayerEvent(id)
+	return publisher.Publish(e)
+}
