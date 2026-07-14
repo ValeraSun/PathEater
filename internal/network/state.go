@@ -53,7 +53,7 @@ func GameRoomState() State {
 	s := NewBaseState("roomMenu")
 	s.RegisterCommand(&deleteRoomCommand{})
 	s.RegisterCommand(&exitRoomCommand{})
-	s.RegisterCommand(&startGameCommand{})
+	s.RegisterCommand(&createGameSessionCommand{})
 	return s
 }
 
