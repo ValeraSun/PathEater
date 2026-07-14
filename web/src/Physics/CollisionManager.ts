@@ -189,26 +189,4 @@ export class CollisionManager
 
         return true;
     }
-    // УДАЛИТЬ ПЕРЕД ЗАЩИТОЙ
-    public AddDebugHelpers(scene: THREE.Scene): void 
-    {
-        for (const collider of this.staticColliders) 
-        {
-            const geometry = new THREE.BoxGeometry(
-                collider.halfExtents.x * 2,
-                collider.halfExtents.y * 2,
-                collider.halfExtents.z * 2,
-            );
-
-            const mesh = new THREE.Mesh(
-                geometry,
-                new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true }),
-            );
-
-            mesh.position.copy(collider.center);
-            mesh.quaternion.copy(collider.quaternion);
-
-            scene.add(mesh);
-        }
-    }
 }

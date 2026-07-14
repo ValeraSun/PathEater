@@ -1,62 +1,53 @@
 import * as THREE from "three";
 import { PlayerView } from "../Views/PlayerView";
 
-type EntityKind = "player" | "monster" | "door" | "cargo";
+export interface EntityTransformData {
+    position?: {
+        x: number;
+        y: number;
+        z: number;
+    };
 
+    rotationY?: number;
+}
 
+interface EntityRecord {
+    id: string;
+    type: string;
+    object: THREE.Object3D;
+}
 
-export class EntityManager 
-{
+interface SnapshotEntity {
+    id: string;
+    type: string;
+    data: EntityTransformData;
+}
+
+export class EntityManager {
     private scene: THREE.Scene;
     private entities = new Map<string, EntityRecord>();
 
-    constructor(scene: THREE.Scene) 
-    {
+    public constructor(scene: THREE.Scene) {
         this.scene = scene;
     }
 
-    public CreateEntity(type:string, id: string, data: unknown): void 
+    public CreateEntity(id: string, type: string, data: EntityTransformData): void 
     {
         if (this.entities.has(id)) 
         {
-            this.UpdateEntity(type, id, data);
+            this.UpdateEntity(id, type, data);
             return;
         }
 
-        let object: THREE.Object3D;
+        const object = this.createObject(type);
 
-        switch (type) 
+        if (!object) 
         {
-            case "player": 
-            {
-                const playerView = new PlayerView();
-                object = playerView.mesh;
-                break;
-            }
-
-            case "monster": 
-            {
-                object = this.CreateBox(0xff0000);
-                break;
-            }
-
-            case "door": 
-            {
-                object = this.CreateBox(0x4444ff);
-                break;
-            }
-
-            case "cargo": 
-            {
-                object = this.CreateBox(0xffaa00);
-                break;
-            }
-
-            default: return;
+            console.warn(`Невозможно создать сущность неизвестного типа: ${type}`);
+            return;
         }
 
-        object.position.set(data.position.x, data.position.y, data.position.z);
-        object.rotation.y = data.rotationY;
+        this.applyTransform(object, data);
 
         this.scene.add(object);
 
@@ -67,24 +58,17 @@ export class EntityManager
         });
     }
 
-    public UpdateEntity(type: string, id: string, data: unknown): void 
+    public UpdateEntity(id: string, type: string, data: EntityTransformData): void 
     {
         const entity = this.entities.get(id);
 
         if (!entity) 
         {
+            this.CreateEntity(id, type, data);
             return;
         }
 
-        if (data.position) 
-        {
-            entity.object.position.set(data.position.x, data.position.y, data.position.z);
-        }
-
-        if (data.rotationY !== undefined) 
-        {
-            entity.object.rotation.y = data.rotationY;
-        }
+        this.applyTransform(entity.object, data);
     }
 
     public DeleteEntity(id: string): void 
@@ -97,30 +81,97 @@ export class EntityManager
         }
 
         this.scene.remove(entity.object);
+        this.disposeObject(entity.object);
         this.entities.delete(id);
     }
 
-    public ApplySnapshot(
-        entities: Array<{
-            id: string;
-            type: string;
-            data: unknown;
-        }>
-    ): void 
+    public ApplySnapshot(entities: SnapshotEntity[]): void 
     {
-        for (const entity of entities) 
-        {
+        const receivedIds = new Set(
+            entities.map(entity => entity.id)
+        );
+
+        for (const id of [...this.entities.keys()]) {
+            if (!receivedIds.has(id)) {
+                this.DeleteEntity(id);
+            }
+        }
+
+        for (const entity of entities) {
             this.CreateEntity(
                 entity.id,
                 entity.type,
-                entity.data.position,
-                entity.data.rotationY ?? 0
+                entity.data
             );
         }
     }
 
-    private CreateBox(color: number): THREE.Mesh 
+    public Clear(): void 
     {
+        for (const id of [...this.entities.keys()]) {
+            this.DeleteEntity(id);
+        }
+    }
+
+    private createObject(type: string): THREE.Object3D | null 
+    {
+        switch (type) {
+            case "player": {
+                const playerView = new PlayerView();
+                return playerView.mesh;
+            }
+
+            case "monster":
+                return this.CreateBox(0xff0000);
+
+            case "door":
+                return this.CreateBox(0x4444ff);
+
+            case "cargo":
+                return this.CreateBox(0xffaa00);
+
+            default:
+                return null;
+        }
+    }
+
+    private applyTransform(
+        object: THREE.Object3D,
+        data: EntityTransformData
+    ): void {
+        if (data.position) {
+            object.position.set(
+                data.position.x,
+                data.position.y,
+                data.position.z
+            );
+        }
+
+        if (typeof data.rotationY === "number") {
+            object.rotation.y = data.rotationY;
+        }
+    }
+
+    private disposeObject(object: THREE.Object3D): void 
+    {
+        object.traverse(child => {
+            if (!(child instanceof THREE.Mesh)) {
+                return;
+            }
+
+            child.geometry.dispose();
+
+            if (Array.isArray(child.material)) {
+                for (const material of child.material) {
+                    material.dispose();
+                }
+            } else {
+                child.material.dispose();
+            }
+        });
+    }
+
+    private CreateBox(color: number): THREE.Mesh {
         return new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, 1),
             new THREE.MeshStandardMaterial({ color })
