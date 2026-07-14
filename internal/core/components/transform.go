@@ -8,7 +8,7 @@ type TransformComponent struct {
 }
 
 func (*TransformComponent) Type() string {
-	return "move"
+	return "transform"
 }
 
 func NewTransformComponent() *TransformComponent {

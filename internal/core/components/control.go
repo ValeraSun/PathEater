@@ -43,3 +43,20 @@ func (c *ControlComponent) Superimpose(state *events.PlayerState) {
 	c.Attack = state.Attack
 	c.Direction = state.Direction
 }
+
+func (c *ControlComponent) GetInputVector() geometry.Vector3 {
+	input := geometry.Vector3{}
+	if c.MoveFront {
+		input.Z += 1
+	}
+	if c.MoveBack {
+		input.Z -= 1
+	}
+	if c.MoveRight {
+		input.X += 1
+	}
+	if c.MoveLeft {
+		input.X -= 1
+	}
+	return input.Normalize()
+}

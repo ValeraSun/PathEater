@@ -198,3 +198,13 @@ func (w *World) RemoveEntity(entity types.Entity) {
 
 	w.entityCount--
 }
+
+func (w *World) HasComponents(entity types.Entity, componentTypes ...string) bool {
+	for _, comp := range componentTypes {
+		_, exists := w.entities[entity][comp]
+		if !exists {
+			return false
+		}
+	}
+	return true
+}

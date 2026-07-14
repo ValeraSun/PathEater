@@ -12,7 +12,6 @@ import (
 type ControlSystem struct {
 	getter     componentsGetter
 	eventQueue chan *events.SetPlayerStateEvent
-	inputs     map[types.Entity]events.PlayerState
 }
 
 func NewPlayerControlSystem(getter componentsGetter) *ControlSystem {

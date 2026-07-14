@@ -30,23 +30,3 @@ func NewSetPlayerStateEvent(ps PlayerState, id types.Entity) *SetPlayerStateEven
 		ID:          id,
 	}
 }
-
-type EventUseItem struct {
-	ItemID string
-}
-
-func (e *EventUseItem) Type() string { return "UseItem" }
-
-func CreateEventUseItem(itemID string) EventUseItem {
-	return EventUseItem{
-		ItemID: itemID,
-	}
-}
-
-type EventExit struct{}
-
-func (e *EventExit) Type() string { return "Exit" }
-
-func CreateEventExit() EventExit {
-	return EventExit{}
-}

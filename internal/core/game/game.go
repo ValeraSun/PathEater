@@ -12,6 +12,8 @@ type systemAdder interface {
 
 type componentsGetter interface {
 	GetEntitiesByComponent(componentType string) map[types.Entity]types.Component
+	HasComponents(entity types.Entity, componentTypes ...string) bool
+	GetComponent(entity types.Entity, componentType string) (types.Component, bool)
 }
 
 func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
