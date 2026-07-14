@@ -17,10 +17,13 @@ export interface SnapshotPayload {
 }
 
 export class GameServerGateway {
-    constructor(
-        private wsClient: WebSocketClient,
-        private entityManager: EntityManager
-    ) {
+
+    private wsClient: WebSocketClient;
+    private entityManager: EntityManager;
+
+    constructor(wsClient: WebSocketClient, entityManager: EntityManager) {
+        this.wsClient = wsClient;
+        this.entityManager = entityManager;
         this.initListeners();
     }
 
