@@ -109,9 +109,11 @@ export class Game
         await this.collisionManager.LoadShipColliders(
             "/data/ship_wall_colliders_v3.json"
         );
-        this.gameServerGateway.InitListeners()
+        this.gameServerGateway.InitListeners();
         this.gameServerGateway.connectToServer();
-
+        this.gameServerGateway.createRoom();
+        this.gameServerGateway.createGameSession();
+        
         this.gameView.Init();
 
         this.lastTime = performance.now();
