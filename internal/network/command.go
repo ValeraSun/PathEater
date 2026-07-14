@@ -222,7 +222,7 @@ func (c *createGameSessionCommand) Execute(client *Client, payload json.RawMessa
 
 	for _, client := range client.room.Clients {
 		client.SetState(PlayerControlState())
-		transfer.CreatePlayer(broadcaster, client.ID)
+		transfer.CreatePlayer(client.room.World.EventBus, client.ID)
 	}
 
 	return nil

@@ -20,9 +20,10 @@ func (*ControlComponent) Type() string {
 	return "control"
 }
 
-func NewControlComponent() *ControlComponent {
+func NewControlComponent(id string) *ControlComponent {
 	return &ControlComponent{
 		Direction: geometry.GetZeroVector(),
+		ClientID:  id,
 	}
 }
 

@@ -7,3 +7,7 @@ type componentsGetter interface {
 	HasComponents(entity types.Entity, componentTypes ...string) bool
 	GetComponent(entity types.Entity, componentType string) (types.Component, bool)
 }
+
+type entityAdder interface {
+	AddEntity(components ...types.Component) (types.Entity, error)
+}
