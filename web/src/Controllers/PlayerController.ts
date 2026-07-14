@@ -5,9 +5,9 @@ import { PlayerView } from "../Views/PlayerView";
 import { InputController } from "./InputController";
 import { CollisionManager } from "../Physics/CollisionManager";
 import { CollisionLayer } from "../Physics/OBB";
-import { WebSocketClient } from "../Services/WebSocketClient";
+import { GameServerGateway } from "../Services/GameServerGateway";
 
-interface PlayerStatePayload {
+export interface PlayerStatePayload {
     move_front: boolean;
     move_left: boolean;
     move_right: boolean;
@@ -27,7 +27,7 @@ export class PlayerController {
     private readonly playerView: PlayerView;
     private readonly input: InputController;
     private readonly camera: THREE.Camera;
-    private readonly webSocketClient: WebSocketClient;
+    private readonly gameServerGateway: GameServerGateway;
     private readonly collisionManager: CollisionManager;
 
     private inputLocked = false;
@@ -45,14 +45,14 @@ export class PlayerController {
         playerView: PlayerView,
         input: InputController,
         camera: THREE.Camera,
-        webSocketClient: WebSocketClient,
+        gameServerGateway: GameServerGateway,
         collisionManager: CollisionManager
     ) {
         this.playerModel = playerModel;
         this.playerView = playerView;
         this.input = input;
         this.camera = camera;
-        this.webSocketClient = webSocketClient;
+        this.gameServerGateway = gameServerGateway;
         this.collisionManager = collisionManager;
 
         this.syncViewWithModel();
@@ -211,7 +211,7 @@ export class PlayerController {
 
         const canSendInput = !this.inputLocked;
 
-        const payload: PlayerStatePayload = {
+        const state: PlayerStatePayload = {
             move_front:
                 canSendInput &&
                 this.input.IsKeyDown("KeyW"),
@@ -243,9 +243,6 @@ export class PlayerController {
             }
         };
 
-        this.webSocketClient.send(
-            "playerState",
-            payload
-        );
+        this.gameServerGateway.sendPlayerState(state);
     }
 }

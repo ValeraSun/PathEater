@@ -10,7 +10,6 @@ import { MAX_DELTA_TIME, MILLISECONDS_IN_SECOND } from "../Config/GameConfig";
 import { InteractionView } from "../Views/InteractionView";
 import { InteractionController } from "../Controllers/InteractionController";
 import { ComputerController } from "../Controllers/ComputerController";
-import { WebSocketClient } from "../Services/WebSocketClient";
 import { GameServerGateway } from "../Services/GameServerGateway";
 
 export class Timer {
@@ -33,7 +32,6 @@ export class Game
     private readonly interactionView = new InteractionView();
     private readonly gameView: GameView;
     private readonly entityManager: EntityManager;
-    private readonly webSocketClient: WebSocketClient;
     private readonly gameServerGateway: GameServerGateway;
     private readonly cameraController: CameraController;
     private readonly playerController: PlayerController;
@@ -57,10 +55,8 @@ export class Game
             this.gameView.GetScene()
         );
 
-        this.webSocketClient = new WebSocketClient();
 
         this.gameServerGateway = new GameServerGateway(
-            this.webSocketClient,
             this.entityManager
         );
 
@@ -76,7 +72,7 @@ export class Game
             this.playerView,
             this.input,
             this.gameView.GetCamera(),
-            this.webSocketClient,
+            this.gameServerGateway,
             this.collisionManager
         );
 
@@ -113,8 +109,8 @@ export class Game
         await this.collisionManager.LoadShipColliders(
             "/data/ship_wall_colliders_v3.json"
         );
-
-        this.connectToServer();
+        this.gameServerGateway.InitListeners()
+        this.gameServerGateway.connectToServer();
 
         this.gameView.Init();
 
@@ -122,12 +118,6 @@ export class Game
         this.GameLoop();
     }
 
-    private connectToServer(): void {
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const url = `${protocol}//${window.location.host}/ws`;
-
-        this.webSocketClient.connect(url);
-    }
 
     private GameLoop = (): void => {
         requestAnimationFrame(this.GameLoop);

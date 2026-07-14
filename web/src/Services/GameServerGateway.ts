@@ -1,6 +1,7 @@
 import { EntityManager } from "./EntityManager";
 import { WebSocketClient } from "./WebSocketClient";
 import { EntityParser } from "./EntityParser";
+import type { PlayerStatePayload } from "../Controllers/PlayerController"
 
 export interface EntityInfo {
     id: string;
@@ -21,13 +22,18 @@ export class GameServerGateway {
     private wsClient: WebSocketClient;
     private entityManager: EntityManager;
 
-    constructor(wsClient: WebSocketClient, entityManager: EntityManager) {
-        this.wsClient = wsClient;
+    constructor(entityManager: EntityManager) {
+        this.wsClient = new WebSocketClient();
         this.entityManager = entityManager;
-        this.initListeners();
     }
 
-    private initListeners() {
+    public connectToServer(): void {
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const url = `${protocol}//${window.location.host}/ws`;
+
+        this.wsClient.connect(url);
+    }
+    public InitListeners() {
         this.wsClient.on("CreateEntity", (payload: unknown) => {
             if (!this.isValidEntityInfo(payload)) return; 
 
@@ -91,5 +97,29 @@ export class GameServerGateway {
         return payload 
             && typeof payload === "object" 
             && Array.isArray(payload.entities);
+    }
+
+    public createRoom() {
+        this.sendCommand(
+            "createRoom",
+            {}
+        )
+    }
+    public createGameSession() {
+        this.sendCommand(
+            "createGameSession",
+            {}
+        )
+    }
+
+    public sendPlayerState(state: PlayerStatePayload) {
+        this.sendCommand(
+            "playerState",
+            state
+        )
+    }
+
+    private sendCommand(cmd: string, payload: unknown) {
+        this.wsClient.send(cmd, payload)
     }
 }
