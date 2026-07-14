@@ -194,18 +194,30 @@ func (s Sendler) SendEntityDelete(EntityInfo ecs.EntityInfo) error {
 	return nil
 }
 
-func (s Sendler) SendSnapshot(types.Entity, []ecs.EntityInfo) error {
+func (s Sendler) SendSnapshot(entities []ecs.EntityInfo) error {
+	var info struct {
+		entities []ecs.EntityInfo `json:"entities"`
+	}
+
+	info.entities = entities
+
+	payload, err := json.Marshal(info)
+	if err != nil {
+		return err
+	}
+
+	s.room.SendToAll("Snapshot", payload)
 	return nil
 }
 
 // начало игры
-type startGameCommand struct{}
+type createGameSessionCommand struct{}
 
 func (c *startGameCommand) Name() string { return "startGame" }
 
 func (c *startGameCommand) Execute(client *Client, payload json.RawMessage) error {
 	var s Sendler
-	ecs.CreateWorld(s)
+	game.CreateGame(s)
 
 	return nil
 }
