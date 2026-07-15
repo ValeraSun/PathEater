@@ -13,15 +13,16 @@ type ControlComponent struct {
 	Interact  bool
 	Attack    bool
 	Direction geometry.Vec3
+	ClientID  string
 }
 
 func (*ControlComponent) Type() string {
 	return "control"
 }
 
-func NewControlComponent() *ControlComponent {
+func NewControlComponent(clientID string) *ControlComponent {
 	return &ControlComponent{
-		Direction: geometry.GetZeroVector(),
+		ClientID: clientID,
 	}
 }
 
@@ -33,6 +34,7 @@ func (c *ControlComponent) Reset() {
 	c.Interact = false
 	c.Attack = false
 	c.Direction = geometry.GetZeroVector()
+
 }
 func (c *ControlComponent) Superimpose(state *events.PlayerState) {
 	c.MoveFront = state.MoveFront

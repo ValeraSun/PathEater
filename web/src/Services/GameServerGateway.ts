@@ -1,6 +1,6 @@
 import { EntityManager } from "./EntityManager";
 import { WebSocketClient } from "./WebSocketClient";
-import { EntityParser } from "./EntityParser";
+import type { PlayerStatePayload } from "../Controllers/PlayerController";
 
 export interface EntityInfo {
     id: string;
@@ -16,77 +16,141 @@ export interface SnapshotPayload {
     entities: EntityInfo[];
 }
 
+export interface RoomInfoPayload {
+    roomId: string;
+    playerId: string;
+    error?: string;
+}
+
+export interface GameStartedPayload {
+    playerId: string;
+    spawn: { x: number; y: number; z: number };
+}
+
+const REQUEST_TIMEOUT_MS = 5000;
+
+function timeout(ms: number): Promise<never> {
+    return new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Сервер не отвечает")), ms)
+    );
+}
+
 export class GameServerGateway {
-    constructor(
-        private wsClient: WebSocketClient,
-        private entityManager: EntityManager
-    ) {
-        this.initListeners();
+    private wsClient: WebSocketClient;
+    private entityManager: EntityManager;
+
+    public localPlayerId: string | null = null;
+    public onGameStarted: ((payload: GameStartedPayload) => void) | null = null;
+
+    constructor(entityManager: EntityManager) {
+        this.wsClient = new WebSocketClient();
+        this.entityManager = entityManager;
     }
 
-    private initListeners() {
-        this.wsClient.on("CreateEntity", (payload: unknown) => {
-            if (!this.isValidEntityInfo(payload)) return; 
+    public async ConnectToServer(): Promise<void> {
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const url = `${protocol}//${window.location.host}/ws`;
 
-            try {
-                const parsedData = EntityParser.Parse(payload.type, payload.data);
-                this.entityManager.CreateEntity(payload.id, payload.type, parsedData);
-            } catch (error) {
-                console.error("Ошибка парсинга CreateEntity:", error);
-            }
+        await this.wsClient.connect(url);
+    }
+
+    public InitListeners(): void {
+        this.wsClient.on("CreateEntity", (payload: unknown) => {
+            if (!this.isValidEntityInfo(payload)) return;
+            this.entityManager.CreateEntity(payload.id, payload.type, payload.data as any);
         });
 
         this.wsClient.on("UpdateEntity", (payload: unknown) => {
             if (!this.isValidEntityInfo(payload)) return;
-            
-            try {
-                const parsedData = EntityParser.Parse(payload.type, payload.data);
-                this.entityManager.UpdateEntity(payload.id, payload.type, parsedData);
-            } catch (error) {
-                console.error("Ошибка парсинга UpdateEntity:", error);
-            }
+            this.entityManager.UpdateEntity(payload.id, payload.type, payload.data as any);
         });
 
         this.wsClient.on("DeleteEntity", (payload: unknown) => {
             if (!this.isValidDeletePayload(payload)) return;
-            
             this.entityManager.DeleteEntity(payload.id);
         });
 
         this.wsClient.on("Snapshot", (payload: unknown) => {
             if (!this.isValidSnapshotPayload(payload)) return;
 
-            try {
-                const parsedEntities = payload.entities.map(entity => ({
+            this.entityManager.ApplySnapshot(
+                payload.entities.map(entity => ({
                     id: entity.id,
                     type: entity.type,
-                    data: EntityParser.Parse(entity.type, entity.data)
-                }));
-                
-                this.entityManager.ApplySnapshot(parsedEntities);
-            } catch (error) {
-                console.error("Ошибка применения Snapshot:", error);
-            }
+                    data: entity.data as any
+                }))
+            );
+        });
+
+        this.wsClient.on("GameStarted", (payload: GameStartedPayload) => {
+            this.localPlayerId = payload.playerId;
+            this.entityManager.SetLocalPlayerId(payload.playerId);
+            this.onGameStarted?.(payload);
+        });
+
+        this.wsClient.on("error", (payload: any) => {
+            console.error("Ошибка от сервера:", payload?.message ?? payload);
         });
     }
 
+    private waitFor(event: string): Promise<any> {
+        const answer = new Promise(resolve => {
+            this.wsClient.once(event, resolve);
+        });
+
+        return Promise.race([answer, timeout(REQUEST_TIMEOUT_MS)]);
+    }
+
+    public async CreateRoom(): Promise<RoomInfoPayload> {
+        this.wsClient.send("createRoom", {});
+        const info = await this.waitFor("SuccessCreateRoom");
+
+        if (info.error) throw new Error(info.error);
+
+        this.rememberPlayer(info);
+        return info;
+    }
+
+    public async JoinRoom(roomId: string): Promise<RoomInfoPayload> {
+        this.wsClient.send("joinRoom", { roomID: roomId });
+        const info = await this.waitFor("SuccessJoinRoom");
+
+        if (info.error) throw new Error(info.error);
+
+        this.rememberPlayer(info);
+        return info;
+    }
+
+    public StartGame(): void {
+        this.wsClient.send("createGameSession", {});
+    }
+
+    public SendPlayerState(state: PlayerStatePayload): void {
+        this.wsClient.send("playerState", state);
+    }
+
+    private rememberPlayer(info: RoomInfoPayload): void {
+        this.localPlayerId = info.playerId;
+        this.entityManager.SetLocalPlayerId(info.playerId);
+    }
+
     private isValidEntityInfo(payload: any): payload is EntityInfo {
-        return payload 
-            && typeof payload === "object" 
-            && typeof payload.id === "string" 
+        return payload
+            && typeof payload === "object"
+            && typeof payload.id === "string"
             && typeof payload.type === "string"
             && "data" in payload;
     }
 
     private isValidDeletePayload(payload: any): payload is DeleteEntityPayload {
-        return payload 
-            && typeof payload === "object" 
+        return payload
+            && typeof payload === "object"
             && typeof payload.id === "string";
     }
 
     private isValidSnapshotPayload(payload: any): payload is SnapshotPayload {
-        return payload 
-            && typeof payload === "object" 
+        return payload
+            && typeof payload === "object"
             && Array.isArray(payload.entities);
     }
 }

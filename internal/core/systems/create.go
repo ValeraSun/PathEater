@@ -27,7 +27,6 @@ func NewCreateSystem(adder entityAdder, getter componentsGetter, broadcaster Bro
 func (s *CreateSystem) Update(dt float32) error {
 
 	s.drainEvents()
-
 	return nil
 }
 
@@ -35,7 +34,7 @@ func (s *CreateSystem) drainEvents() {
 	for {
 		select {
 		case e := <-s.eventQueue:
-			player := entities.NewPlayer(s.adder)
+			player := entities.NewPlayer(s.adder, e.ID)
 			s.broadcaster.CreateCameraForPlayer(e.ID, player)
 		default:
 			return

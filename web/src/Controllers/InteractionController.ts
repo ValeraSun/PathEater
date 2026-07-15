@@ -1,54 +1,50 @@
-import { InputController } from "./InputController";
 import { PlayerModel } from "../Models/PlayerModel";
 import { ComputerView } from "../Views/ComputerView";
 import { InteractionView } from "../Views/InteractionView";
-import { NetworkManager } from "../Services/NetworkManager";
+import { InputController } from "./InputController";
 
-export class InteractionController 
-{
-    private interactionDistance = 2.5;
-    private input: InputController;
-    private playerModel: PlayerModel;
-    private computerView: ComputerView;
-    private interactionView: InteractionView;
-    private networkManager: NetworkManager;
+export class InteractionController {
+    private readonly interactionDistance = 2.5;
 
-    public constructor(input: InputController, 
-        playerModel: PlayerModel, 
-        computerView: ComputerView, 
-        interactionView: InteractionView, 
-        networkManager:NetworkManager
-    ) 
-    {
+    private readonly input: InputController;
+    private readonly playerModel: PlayerModel;
+    private readonly computerView: ComputerView;
+    private readonly interactionView: InteractionView;
+    private readonly onInteract: () => void;
+
+    public constructor(
+        input: InputController,
+        playerModel: PlayerModel,
+        computerView: ComputerView,
+        interactionView: InteractionView,
+        onInteract: () => void
+    ) {
         this.input = input;
         this.playerModel = playerModel;
         this.computerView = computerView;
         this.interactionView = interactionView;
-        this.networkManager = networkManager;
+        this.onInteract = onInteract;
     }
 
-    public Update(): void 
-    {
+    public Update(): void {
         const distance = this.playerModel.position.distanceTo(
             this.computerView.GetInteractionPosition()
         );
 
         const isNear = distance <= this.interactionDistance;
+
         const isFree = this.computerView.IsFree();
 
-        if (!isNear || !isFree) 
-        {
+        if (!isNear || !isFree) {
             this.interactionView.Hide();
             return;
         }
 
         this.interactionView.Show();
 
-        if (this.input.WasPressedOnce("KeyE")) 
-        {
-            this.networkManager.SendUseComputer(
-                this.computerView.GetId()
-            );
+        if (this.input.WasPressedOnce("KeyE")) {
+            this.interactionView.Hide();
+            this.onInteract();
         }
     }
 }

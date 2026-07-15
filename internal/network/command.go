@@ -16,6 +16,8 @@ type Command interface {
 	Execute(client *Client, payload json.RawMessage) error
 }
 
+var defaultSpawn = map[string]float64{"x": 0, "y": 1, "z": 0}
+
 //Команды меню игры
 
 // создание комнаты
@@ -30,17 +32,11 @@ func (c *createRoomCommand) Execute(client *Client, payload json.RawMessage) err
 	room := hub.CreateGameRoom(roomID)
 	room.AddClient(client)
 
-	var info struct {
-		ID string `json:"id"`
-	}
-	response, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
+	client.SendMessage("SuccessCreateRoom", map[string]string{
+		"roomId":   roomID,
+		"playerId": client.ID,
+	})
 
-	client.SendMessage("SuccessCreateRoom", response)
-
-	// Меняем состояние
 	client.SetState(GameRoomState())
 	return nil
 }
@@ -61,21 +57,16 @@ func (c *deleteRoomCommand) Execute(client *Client, payload json.RawMessage) err
 
 	room, exists := hub.GetGameRoom(roomID.RoomID)
 	if !exists {
-		return client.SendText("error", "RoomIsNotExists")
+		return client.SendMessage("SuccessDeleteRoom", map[string]string{
+			"error": "комната не найдена",
+		})
 	}
 	room.Close()
 
-	var info struct {
-		ID string `json:"id"`
-	}
-	response, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
+	client.SendMessage("SuccessDeleteRoom", map[string]string{
+		"roomId": roomID.RoomID,
+	})
 
-	client.SendMessage("SuccessDeleteRoom", response)
-
-	// Меняем состояние
 	if client.state == GameRoomState() {
 		client.SetState(MainMenuState())
 	}
@@ -97,21 +88,17 @@ func (c *joinRoomCommand) Execute(client *Client, payload json.RawMessage) error
 	hub := GetHub()
 	room, exists := hub.GetGameRoom(roomID.RoomID)
 	if !exists {
-		return client.SendText("error", "RoomIsNotExists")
+		return client.SendMessage("SuccessJoinRoom", map[string]string{
+			"error": "комната не найдена",
+		})
 	}
 	room.AddClient(client)
 
-	var info struct {
-		ID string `json:"id"`
-	}
-	response, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
+	client.SendMessage("SuccessJoinRoom", map[string]string{
+		"roomId":   roomID.RoomID,
+		"playerId": client.ID,
+	})
 
-	client.SendMessage("SuccessJoinRoom", response)
-
-	// Меняем состояние
 	client.SetState(GameRoomState())
 	return nil
 }
@@ -166,11 +153,25 @@ func (s Sendler) SendEntityCreate(EntityInfo ecs.EntityCreateInfo) error {
 		return err
 	}
 
-	s.room.SendToAll("CreateEntity", payload)
+	s.room.SendToAll("CrateEntity", payload)
+
 	return nil
 }
 
-func (s Sendler) SendEntityUpdate(EntityInfo ecs.EntityUpdateInfo) error {
+// func toEntityInfoJSON(info ecs.EntityInfo) entityInfoJSON {
+// 	return entityInfoJSON{
+// 		ID:   info.Id,
+// 		Type: info.Type,
+// 		Data: json.RawMessage(info.Data),
+// 	}
+// }
+
+// func (s Sendler) SendEntityCreate(EntityInfo ecs.EntityInfo) error {
+// 	s.room.SendToAll("CreateEntity", toEntityInfoJSON(EntityInfo))
+// 	return nil
+// }
+
+func (s Sendler) SendEntityUpdate(entityInfo ecs.EntityUpdateInfo) error {
 	var info struct {
 		ID        types.Entity  `json:"id"`
 		Type      string        `json:"type"`
@@ -179,10 +180,10 @@ func (s Sendler) SendEntityUpdate(EntityInfo ecs.EntityUpdateInfo) error {
 		Direction geometry.Vec3 `json:"direction"`
 	}
 
-	info.ID = EntityInfo.ID
+	info.ID = entityInfo.ID
 	info.Type = "object"
-	info.Position = EntityInfo.Position
-	info.Direction = EntityInfo.Direction
+	info.Position = entityInfo.Position
+	info.Direction = entityInfo.Direction
 
 	payload, err := json.Marshal(info)
 	if err != nil {
@@ -193,11 +194,11 @@ func (s Sendler) SendEntityUpdate(EntityInfo ecs.EntityUpdateInfo) error {
 	return nil
 }
 
-func (s Sendler) SendEntityDelete(EntityInfo ecs.EntityUpdateInfo) error {
+func (s Sendler) SendEntityDelete(entityInfo ecs.EntityUpdateInfo) error {
 	var info struct {
 		ID types.Entity `json:"id"`
 	}
-	info.ID = EntityInfo.ID
+	info.ID = entityInfo.ID
 	payload, err := json.Marshal(info)
 	if err != nil {
 		return err
@@ -234,25 +235,20 @@ func (s Sendler) CreateCameraForPlayer(id string, idEntity types.Entity) error {
 }
 
 func (s Sendler) SendSnapshotToAll(entities []ecs.EntityCreateInfo) error {
-	var info struct {
-		Entities []ecs.EntityCreateInfo `json:"entities"`
-	}
+	// var info struct {
+	// 	Entities []ecs.EntityCreateInfo `json:"entities"`
+	// }
 
-	info.Entities = entities
-
-	payload, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
-
-	s.room.SendToAll("Snapshot", payload)
+	// s.room.SendToAll("Snapshot", map[string]interface{}{
+	// 	"entities": converted,
+	// })
 	return nil
 }
 
-// // начало игры
+// начало игры
 type createGameSessionCommand struct{}
 
-func (c *createGameSessionCommand) Name() string { return "startGame" }
+func (c *createGameSessionCommand) Name() string { return "createGameSession" }
 
 func (c *createGameSessionCommand) Execute(client *Client, payload json.RawMessage) error {
 	broadcaster := Sendler{room: client.room}
