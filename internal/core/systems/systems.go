@@ -6,8 +6,7 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
-type systemAdder interface {
-	AddSystem(types.System)
+type entityAdder interface {
 	AddEntity(components ...types.Component) (types.Entity, error)
 }
 
@@ -24,5 +23,9 @@ type Broadcaster interface {
 }
 
 type subscriber interface {
+	Subscribe(eventType string, handler events.EventHandler) (func(), error)
+}
+
+type publisher interface {
 	Subscribe(eventType string, handler events.EventHandler) (func(), error)
 }

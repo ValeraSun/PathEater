@@ -8,13 +8,13 @@ import (
 )
 
 type CreateSystem struct {
-	adder       systemAdder
+	adder       entityAdder
 	getter      componentsGetter
 	broadcaster Broadcaster
 	eventQueue  chan *events.CreatePlayerEvent
 }
 
-func NewCreateSystem(adder systemAdder, getter componentsGetter, broadcaster Broadcaster, subscriber subscriber) *CreateSystem {
+func NewCreateSystem(adder entityAdder, getter componentsGetter, broadcaster Broadcaster, subscriber subscriber) *CreateSystem {
 	s := &CreateSystem{
 		adder:      adder,
 		getter:     getter,

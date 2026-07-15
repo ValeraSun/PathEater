@@ -1,0 +1,62 @@
+# 1. Используем образ Node для копирования бинарников
+FROM node:20-alpine AS node-binaries
+
+# 2. Основной образ с Go
+FROM golang:1.26-alpine
+
+# Устанавливаем системные инструменты + supervisor для параллельного запуска
+RUN apk update && apk add --no-cache git libc6-compat g++ gcc supervisor
+
+# Копируем Node.js и npm из образа node-binaries
+COPY --from=node-binaries /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=node-binaries /usr/local/bin/node /usr/local/bin/node
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
+
+# Устанавливаем Air и Delve
+RUN go install github.com/air-verse/air@latest && \
+    go install github.com/go-delve/delve/cmd/dlv@latest
+
+WORKDIR /app
+
+# Зависимости Go
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Зависимости TS (Node)
+COPY web/package*.json ./web/
+RUN cd web && npm install
+
+# Копируем остальной проект
+COPY . .
+
+# Создаем конфигурационный файл для supervisor, чтобы он запускал и Go (air), и сборку фронта
+RUN echo $'\
+[supervisord]\n\
+nodaemon=true\n\
+user=root\n\
+\n\
+[program:frontend-watch]\n\
+directory=/app/web\n\
+command=npm run build -- --watch\n\
+autostart=true\n\
+autorestart=true\n\
+stdout_logfile=/dev/stdout\n\
+stdout_logfile_maxbytes=0\n\
+stderr_logfile=/dev/stderr\n\
+stderr_logfile_maxbytes=0\n\
+\n\
+[program:backend-air]\n\
+directory=/app\n\
+command=air -c .air.toml\n\
+autostart=true\n\
+autorestart=true\n\
+stdout_logfile=/dev/stdout\n\
+stdout_logfile_maxbytes=0\n\
+stderr_logfile=/dev/stderr\n\
+stderr_logfile_maxbytes=0\n\
+' > /etc/supervisord.conf
+
+EXPOSE 8080 2345
+
+# Запускаем менеджер процессов
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

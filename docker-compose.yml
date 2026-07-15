@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:8080"   # Порт Go (раздает фронт + WS)
+      - "2345:2345"   # Порт Delve
+    security_opt:
+      - "seccomp:unconfined" # Разрешаем ptrace для Delve
+    cap_add:
+      - SYS_PTRACE           # Разрешаем трассировку процессов
+    environment:
+      - GO_ENV=development
+    volumes:
+      # Пробрасываем проект целиком (код Go, конфиги YAML, исходники TS)
+      - ./:/app
+      # Анонимные тома, чтобы Docker не затирал то, что внутри контейнера отличается от хоста
+      - /app/tmp
+      - /app/web/node_modules
+      - /app/web/dist
+    stdin_open: true
+    tty: true
