@@ -256,7 +256,11 @@ func (c *createGameSessionCommand) Name() string { return "startGame" }
 
 func (c *createGameSessionCommand) Execute(client *Client, payload json.RawMessage) error {
 	broadcaster := Sendler{room: client.room}
-	game.CreateGame(broadcaster)
+	w := game.CreateGame(broadcaster)
+
+	for id := range client.room.Clients {
+		transfer.CreatePlayer(w.EventBus, id)
+	}
 
 	return nil
 }
