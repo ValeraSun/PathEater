@@ -6,24 +6,11 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
-type EntityAdder interface {
+type entityAdder interface {
 	AddEntity(components ...types.Component) (types.Entity, error)
 }
 
-func NewPlayer(adder EntityAdder, id string) types.Entity {
-	transform := components.NewTransformComponent()
-	velocity := components.NewVelocityComponent()
-	control := components.NewControlComponent(id)
-	entity, _ := adder.AddEntity(transform, velocity, control) //добавить обработку
-
-	return entity
-}
-
-type EntityAdder interface {
-	AddEntity(components ...types.Component) (types.Entity, error)
-}
-
-func NewBox(width, depth, height float64, adder EntityAdder) types.Entity {
+func NewBox(width, depth, height float64, adder entityAdder) types.Entity {
 	e, _ := adder.AddEntity(
 		components.NewTransformComponent(geometry.GetZeroVector(), geometry.GetZeroVector()),
 		components.NewColliderComponent(geometry.NewBoxCollider(
@@ -34,9 +21,9 @@ func NewBox(width, depth, height float64, adder EntityAdder) types.Entity {
 	return e
 }
 
-func NewPlayer(adder EntityAdder) types.Entity {
+func NewPlayer(adder entityAdder, clientID string) types.Entity {
 	e, _ := adder.AddEntity(
-		components.NewControlComponent(),
+		components.NewControlComponent(clientID),
 		components.NewMovementComponent(10),
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
