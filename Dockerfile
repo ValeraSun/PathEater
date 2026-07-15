@@ -44,3 +44,7 @@ EXPOSE 8080
 USER nobody
 
 CMD ["/app/main"]
+
+#для запуска
+#docker build -t path-eater .
+#docker run --rm -p 8080:8080 --name path-eater path-eater
