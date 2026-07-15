@@ -9,13 +9,13 @@ import (
 // глобальные event через большую
 
 type PlayerState struct {
-	MoveFront bool             `json:"move_front"`
-	MoveLeft  bool             `json:"move_left"`
-	MoveRight bool             `json:"move_right"`
-	MoveBack  bool             `json:"move_back"`
-	Interact  bool             `json:"interact"`
-	Attack    bool             `json:"attack"`
-	Direction geometry.Vector3 `json:"direction"`
+	MoveFront bool          `json:"move_front"`
+	MoveLeft  bool          `json:"move_left"`
+	MoveRight bool          `json:"move_right"`
+	MoveBack  bool          `json:"move_back"`
+	Interact  bool          `json:"interact"`
+	Attack    bool          `json:"attack"`
+	Direction geometry.Vec3 `json:"direction"`
 }
 
 type SetPlayerStateEvent struct {

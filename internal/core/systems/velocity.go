@@ -23,12 +23,20 @@ func (s *VeloccitySystem) Update(dt float32) error {
 
 		velocity, _ := vel.(*components.VelocityComponent)
 
-		if s.getter.HasComponents(entity, "control") {
-			comp, _ := s.getter.GetComponent(entity, "control")
+		if s.getter.HasComponents(entity, "movement") {
+			comp, _ := s.getter.GetComponent(entity, "conmovementtrol")
 
-			control, _ := comp.(*components.ControlComponent)
+			movement, _ := comp.(*components.MovementComponent)
 
-			velocity.ApplyControl(control)
+			velocity.Movement = movement.Direction.Scale(movement.Speed)
+		}
+
+		if s.getter.HasComponents(entity, "externalVelocity") {
+			comp, _ := s.getter.GetComponent(entity, "externalVelocity")
+
+			movement, _ := comp.(*components.MovementComponent)
+
+			velocity.External = movement.Direction.Scale(movement.Speed)
 		}
 
 	}

@@ -1,5 +1,7 @@
 package systems
 
+import "github.com/ValeraSun/PathEater/internal/core/components"
+
 type TransformSystem struct {
 	getter componentsGetter
 }
@@ -9,6 +11,18 @@ func NewTransformSystem(getter componentsGetter) *TransformSystem {
 		getter: getter,
 	}
 }
-func (*TransformSystem) Update(dt float32) error {
+func (s *TransformSystem) Update(dt float32) error {
+	comps := s.getter.GetEntitiesByComponent("transform")
+
+	for id, comp := range comps {
+		transform, _ := comp.(*components.TransformComponent)
+
+		if s.getter.HasComponents("velocity") {
+			c, _ := s.getter.GetComponent(id, "velocity")
+			velocity, _ := c.(*components.VelocityComponent)
+			transform.Position = transform.Position.Add(velocity.GetTotalVelocity())
+		}
+	}
+
 	return nil
 }
