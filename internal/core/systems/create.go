@@ -8,33 +8,40 @@ import (
 )
 
 type CreateSystem struct {
-	getter     componentsGetter
-	adder      entityAdder
-	eventQueue chan *events.CreatePlayerEvent
+	adder       systemAdder
+	getter      componentsGetter
+	broadcaster Broadcaster
+	eventQueue  chan *events.CreatePlayerEvent
 }
 
-func NewCreateSystem(getter componentsGetter) *CreateSystem {
-	return &CreateSystem{
+func NewCreateSystem(adder systemAdder, getter componentsGetter, broadcaster Broadcaster, subscriber subscriber) *CreateSystem {
+	s := &CreateSystem{
+		adder:      adder,
 		getter:     getter,
 		eventQueue: make(chan *events.CreatePlayerEvent, 100),
 	}
+	subscriber.Subscribe("create", s.OnEvent)
+	return s
 }
 
 func (s *CreateSystem) Update(dt float32) error {
 
 	s.drainEvents()
+<<<<<<< HEAD
+=======
+
+>>>>>>> business_logic
 	return nil
 }
 
 func (s *CreateSystem) drainEvents() {
-
-loop:
 	for {
 		select {
 		case e := <-s.eventQueue:
-			entities.NewPlayer(s.adder, e.ID)
+			player := entities.NewPlayer(s.adder)
+			s.broadcaster.CreateCameraForPlayer(e.ID, player)
 		default:
-			break loop
+			return
 		}
 	}
 }

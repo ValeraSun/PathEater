@@ -3,7 +3,8 @@ package components
 import "github.com/ValeraSun/PathEater/internal/core/geometry"
 
 type VelocityComponent struct {
-	Direction geometry.Vector3
+	Movement geometry.Vec3
+	External geometry.Vec3
 }
 
 func (*VelocityComponent) Type() string {
@@ -11,14 +12,20 @@ func (*VelocityComponent) Type() string {
 }
 
 func NewVelocityComponent() *VelocityComponent {
-	return &VelocityComponent{
-		Direction: geometry.GetZeroVector(),
-	}
+	return &VelocityComponent{}
 }
 
-func (c *VelocityComponent) ApplyControl(state *ControlComponent) {
-	forwardVector := state.GetInputVector().Normalize()
+func (c *VelocityComponent) GetTotalVelocity() geometry.Vec3 {
+	return c.External.Add(c.Movement)
+}
 
-	c.Direction = geometry.CombineVectors(c.Direction, forwardVector)
+type MovableComponent struct {
+}
 
+func (*MovableComponent) Type() string {
+	return "movable"
+}
+
+func NewMovableComponent() *MovableComponent {
+	return &MovableComponent{}
 }

@@ -3,17 +3,17 @@ package components
 import "github.com/ValeraSun/PathEater/internal/core/geometry"
 
 type TransformComponent struct {
-	Position  geometry.Vector3
-	Direction geometry.Vector3
+	Position  geometry.Vec3
+	Direction geometry.Vec3
 }
 
 func (*TransformComponent) Type() string {
 	return "transform"
 }
 
-func NewTransformComponent() *TransformComponent {
+func NewTransformComponent(position, direction geometry.Vec3) *TransformComponent {
 	return &TransformComponent{
-		Position:  geometry.GetZeroVector(),
-		Direction: geometry.GetZeroVector(),
+		Position:  position,
+		Direction: direction,
 	}
 }

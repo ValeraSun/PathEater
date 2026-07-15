@@ -12,8 +12,7 @@ type ControlComponent struct {
 	MoveBack  bool
 	Interact  bool
 	Attack    bool
-	Direction geometry.Vector3
-	ClientID  string
+	Direction geometry.Vec3
 }
 
 func (*ControlComponent) Type() string {
@@ -46,8 +45,8 @@ func (c *ControlComponent) Superimpose(state *events.PlayerState) {
 	c.Direction = state.Direction
 }
 
-func (c *ControlComponent) GetInputVector() geometry.Vector3 {
-	input := geometry.Vector3{}
+func (c *ControlComponent) GetInputVector() geometry.Vec3 {
+	input := geometry.Vec3{}
 	if c.MoveFront {
 		input.Z += 1
 	}
