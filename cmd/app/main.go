@@ -12,11 +12,6 @@ func main() {
 
 	http.Handle("/", http.FileServer(http.Dir("./web")))
 
-	port := ":8080"
-	log.Println("Сервер запущен на http://localhost", port)
-	err := http.ListenAndServe(port, nil)
-
-	if err != nil {
-		panic(err)
-	}
+	log.Println("Сервер слушает :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

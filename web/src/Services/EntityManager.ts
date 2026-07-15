@@ -15,6 +15,8 @@ interface EntityRecord {
     id: string;
     type: string;
     object: THREE.Object3D;
+    targetPosition: THREE.Vector3;
+    targetRotationY: number;
 }
 
 interface SnapshotEntity {
@@ -23,70 +25,87 @@ interface SnapshotEntity {
     data: EntityTransformData;
 }
 
+const NETWORK_LERP_SPEED = 12;
+
 export class EntityManager {
     private scene: THREE.Scene;
     private entities = new Map<string, EntityRecord>();
+    private localPlayerId: string | null = null;
 
     public constructor(scene: THREE.Scene) {
         this.scene = scene;
     }
 
-    public CreateEntity(id: string, type: string, data: EntityTransformData): void 
-    {
-        if (this.entities.has(id)) 
-        {
+    public SetLocalPlayerId(id: string): void {
+        this.localPlayerId = id;
+        this.DeleteEntity(id);
+    }
+
+    public CreateEntity(id: string, type: string, data: EntityTransformData): void {
+        if (id === this.localPlayerId) {
+            return;
+        }
+ 
+        const existing = this.entities.get(id);
+ 
+        if (existing) {
             this.UpdateEntity(id, type, data);
             return;
         }
-
+ 
         const object = this.createObject(type);
-
-        if (!object) 
-        {
+ 
+        if (!object) {
             console.warn(`Невозможно создать сущность неизвестного типа: ${type}`);
             return;
         }
-
+ 
         this.applyTransform(object, data);
-
         this.scene.add(object);
-
+ 
         this.entities.set(id, {
             id,
             type,
-            object
+            object,
+            targetPosition: object.position.clone(),
+            targetRotationY: object.rotation.y
         });
     }
 
-    public UpdateEntity(id: string, type: string, data: EntityTransformData): void 
-    {
+    public UpdateEntity(id: string, type: string, data: EntityTransformData): void {
+        if (id === this.localPlayerId) {
+            return;
+        }
+ 
         const entity = this.entities.get(id);
-
-        if (!entity) 
-        {
+ 
+        if (!entity) {
             this.CreateEntity(id, type, data);
             return;
         }
-
-        this.applyTransform(entity.object, data);
-    }
-
-    public DeleteEntity(id: string): void 
-    {
-        const entity = this.entities.get(id);
-
-        if (!entity) 
-        {
+ 
+        if (entity.type !== type) {
+            this.DeleteEntity(id);
+            this.CreateEntity(id, type, data);
             return;
         }
+ 
+        this.setTarget(entity, data);
+    }
 
+    public DeleteEntity(id: string): void {
+        const entity = this.entities.get(id);
+ 
+        if (!entity) {
+            return;
+        }
+ 
         this.scene.remove(entity.object);
         this.disposeObject(entity.object);
         this.entities.delete(id);
     }
 
-    public ApplySnapshot(entities: SnapshotEntity[]): void 
-    {
+    public ApplySnapshot(entities: SnapshotEntity[]): void {
         const receivedIds = new Set(
             entities.map(entity => entity.id)
         );
@@ -113,23 +132,50 @@ export class EntityManager {
         }
     }
 
-    private createObject(type: string): THREE.Object3D | null 
-    {
+    public Update(dt: number): void {
+        const t = 1 - Math.exp(-NETWORK_LERP_SPEED * dt);
+ 
+        for (const entity of this.entities.values()) {
+            entity.object.position.lerp(entity.targetPosition, t);
+ 
+            entity.object.rotation.y = this.lerpAngle(
+                entity.object.rotation.y,
+                entity.targetRotationY,
+                t
+            );
+        }
+    }
+
+    public GetEntity(id: string): THREE.Object3D | null {
+        return this.entities.get(id)?.object ?? null;
+    }
+
+    private setTarget(entity: EntityRecord, data: EntityTransformData): void {
+        if (data.position) {
+            entity.targetPosition.set(
+                data.position.x,
+                data.position.y,
+                data.position.z
+            );
+        }
+ 
+        if (typeof data.rotationY === "number") {
+            entity.targetRotationY = data.rotationY;
+        }
+    }
+ 
+    private createObject(type: string): THREE.Object3D | null {
         switch (type) {
             case "player": {
                 const playerView = new PlayerView();
                 return playerView.mesh;
             }
-
             case "monster":
                 return this.CreateBox(0xff0000);
-
             case "door":
                 return this.CreateBox(0x4444ff);
-
             case "cargo":
                 return this.CreateBox(0xffaa00);
-
             default:
                 return null;
         }
@@ -146,21 +192,22 @@ export class EntityManager {
                 data.position.z
             );
         }
-
         if (typeof data.rotationY === "number") {
             object.rotation.y = data.rotationY;
         }
     }
 
-    private disposeObject(object: THREE.Object3D): void 
-    {
+    private lerpAngle(a: number, b: number, t: number): number {
+        const delta = Math.atan2(Math.sin(b - a), Math.cos(b - a));
+        return a + delta * t;
+    }
+ 
+    private disposeObject(object: THREE.Object3D): void {
         object.traverse(child => {
             if (!(child instanceof THREE.Mesh)) {
                 return;
             }
-
             child.geometry.dispose();
-
             if (Array.isArray(child.material)) {
                 for (const material of child.material) {
                     material.dispose();

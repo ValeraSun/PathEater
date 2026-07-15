@@ -1,15 +1,165 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="stylesheet" href="/src/style.css"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>3D GAME</title>
-  </head>
-  <body>
-    <div id="app">
-      <p class="example">3Д игра йоу йоу цукенгшщзх</p>
-    </div>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <title>Void Haulers</title>
+    <link rel="stylesheet" href="/src/style.css">
+</head>
+
+<body>
+    <main id="app">
+        <section class="screen screen--active" id="menu-screen">
+            <header class="screen-header">
+                ГЛАВНОЕ МЕНЮ
+            </header>
+
+            <div class="menu-content">
+                <h1 class="game-title">PATH EATER</h1>
+
+                <p class="game-subtitle">
+                    Выживание в космосе
+                </p>
+
+                <nav class="menu">
+                    <button
+                        class="button button--primary"
+                        id="play-button"
+                        type="button"
+                    >
+                        Играть
+                    </button>
+                </nav>
+                <p class="status" id="menu-status"></p>
+            </div>
+        </section>
+
+        <section class="screen" id="room-screen">
+            <header class="screen-header">
+                ПОДКЛЮЧЕНИЕ К ИГРЕ
+            </header>
+
+            <div class="room-layout">
+                <article class="panel">
+                    <h2>Создать игру</h2>
+
+                    <p>
+                        Создайте новую комнату и пригласите
+                        остальных игроков.
+                    </p>
+
+                    <button
+                        class="button button--primary"
+                        id="create-room-button"
+                        type="button"
+                    >
+                        Создать комнату
+                    </button>
+                </article>
+
+                <article class="panel">
+                    <h2>Присоединиться</h2>
+
+                    <label class="field">
+                        <span>Код комнаты</span>
+
+                        <input
+                            id="room-code-input"
+                            type="text"
+                        >
+                    </label>
+
+                    <button
+                        class="button"
+                        id="join-room-button"
+                        type="button"
+                    >
+                        Присоединиться
+                    </button>
+                </article>
+            </div>
+
+            <p class="status" id="room-status"></p>
+
+            <button
+                class="back-button"
+                id="room-back-button"
+                type="button"
+            >
+                Назад
+            </button>
+        </section>
+
+        <section class="screen" id="lobby-screen">
+            <header class="screen-header">
+                <span>ЛОББИ</span>
+                <span class="players-count">1/4</span>
+            </header>
+
+            <div class="lobby">
+                <section class="panel crew-panel">
+                    <h2>Команда</h2>
+
+                    <ul class="players" id="player-list">
+                        <li class="player">
+                            <div class="player-avatar"></div>
+
+                            <div>
+                                <strong>Вы</strong>
+                                <span class="ready">Готов</span>
+                            </div>
+
+                            <span>Капитан</span>
+                        </li>
+
+                        <li class="empty-player">
+                            Ожидание игрока
+                        </li>
+
+                        <li class="empty-player">
+                            Ожидание игрока
+                        </li>
+
+                        <li class="empty-player">
+                            Ожидание игрока
+                        </li>
+                    </ul>
+                </section>
+            </div>
+
+            <p class="status" id="lobby-status"></p>
+
+            <footer class="lobby-footer">
+                <button
+                    class="button"
+                    id="leave-lobby-button"
+                    type="button"
+                >
+                    Выйти
+                </button>
+
+                <button
+                    class="button button--primary"
+                    id="start-game-button"
+                    type="button"
+                >
+                    Начать игру
+                </button>
+            </footer>
+        </section>
+
+        <section class="screen" id="game-screen">
+            <div id="game-container"></div>
+
+            <div class="hud">
+                БОРТ
+            </div>
+        </section>
+    </main>
+
     <script type="module" src="/src/Main.ts"></script>
-  </body>
+</body>
 </html>

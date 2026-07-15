@@ -14,6 +14,7 @@ type Command interface {
 	Name() string
 	Execute(client *Client, payload json.RawMessage) error
 }
+var defaultSpawn = map[string]float64{"x": 0, "y": 1, "z": 0}
 
 //Команды меню игры
 
@@ -29,17 +30,11 @@ func (c *createRoomCommand) Execute(client *Client, payload json.RawMessage) err
 	room := hub.CreateGameRoom(roomID)
 	room.AddClient(client)
 
-	var info struct {
-		ID string `json:"id"`
-	}
-	response, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
-
-	client.SendMessage("SuccessCreateRoom", response)
-
-	// Меняем состояние
+	client.SendMessage("SuccessCreateRoom", map[string]string{
+		"roomId":   roomID,
+		"playerId": client.ID,
+	})
+ 
 	client.SetState(GameRoomState())
 	return nil
 }
@@ -60,21 +55,16 @@ func (c *deleteRoomCommand) Execute(client *Client, payload json.RawMessage) err
 
 	room, exists := hub.GetGameRoom(roomID.RoomID)
 	if !exists {
-		return client.SendText("error", "RoomIsNotExists")
+		return client.SendMessage("SuccessDeleteRoom", map[string]string{
+			"error": "комната не найдена",
+		})
 	}
 	room.Close()
 
-	var info struct {
-		ID string `json:"id"`
-	}
-	response, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
-
-	client.SendMessage("SuccessDeleteRoom", response)
-
-	// Меняем состояние
+	client.SendMessage("SuccessDeleteRoom", map[string]string{
+		"roomId": roomID.RoomID,
+	})
+ 
 	if client.state == GameRoomState() {
 		client.SetState(MainMenuState())
 	}
@@ -96,21 +86,17 @@ func (c *joinRoomCommand) Execute(client *Client, payload json.RawMessage) error
 	hub := GetHub()
 	room, exists := hub.GetGameRoom(roomID.RoomID)
 	if !exists {
-		return client.SendText("error", "RoomIsNotExists")
+		return client.SendMessage("SuccessJoinRoom", map[string]string{
+			"error": "комната не найдена",
+		})
 	}
 	room.AddClient(client)
-
-	var info struct {
-		ID string `json:"id"`
-	}
-	response, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
-
-	client.SendMessage("SuccessJoinRoom", response)
-
-	// Меняем состояние
+ 
+	client.SendMessage("SuccessJoinRoom", map[string]string{
+		"roomId":   roomID.RoomID,
+		"playerId": client.ID,
+	})
+ 
 	client.SetState(GameRoomState())
 	return nil
 }
@@ -145,84 +131,66 @@ type Sendler struct {
 	room *GameRoom
 }
 
-func (s Sendler) SendEntityCreate(EntityInfo ecs.EntityInfo) error {
-	var info struct {
-		ID   types.Entity `json:"id"`
-		Type string       `json:"type"`
-		Data []byte       `json:"data"`
-	}
-	info.ID = EntityInfo.Id
-	info.Type = EntityInfo.Type
-	info.Data = EntityInfo.Data
-	payload, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
+type entityInfoJSON struct {
+	ID   types.Entity    `json:"id"`
+	Type string          `json:"type"`
+	Data json.RawMessage `json:"data"`
+}
 
-	s.room.SendToAll("CreateEntity", payload)
+func toEntityInfoJSON(info ecs.EntityInfo) entityInfoJSON {
+	return entityInfoJSON{
+		ID:   info.Id,
+		Type: info.Type,
+		Data: json.RawMessage(info.Data),
+	}
+}
+
+func (s Sendler) SendEntityCreate(EntityInfo ecs.EntityInfo) error {
+	s.room.SendToAll("CreateEntity", toEntityInfoJSON(EntityInfo))
 	return nil
 }
 
 func (s Sendler) SendEntityUpdate(EntityInfo ecs.EntityInfo) error {
-	var info struct {
-		ID   types.Entity `json:"id"`
-		Type string       `json:"type"`
-		Data []byte       `json:"data"`
-	}
-	info.ID = EntityInfo.Id
-	info.Type = EntityInfo.Type
-	info.Data = EntityInfo.Data
-	payload, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
-
-	s.room.SendToAll("UpdateEntity", payload)
+	s.room.SendToAll("UpdateEntity", toEntityInfoJSON(EntityInfo))
 	return nil
 }
 
 func (s Sendler) SendEntityDelete(EntityInfo ecs.EntityInfo) error {
-	var info struct {
-		ID types.Entity `json:"id"`
-	}
-	info.ID = EntityInfo.Id
-	payload, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
-
-	s.room.SendToAll("DeleteEntity", payload)
+	s.room.SendToAll("DeleteEntity", map[string]types.Entity{
+		"id": EntityInfo.Id,
+	})
 	return nil
 }
 
 func (s Sendler) SendSnapshotToAll(entities []ecs.EntityInfo) error {
-	var info struct {
-		Entities []ecs.EntityInfo `json:"entities"`
+	converted := make([]entityInfoJSON, 0, len(entities))
+	for _, e := range entities {
+		converted = append(converted, toEntityInfoJSON(e))
 	}
-
-	info.Entities = entities
-
-	payload, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
-
-	s.room.SendToAll("Snapshot", payload)
+ 
+	s.room.SendToAll("Snapshot", map[string]interface{}{
+		"entities": converted,
+	})
 	return nil
 }
 
 // начало игры
 type createGameSessionCommand struct{}
 
-func (c *createGameSessionCommand) Name() string { return "startGame" }
+func (c *createGameSessionCommand) Name() string { return "createGameSession" }
 
 func (c *createGameSessionCommand) Execute(client *Client, payload json.RawMessage) error {
 	broadcaster := Sendler{room: client.room}
-	game.CreateGame(broadcaster)
+	client.room.World = game.CreateGame(broadcaster)
 
-	for _, client := range client.room.Clients {
-		client.SetState(PlayerControlState())
-		transfer.CreatePlayer(client.room.World.EventBus, client.ID)
+	for _, cl := range client.room.Clients {
+		cl.SetState(PlayerControlState())
+		transfer.CreatePlayer(client.room.World.EventBus, cl.ID)
+
+		cl.SendMessage("GameStarted", map[string]interface{}{
+			"playerId": cl.ID,
+			"spawn":    defaultSpawn,
+		})
 	}
 
 	return nil

@@ -1,3 +1,4 @@
+import * as THREE from "three";
 import { GameView } from "../Views/GameView";
 import { InputController } from "../Controllers/InputController";
 import { PlayerModel } from "../Models/PlayerModel";
@@ -10,37 +11,27 @@ import { MAX_DELTA_TIME, MILLISECONDS_IN_SECOND } from "../Config/GameConfig";
 import { InteractionView } from "../Views/InteractionView";
 import { InteractionController } from "../Controllers/InteractionController";
 import { ComputerController } from "../Controllers/ComputerController";
-import { WebSocketClient } from "../Services/WebSocketClient";
-import { GameServerGateway } from "../Services/GameServerGateway";
+import { GameServerGateway, type GameStartedPayload } from "../Services/GameServerGateway";
 
-export class Timer {
-    static wait(seconds: number): Promise<void> {
-        return new Promise(resolve => setTimeout(resolve, seconds * 1000));
-    }
-    
-    static waitMs(milliseconds: number): Promise<void> {
-        return new Promise(resolve => setTimeout(resolve, milliseconds));
-    }
-}
-
-export class Game 
-{
+export class Game {
     private static instance: Game;
+
     private readonly input = new InputController();
-    private readonly playerModel = new PlayerModel();
-    private readonly playerView = new PlayerView();
     private readonly collisionManager = new CollisionManager();
     private readonly interactionView = new InteractionView();
     private readonly gameView: GameView;
     private readonly entityManager: EntityManager;
-    private readonly webSocketClient: WebSocketClient;
     private readonly gameServerGateway: GameServerGateway;
-    private readonly cameraController: CameraController;
-    private readonly playerController: PlayerController;
-    private readonly interactionController: InteractionController;
-    private readonly computerController: ComputerController;
+
+    private playerModel: PlayerModel | null = null;
+    private playerView: PlayerView | null = null;
+    private playerController: PlayerController | null = null;
+    private cameraController: CameraController | null = null;
+    private interactionController: InteractionController | null = null;
+    private computerController: ComputerController | null = null;
 
     private lastTime = performance.now();
+    private isRunning = false;
 
     public static GetInstance(): Game {
         if (!Game.instance) {
@@ -51,19 +42,51 @@ export class Game
     }
 
     private constructor() {
-        this.gameView = new GameView(this.playerView);
+        this.gameView = new GameView();
 
         this.entityManager = new EntityManager(
             this.gameView.GetScene()
         );
 
-        this.webSocketClient = new WebSocketClient();
-
         this.gameServerGateway = new GameServerGateway(
-            this.webSocketClient,
             this.entityManager
         );
+    }
 
+    public GetGateway(): GameServerGateway {
+        return this.gameServerGateway;
+    }
+
+    public MountTo(container: HTMLElement): void {
+        container.appendChild(
+            this.gameView.GetRendererDomElement()
+        );
+    }
+
+    public async Connect(): Promise<void> {
+        this.gameServerGateway.InitListeners();
+        await this.gameServerGateway.ConnectToServer();
+    }
+
+    public async StartMatch(payload: GameStartedPayload): Promise<void> {
+        if (this.isRunning) {
+            return;
+        }
+
+        await this.collisionManager.LoadShipColliders(
+            "/data/ship_wall_colliders_v3.json"
+        );
+
+        const spawn = new THREE.Vector3(
+            payload.spawn.x,
+            payload.spawn.y,
+            payload.spawn.z
+        );
+
+        this.playerModel = new PlayerModel(spawn);
+        this.playerView = new PlayerView();
+
+        this.gameView.AttachPlayerView(this.playerView);
 
         this.cameraController = new CameraController(
             this.gameView.GetCamera(),
@@ -76,29 +99,27 @@ export class Game
             this.playerView,
             this.input,
             this.gameView.GetCamera(),
-            this.webSocketClient,
+            this.gameServerGateway,
             this.collisionManager
         );
 
         const computerView = this.gameView.GetComputerView();
 
-        this.computerController =
-            new ComputerController(
-                this.input,
-                this.playerController,
-                computerView.GetId()
-            );
+        this.computerController = new ComputerController(
+            this.input,
+            this.playerController,
+            computerView.GetId()
+        );
 
-        this.interactionController =
-            new InteractionController(
-                this.input,
-                this.playerModel,
-                computerView,
-                this.interactionView,
-                () => {
-                    this.computerController.Enter();
-                }
-            );
+        this.interactionController = new InteractionController(
+            this.input,
+            this.playerModel,
+            computerView,
+            this.interactionView,
+            () => {
+                this.computerController!.Enter();
+            }
+        );
 
         this.collisionManager.AddDynamic(
             this.playerModel.body
@@ -107,29 +128,19 @@ export class Game
         this.playerView.mesh.position.copy(
             this.playerModel.position
         );
-    }
-
-    public async Start(): Promise<void> {
-        await this.collisionManager.LoadShipColliders(
-            "/data/ship_wall_colliders_v3.json"
-        );
-
-        this.connectToServer();
 
         this.gameView.Init();
 
+        this.isRunning = true;
         this.lastTime = performance.now();
         this.GameLoop();
     }
 
-    private connectToServer(): void {
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const url = `${protocol}//${window.location.host}/ws`;
-
-        this.webSocketClient.connect(url);
-    }
-
     private GameLoop = (): void => {
+        if (!this.isRunning) {
+            return;
+        }
+
         requestAnimationFrame(this.GameLoop);
 
         const now = performance.now();
@@ -141,10 +152,11 @@ export class Game
 
         this.lastTime = now;
 
-        this.playerController.Update(dt);
-        this.cameraController.Update();
-        this.interactionController.Update();
-        this.computerController.Update();
+        this.playerController?.Update(dt);
+        this.cameraController?.Update();
+        this.interactionController?.Update();
+        this.computerController?.Update();
+        this.entityManager.Update(dt);
 
         this.gameView.Render();
     };
