@@ -26,9 +26,12 @@ export class GameView
         this.scene.add(this.spaceView.GetObject());
         this.scene.add(this.shipView.GetObject());
         this.scene.add(this.computerView.GetObject());
-        this.scene.add(this.playerView.mesh);
 
         WindowResize.Handle(this.camera, this.renderer);
+    }
+
+    public AttachPlayerView(playerView: PlayerView): void {
+        this.scene.add(playerView.mesh);
     }
 
     public GetCamera(): THREE.PerspectiveCamera 
@@ -58,16 +61,14 @@ export class GameView
     private shipView: ShipView;
     private spaceView: SpaceView;
     private computerView: ComputerView;
-    private playerView = new PlayerView();
 
-    constructor(playerView: PlayerView) 
+    constructor() 
     {
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({antialias: true,});
         this.shipView = new ShipView();
         this.spaceView = new SpaceView();
-        this.playerView = playerView;
         this.computerView = new ComputerView();
     }
 

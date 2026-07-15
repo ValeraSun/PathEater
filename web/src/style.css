@@ -1,15 +1,368 @@
+:root {
+    font-family: Arial, sans-serif;
+    color: #d6dfe2;
+    background: #020609;
+}
+
 * {
-  margin-top: 0;
-  padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
 }
 
 body {
-  margin: 0;
-  overflow: hidden;
-  font-family: system-ui, sans-serif;
+    background:
+        radial-gradient(
+            circle at 70% 50%,
+            #172026,
+            #020609 55%
+        );
 }
 
-#app {
-  width: 100vw;
-  height: 100vh;
+button,
+input {
+    font: inherit;
+}
+
+/* Экраны */
+
+.screen {
+    display: none;
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+
+    padding: 0;
+    overflow: hidden;
+}
+
+.screen--active {
+    display: block;
+}
+
+/* Скролл разрешён только интерфейсным экранам */
+
+#menu-screen,
+#room-screen,
+#lobby-screen {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Заголовок экрана */
+
+.screen-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    height: 58px;
+    padding: 0 24px;
+
+    border-bottom: 1px solid #173541;
+
+    background: rgba(0, 8, 12, 0.92);
+
+    font-size: 18px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Главное меню */
+
+.menu-content {
+    width: 520px;
+    max-width: 100%;
+    padding: 42px 28px;
+}
+
+.game-title {
+    margin: 0;
+
+    font-size: clamp(46px, 7vw, 78px);
+    line-height: 1;
+}
+
+.game-subtitle {
+    margin: 10px 0 45px;
+
+    color: #88989e;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    width: 260px;
+}
+
+/* Кнопки */
+
+.button {
+    min-height: 46px;
+    padding: 10px 22px;
+
+    border: 1px solid #204959;
+    border-radius: 3px;
+
+    cursor: pointer;
+
+    color: #c8d4d8;
+    background: #061820;
+
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.button:hover:not(:disabled) {
+    border-color: #43849b;
+    background: #0a2631;
+}
+
+.button--primary {
+    border-color: #bd6200;
+    color: #fff;
+    background: #8a4300;
+}
+
+.button--primary:hover:not(:disabled) {
+    border-color: #ff941f;
+    background: #ac5400;
+}
+
+.button:disabled {
+    cursor: wait;
+    opacity: 0.55;
+}
+
+/* Статусы */
+
+.status {
+    min-height: 24px;
+    color: #8ea1a7;
+}
+
+/* Экран выбора комнаты */
+
+.room-layout,
+.lobby {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+
+    width: min(1100px, calc(100% - 48px));
+    margin: 40px auto 0;
+}
+
+.panel {
+    padding: 24px;
+
+    border: 1px solid #183b48;
+    border-radius: 4px;
+
+    background: rgba(2, 18, 24, 0.9);
+}
+
+.panel h2 {
+    margin-top: 0;
+    text-transform: uppercase;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    margin: 24px 0;
+}
+
+.field input {
+    height: 48px;
+    padding: 0 14px;
+
+    border: 1px solid #27596b;
+    outline: none;
+
+    color: #e0e7e9;
+    background: #020c10;
+
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.field input:focus {
+    border-color: #5194aa;
+}
+
+#room-screen > .status {
+    width: min(1100px, calc(100% - 48px));
+    margin: 18px auto;
+}
+
+.back-button {
+    margin: 0 0 32px 24px;
+
+    border: 0;
+    cursor: pointer;
+
+    color: #819198;
+    background: transparent;
+}
+
+/* Лобби */
+
+.players-count,
+.ready {
+    color: #3aca69;
+}
+
+.players {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.player {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: 12px;
+
+    min-height: 64px;
+    padding: 8px;
+
+    border: 1px solid #173b47;
+    background: #061a21;
+}
+
+.player > div:nth-child(2) {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.player-avatar {
+    width: 44px;
+    height: 44px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            #71858c,
+            #122831 55%,
+            #02090d 57%
+        );
+}
+
+.empty-player {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 58px;
+
+    border: 1px solid #102d37;
+    color: #52666d;
+    background: #041219;
+}
+
+.setting {
+    display: flex;
+    justify-content: space-between;
+
+    padding: 18px 4px;
+    border-bottom: 1px solid #14333e;
+}
+
+.setting span {
+    color: #71868d;
+    text-transform: uppercase;
+}
+
+.lobby-footer {
+    display: flex;
+    justify-content: space-between;
+
+    width: min(1100px, calc(100% - 48px));
+    margin: 28px auto 32px;
+}
+
+#lobby-screen > .status {
+    width: min(1100px, calc(100% - 48px));
+    margin: 18px auto;
+}
+
+#game-screen {
+    width: 100%;
+    height: 100%;
+
+    padding: 0;
+    overflow: hidden;
+}
+
+#game-container {
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+}
+
+#game-container canvas {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+}
+
+.hud {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+
+    color: #9db0b6;
+
+    pointer-events: none;
+}
+
+body.game-open {
+    overflow: hidden;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 760px) {
+    .room-layout,
+    .lobby {
+        grid-template-columns: 1fr;
+    }
+
+    .menu-content {
+        padding-top: 28px;
+    }
+
+    .menu {
+        width: 100%;
+    }
 }

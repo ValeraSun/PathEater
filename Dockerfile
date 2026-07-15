@@ -20,7 +20,6 @@ RUN apk update && apk add --no-cache git
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Копируем все исходники (включая internal/)
 COPY . .
 
 RUN rm -rf ./web
@@ -38,7 +37,7 @@ RUN apk add --no-cache ca-certificates
 
 COPY --from=backend-build /app/main /app/main
 COPY --from=backend-build /app/web /app/web
-COPY --from=backend-build /app/internal /app/internal
+COPY --from=backend-build /app/internal/config /app/internal/config
 
 EXPOSE 8080
 

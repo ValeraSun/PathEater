@@ -243,6 +243,6 @@ export class PlayerController {
             }
         };
 
-        this.gameServerGateway.sendPlayerState(state);
+        this.gameServerGateway.SendPlayerState(state);
     }
 }

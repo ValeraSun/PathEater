@@ -15,7 +15,6 @@ export class SpaceView
         this.group = new THREE.Group();
 
         this.CreateFloor();
-        this.CreateStars();
     }
 
     private CreateFloor(): void 
@@ -25,21 +24,5 @@ export class SpaceView
         floor.position.y = -2;
 
         this.group.add(floor);
-    }
-
-    private CreateStars(): void 
-    {
-        for (let i = 0; i < 100; i++) 
-        {
-            const star = MeshFactory.CreateStar();
-
-            star.position.set(
-                Math.random() * 100 - 50,
-                Math.random() * 50,
-                Math.random() * 100 - 50
-            );
-
-            this.group.add(star);
-        }
     }
 }
