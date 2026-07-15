@@ -11,20 +11,9 @@ func (*TransformComponent) Type() string {
 	return "transform"
 }
 
-func NewTransformComponent() *TransformComponent {
+func NewTransformComponent(position, direction geometry.Vec3) *TransformComponent {
 	return &TransformComponent{
-		Position:  geometry.GetZeroVector(),
-		Direction: geometry.GetZeroVector(),
+		Position:  position,
+		Direction: direction,
 	}
-}
-
-type MovableComponent struct {
-}
-
-func (*MovableComponent) Type() string {
-	return "movable"
-}
-
-func NewMovableComponent() *MovableComponent {
-	return &MovableComponent{}
 }

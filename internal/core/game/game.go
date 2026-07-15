@@ -2,12 +2,17 @@ package game
 
 import (
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
+	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/systems"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
+type subscriber interface {
+	Subscribe(eventType string, handler events.EventHandler) (func(), error)
+}
 type systemAdder interface {
 	AddSystem(types.System)
+	AddEntity(components ...types.Component) (types.Entity, error)
 }
 
 type componentsGetter interface {
@@ -19,12 +24,18 @@ type componentsGetter interface {
 func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	w := ecs.CreateWorld(broadcaster)
 	//eb := *w.EventBus
-	initSystems(w, w)
+	initSystems(w, w, w.Broadcaster, w.EventBus)
 
 	return w
 }
 
-func initSystems(adder systemAdder, getter componentsGetter) {
-	adder.AddSystem(systems.NewPlayerControlSystem(getter))
+func initSystems(adder systemAdder, getter componentsGetter, broadcaster ecs.Broadcaster, subscriber subscriber) {
+	adder.AddSystem(systems.NewControlSystem(getter, subscriber))
+	adder.AddSystem(systems.NewMovementSystem(getter))
+	adder.AddSystem(systems.NewVelocitySystem(getter))
 	adder.AddSystem(systems.NewTransformSystem(getter))
+	adder.AddSystem(systems.NewCollisionSystem(getter))
+	adder.AddSystem(systems.NewRenderSystem(getter, broadcaster))
+	adder.AddSystem(systems.NewCreateSystem(adder, getter, broadcaster, subscriber))
+
 }

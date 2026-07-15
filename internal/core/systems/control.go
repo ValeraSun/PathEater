@@ -14,11 +14,13 @@ type ControlSystem struct {
 	eventQueue chan *events.SetPlayerStateEvent
 }
 
-func NewPlayerControlSystem(getter componentsGetter) *ControlSystem {
-	return &ControlSystem{
+func NewControlSystem(getter componentsGetter, subscriber subscriber) *ControlSystem {
+	s := &ControlSystem{
 		getter:     getter,
 		eventQueue: make(chan *events.SetPlayerStateEvent, 100),
 	}
+	subscriber.Subscribe("control", s.OnEvent)
+	return s
 }
 
 func (s *ControlSystem) Update(dt float32) error {
@@ -42,8 +44,6 @@ func (s *ControlSystem) resetComponents(comps map[types.Entity]types.Component) 
 }
 
 func (s *ControlSystem) drainEvents(comps map[types.Entity]types.Component) {
-
-loop:
 	for {
 		select {
 		case e := <-s.eventQueue:
@@ -53,7 +53,7 @@ loop:
 			}
 			c.Superimpose(&e.PlayerState)
 		default:
-			break loop
+			return
 		}
 	}
 }

@@ -1,10 +1,46 @@
 package entities
 
 import (
+	"github.com/ValeraSun/PathEater/internal/core/components"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 	"github.com/google/uuid"
 )
 
 func NewEntity() types.Entity {
 	return types.Entity(uuid.New().String())
+}
+
+type EntityAdder interface {
+	AddEntity(components ...types.Component) (types.Entity, error)
+}
+
+func NewBox(width, depth, height float64, adder EntityAdder) types.Entity {
+	e, _ := adder.AddEntity(
+		components.NewTransformComponent(geometry.GetZeroVector(), geometry.GetZeroVector()),
+		components.NewColliderComponent(geometry.NewBoxCollider(
+			geometry.GetZeroVector(),
+			geometry.Vec3{X: width / 2, Y: height / 2, Z: depth / 2})),
+	)
+
+	return e
+}
+
+func NewPlayer(adder EntityAdder) types.Entity {
+	e, _ := adder.AddEntity(
+		components.NewControlComponent(),
+		components.NewMovementComponent(10),
+		components.NewExternalVelocityComponent(),
+		components.NewVelocityComponent(),
+		components.NewColliderComponent(geometry.NewBoxCollider(
+			geometry.GetZeroVector(),
+			geometry.Vec3{X: 100, Y: 100, Z: 100})),
+		components.NewMovableComponent(),
+		components.NewTransformComponent(
+			geometry.GetZeroVector(),
+			geometry.GetZeroVector(),
+		),
+	)
+	return e
+
 }

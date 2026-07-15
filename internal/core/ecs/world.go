@@ -7,6 +7,7 @@ import (
 
 	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
@@ -24,20 +25,29 @@ type World struct {
 	entityCount  int64
 	systemTimers map[string]time.Duration
 
-	Room Broadcaster
+	Broadcaster Broadcaster
 }
 
 type Broadcaster interface {
-	SendEntityCreate(EntityInfo) error
-	SendEntityUpdate(EntityInfo) error
-	SendEntityDelete(EntityInfo) error
-	SendSnapshotToAll([]EntityInfo) error
+	SendEntityCreate(EntityCreateInfo) error
+	SendEntityUpdate(EntityUpdateInfo) error
+	SendEntityDelete(EntityUpdateInfo) error
+	CreateCameraForPlayer(id string, idEntity types.Entity) error
+	SendSnapshotToAll([]EntityCreateInfo) error
 }
 
-type EntityInfo struct {
-	Id   types.Entity
-	Type string
-	Data []byte
+type EntityCreateInfo struct {
+	ID        types.Entity
+	Mesh      string
+	Position  geometry.Vec3
+	Direction geometry.Vec3
+}
+
+type EntityUpdateInfo struct {
+	ID        types.Entity
+	Mesh      string
+	Position  geometry.Vec3
+	Direction geometry.Vec3
 }
 
 func newWorld(eventBus *events.EventBus, room Broadcaster) *World {
@@ -47,7 +57,7 @@ func newWorld(eventBus *events.EventBus, room Broadcaster) *World {
 		systems:        make([]types.System, 0),
 		EventBus:       eventBus,
 		systemTimers:   make(map[string]time.Duration),
-		Room:           room,
+		Broadcaster:    room,
 	}
 }
 

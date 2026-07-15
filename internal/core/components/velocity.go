@@ -18,3 +18,14 @@ func NewVelocityComponent() *VelocityComponent {
 func (c *VelocityComponent) GetTotalVelocity() geometry.Vec3 {
 	return c.External.Add(c.Movement)
 }
+
+type MovableComponent struct {
+}
+
+func (*MovableComponent) Type() string {
+	return "movable"
+}
+
+func NewMovableComponent() *MovableComponent {
+	return &MovableComponent{}
+}
