@@ -41,7 +41,6 @@ func (r *GameRoom) Close() {
 	defer r.Mutex.Unlock()
 
 	for _, client := range r.Clients {
-		client.mu.Lock()
 		client.room = nil
 	}
 	r.Clients = make(map[string]*Client)
@@ -54,6 +53,9 @@ func (r *GameRoom) Close() {
 }
 
 func (r *GameRoom) SendToAll(TypeMsg string, data interface{}) {
+	r.Mutex.RLock()
+	defer r.Mutex.RUnlock()
+
 	for _, client := range r.Clients {
 		client.SendMessage(TypeMsg, data)
 	}

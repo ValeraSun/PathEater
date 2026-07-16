@@ -121,6 +121,22 @@ export class GameServerGateway {
         return info;
     }
 
+    public ExitRoom(): void {
+        this.wsClient.send("exitRoom", {});
+
+        this.localPlayerId = null;
+    }
+
+    public ExitMenu(): void {
+        this.wsClient.send("exitMenu", {});
+    }
+
+    public DeleteRoom(roomId: string): void {
+        this.wsClient.send("deleteRoom", {
+            roomID: roomId
+        });
+    }
+
     public StartGame(): void {
         this.wsClient.send("createGameSession", {});
     }

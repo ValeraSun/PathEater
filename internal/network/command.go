@@ -2,6 +2,7 @@ package network
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -124,7 +125,12 @@ type exitRoomCommand struct{}
 func (c *exitRoomCommand) Name() string { return "exitRoom" }
 
 func (c *exitRoomCommand) Execute(client *Client, payload json.RawMessage) error {
+	if client.room == nil {
+		return client.SendError(errors.New("клиент не находится в комнате"))
+	}
+
 	client.room.RemoveClient(client)
+	client.SetState(MainMenuState())
 
 	return nil
 }

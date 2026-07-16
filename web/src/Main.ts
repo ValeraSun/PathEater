@@ -56,6 +56,8 @@ playButton.addEventListener("click", async () => {
         await game.Connect();
 
         connected = true;
+        menuStatus.textContent = "";
+        playButton.disabled = false;
         showScreen("room");
     } catch (error) {
         menuStatus.textContent =
@@ -129,10 +131,17 @@ roomBackButton.addEventListener("click", () => {
 });
 
 leaveLobbyButton.addEventListener("click", () => {
+    gateway.ExitRoom();
+
     roomId = null;
     isHost = false;
 
     roomStatus.textContent = "";
+    lobbyStatus.textContent = "";
+
+    startGameButton.hidden = true;
+    startGameButton.disabled = false;
+
     setRoomButtonsDisabled(false);
 
     showScreen("room");
