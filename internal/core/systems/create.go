@@ -6,6 +6,7 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
 )
 
 type CreateSystem struct {
@@ -37,10 +38,16 @@ func (s *CreateSystem) drainEvents() {
 		select {
 		case e := <-s.eventQueue:
 			player := entities.NewPlayer(s.adder, e.ID)
-			info := ecs.EntityCreateInfo{
-				ID: player,
-			}
-			s.broadcaster.SendEntityCreate("player", info)
+
+			s.broadcaster.SendEntityCreate(
+				ecs.EntityInfo{
+					ID:   player,
+					Type: "player",
+					Data: PlayerData{
+						Position: geometry.GetZeroVector(),
+						Rotation: geometry.GetZeroVector(),
+					},
+				})
 		default:
 			return
 		}

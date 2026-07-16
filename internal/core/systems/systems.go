@@ -16,9 +16,9 @@ type componentsGetter interface {
 	GetComponent(entity types.Entity, componentType string) (types.Component, bool)
 }
 type Broadcaster interface {
-	SendEntityCreate(string, ecs.EntityCreateInfo) error
-	SendEntityUpdate(ecs.EntityUpdateInfo) error
-	SendEntityDelete(ecs.EntityUpdateInfo) error
+	SendEntityCreate(ecs.EntityInfo) error
+	SendEntityUpdate(ecs.EntityInfo) error
+	SendEntityDelete(ecs.EntityInfo) error
 }
 
 type subscriber interface {

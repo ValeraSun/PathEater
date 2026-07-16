@@ -8,7 +8,6 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/game"
-	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/transfer"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
@@ -140,20 +139,16 @@ type Sendler struct {
 	room *GameRoom
 }
 
-func (s Sendler) SendEntityCreate(entityType string, entityInfo ecs.EntityCreateInfo) error {
+func (s Sendler) SendEntityCreate(entityInfo ecs.EntityInfo) error {
 	var info struct {
-		ID        types.Entity  `json:"id"`
-		Type      string        `json:"type"`
-		Mesh      string        `json:"mesh"`
-		Position  geometry.Vec3 `json:"position"`
-		Direction geometry.Vec3 `json:"direction"`
+		ID   types.Entity `json:"id"`
+		Type string       `json:"type"`
+		Data any          `json:"data"`
 	}
 
 	info.ID = entityInfo.ID
-	info.Type = entityType
-	info.Mesh = entityInfo.Mesh
-	info.Position = entityInfo.Position
-	info.Direction = entityInfo.Direction
+	info.Type = entityInfo.Type
+	info.Data = entityInfo.Data
 
 	payload, err := json.Marshal(info)
 	if err != nil {
@@ -178,16 +173,16 @@ func (s Sendler) SendEntityCreate(entityType string, entityInfo ecs.EntityCreate
 // 	return nil
 // }
 
-func (s Sendler) SendEntityUpdate(entityInfo ecs.EntityUpdateInfo) error {
+func (s Sendler) SendEntityUpdate(entityInfo ecs.EntityInfo) error {
 	var info struct {
-		ID        types.Entity  `json:"id"`
-		Position  geometry.Vec3 `json:"position"`
-		Direction geometry.Vec3 `json:"direction"`
+		ID   types.Entity `json:"id"`
+		Type string       `json:"type"`
+		Data any          `json:"data"`
 	}
 
 	info.ID = entityInfo.ID
-	info.Position = entityInfo.Position
-	info.Direction = entityInfo.Direction
+	info.Type = entityInfo.Type
+	info.Data = entityInfo.Data
 
 	payload, err := json.Marshal(info)
 	if err != nil {
@@ -200,7 +195,7 @@ func (s Sendler) SendEntityUpdate(entityInfo ecs.EntityUpdateInfo) error {
 	return nil
 }
 
-func (s Sendler) SendEntityDelete(entityInfo ecs.EntityUpdateInfo) error {
+func (s Sendler) SendEntityDelete(entityInfo ecs.EntityInfo) error {
 	var info struct {
 		ID types.Entity `json:"id"`
 	}
@@ -214,7 +209,7 @@ func (s Sendler) SendEntityDelete(entityInfo ecs.EntityUpdateInfo) error {
 	return nil
 }
 
-func (s Sendler) SendSnapshotToAll(entities []ecs.EntityCreateInfo) error {
+func (s Sendler) SendSnapshotToAll(entities []ecs.EntityInfo) error {
 	// var info struct {
 	// 	Entities []ecs.EntityCreateInfo `json:"entities"`
 	// }
