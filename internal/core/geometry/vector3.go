@@ -35,37 +35,6 @@ func (v Vec3) Cross(u Vec3) Vec3 {
 	return Vec3{v.Y*u.Z - v.Z*u.Y, v.Z*u.X - v.X*u.Z, v.X*u.Y - v.Y*u.X}
 }
 
-func abs(f float64) float64 {
-	if f < 0 {
-		return -f
-	}
-	return f
-}
-
-func min(a, b float64) float64 {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a, b float64) float64 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func clamp(v, lo, hi float64) float64 {
-	if v < lo {
-		return lo
-	}
-	if v > hi {
-		return hi
-	}
-	return v
-}
-
 func CombineVectors(direction, controlInput Vec3) Vec3 {
 	if controlInput.X == 0 && controlInput.Y == 0 && controlInput.Z == 0 {
 		return Vec3{}

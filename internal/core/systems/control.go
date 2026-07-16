@@ -37,7 +37,7 @@ func (s *ControlSystem) resetComponents(comps map[types.Entity]types.Component) 
 	for _, comp := range comps {
 		c, ok := comp.(*components.ControlComponent)
 		if !ok {
-			log.Printf("по комоненту control вернулся не control а %+v\n", comp)
+			log.Printf("по компоненту control вернулся не control а %+v\n", comp)
 		}
 		c.Reset()
 	}
@@ -76,7 +76,7 @@ func (s *ControlSystem) OnEvent(event events.Event) error {
 	case s.eventQueue <- ps:
 
 	default:
-		fmt.Printf("Преполена очередь %v\n", s)
+		fmt.Printf("Переполена очередь %v\n", s)
 	}
 
 	return nil
