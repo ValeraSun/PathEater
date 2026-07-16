@@ -4,6 +4,7 @@ import { SpaceView } from "./SpaceView";
 import { WindowResize } from "../Utils/WindowResize";
 import { PlayerView } from "./PlayerView";
 import { ComputerView } from "./ComputerView";
+import { BreachView } from "./Breach";
 
 export class GameView 
 {
@@ -26,6 +27,8 @@ export class GameView
         this.scene.add(this.spaceView.GetObject());
         this.scene.add(this.shipView.GetObject());
         this.scene.add(this.computerView.GetObject());
+        this.scene.add(this.breachView.GetObject());
+        this.breachView.Update(0, 2, 5);
 
         WindowResize.Handle(this.camera, this.renderer);
     }
@@ -61,6 +64,7 @@ export class GameView
     private shipView: ShipView;
     private spaceView: SpaceView;
     private computerView: ComputerView;
+    private breachView: BreachView;
 
     constructor() 
     {
@@ -70,6 +74,7 @@ export class GameView
         this.shipView = new ShipView();
         this.spaceView = new SpaceView();
         this.computerView = new ComputerView();
+        this.breachView = new BreachView();
     }
 
     private addLights(): void 
