@@ -7,7 +7,6 @@ import (
 
 	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/events"
-	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
@@ -29,24 +28,16 @@ type World struct {
 }
 
 type Broadcaster interface {
-	SendEntityCreate(string, EntityCreateInfo) error
-	SendEntityUpdate(EntityUpdateInfo) error
-	SendEntityDelete(EntityUpdateInfo) error
-	SendSnapshotToAll([]EntityCreateInfo) error
+	SendEntityCreate(EntityInfo) error
+	SendEntityUpdate(EntityInfo) error
+	SendEntityDelete(EntityInfo) error
+	SendSnapshotToAll([]EntityInfo) error
 }
 
-type EntityCreateInfo struct {
-	ID        types.Entity
-	Mesh      string
-	Position  geometry.Vec3
-	Direction geometry.Vec3
-}
-
-type EntityUpdateInfo struct {
-	ID        types.Entity
-	Mesh      string
-	Position  geometry.Vec3
-	Direction geometry.Vec3
+type EntityInfo struct {
+	ID   types.Entity
+	Type string
+	Data any
 }
 
 func newWorld(eventBus *events.EventBus, room Broadcaster) *World {
