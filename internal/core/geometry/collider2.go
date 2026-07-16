@@ -1,16 +1,12 @@
 package geometry
 
-import (
-	"math"
-)
-
-type CollisionResult struct {
+type CollisionResult2 struct {
 	HasCollision bool
-	MTV          Vec2 // Вектор, на который нужно сдвинуть объект, у которого вызван метод, чтобы выйти из коллизии
+	MTV          Vec2
 }
 
-type Collider interface {
-	Collide(other Collider) CollisionResult
+type Collider2 interface {
+	Collide(other Collider2) CollisionResult2
 }
 
 type TriangleCollider struct {
@@ -23,18 +19,18 @@ func NewTriangleCollider(v1, v2, v3 Vec2) *TriangleCollider {
 	return &TriangleCollider{Vertex1: v1, Vertex2: v2, Vertex3: v3}
 }
 
-func (b *TriangleCollider) Collide(other Collider) CollisionResult {
+func (b *TriangleCollider) Collide(other Collider2) CollisionResult2 {
 	switch o := other.(type) {
 	case *CircleCollider:
 		return triangleCircleCollide(b, o)
 	default:
-		return CollisionResult{HasCollision: false}
+		return CollisionResult2{HasCollision: false}
 	}
 }
 
 type CircleCollider struct {
-	Center     Vec2
-	Radius     float64
+	Center Vec2
+	Radius float64
 }
 
 func NewCircleCollider(center Vec2, radius float64) *CircleCollider {
@@ -44,7 +40,7 @@ func NewCircleCollider(center Vec2, radius float64) *CircleCollider {
 	}
 }
 
-func (c *CapsuleCollider) Collide(other Collider) CollisionResult {
+func (c *CircleCollider) Collide(other Collider2) CollisionResult2 {
 	switch o := other.(type) {
 	case *TriangleCollider:
 		res := triangleCircleCollide(o, c)
@@ -55,60 +51,53 @@ func (c *CapsuleCollider) Collide(other Collider) CollisionResult {
 	case *CircleCollider:
 		return circleCircleCollide(c, o)
 	default:
-		return CollisionResult{HasCollision: false}
+		return CollisionResult2{HasCollision: false}
 	}
 }
 
-func triangleCircleCollide(a *TriangleCollider, b *CircleCollider) CollisionResult {
-	v1, v2 := twoClosestPointsToTarget(b.Center, a.V1, a.V2, a.V3)
+func triangleCircleCollide(a *TriangleCollider, b *CircleCollider) CollisionResult2 {
+	v1, v2 := twoClosestPointsToTarget(b.Center, a.Vertex1, a.Vertex2, a.Vertex3)
 
-	h := heightFromA(b.center, v1, v2)
+	h := heightFromA(b.Center, v1, v2)
 
-	overlapX := b.radius - abs(h.X)
+	overlapX := b.Radius - abs(h.X)
 	if overlapX <= 0 {
-		return CollisionResult{HasCollision: false}
+		return CollisionResult2{HasCollision: false}
 	}
 
-	overlapY := b.radius - abs(h.Y)
+	overlapY := b.Radius - abs(h.Y)
 	if overlapY <= 0 {
-		return CollisionResult{HasCollision: false}
+		return CollisionResult2{HasCollision: false}
 	}
 
 	minOverlap := overlapX
-	mtv := Vec3{X: overlapX, Y: 0, Z: 0}
-	if d.X < 0 {
+	mtv := Vec2{X: overlapX, Y: 0}
+	if h.X < 0 {
 		mtv.X = -mtv.X
 	}
 
 	if overlapY < minOverlap {
 		minOverlap = overlapY
-		mtv = Vec3{X: 0, Y: overlapY, Z: 0}
-		if d.Y < 0 {
+		mtv = Vec2{X: 0, Y: overlapY}
+		if h.Y < 0 {
 			mtv.Y = -mtv.Y
 		}
 	}
 
-	if overlapZ < minOverlap {
-		mtv = Vec3{X: 0, Y: 0, Z: overlapZ}
-		if d.Z < 0 {
-			mtv.Z = -mtv.Z
-		}
-	}
-
-	return CollisionResult{HasCollision: true, MTV: mtv}
+	return CollisionResult2{HasCollision: true, MTV: mtv}
 }
 
-func circleCircleCollide(a, b *CircleCollider) CollisionResult {
+func circleCircleCollide(a, b *CircleCollider) CollisionResult2 {
 	d := a.Center.Sub(b.Center)
 
-	overlapX := (a.radius + b.radius) - abs(d.X)
+	overlapX := (a.Radius + b.Radius) - abs(d.X)
 	if overlapX <= 0 {
-		return CollisionResult{HasCollision: false}
+		return CollisionResult2{HasCollision: false}
 	}
 
-	overlapY := (a.radius + b.radius) - abs(d.Y)
+	overlapY := (a.Radius + b.Radius) - abs(d.Y)
 	if overlapY <= 0 {
-		return CollisionResult{HasCollision: false}
+		return CollisionResult2{HasCollision: false}
 	}
 
 	// Ищем минимальное перекрытие для выбора оси выталкивания
@@ -126,5 +115,5 @@ func circleCircleCollide(a, b *CircleCollider) CollisionResult {
 		}
 	}
 
-	return CollisionResult{HasCollision: true, MTV: mtv}
+	return CollisionResult2{HasCollision: true, MTV: mtv}
 }

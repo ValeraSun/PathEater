@@ -1,8 +1,8 @@
 package components
 
 import (
-    "math/rand"
-	"github.com/ValeraSun/PathEater/internal/core/events"
+	"math/rand"
+
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
 )
 
@@ -13,9 +13,9 @@ const sizeAsteroidMax = 25.5
 const sizeAsteroidMin = 5.5
 
 type AsteroidComponent struct {
-	position  geometry.Vec2
-	velocity  geometry.Vec2
-	radius    float64
+	position geometry.Vec2
+	velocity geometry.Vec2
+	radius   float64
 }
 
 func (*AsteroidComponent) Type() string {
@@ -33,15 +33,15 @@ func (c *AsteroidComponent) Random() {
 }
 
 func (c *AsteroidComponent) RandomPosition() {
-    c.position.X := rand.Float64()*(sizeField) - sizeField/2 
-    c.position.Y := rand.Float64()*(sizeField) - sizeField/2 
+	c.position.X = rand.Float64()*(sizeField) - sizeField/2
+	c.position.Y = rand.Float64()*(sizeField) - sizeField/2
 }
 
 func (c *AsteroidComponent) RandomVelocity() {
-    c.position.X := speedAsteroidMin + rand.Float64()*(speedAsteroidMax - speedAsteroidMin)
-    c.position.Y := speedAsteroidMin + rand.Float64()*(speedAsteroidMax - speedAsteroidMin)
+	c.position.X = speedAsteroidMin + rand.Float64()*(speedAsteroidMax-speedAsteroidMin)
+	c.position.Y = speedAsteroidMin + rand.Float64()*(speedAsteroidMax-speedAsteroidMin)
 }
 
 func (c *AsteroidComponent) RandomRadius() {
-    c.radius := sizeAsteroidMin + rand.Float64()*(sizeAsteroidMax - sizeAsteroidMin)
+	c.radius = sizeAsteroidMin + rand.Float64()*(sizeAsteroidMax-sizeAsteroidMin)
 }
