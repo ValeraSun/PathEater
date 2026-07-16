@@ -2,6 +2,7 @@ package network
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -16,7 +17,7 @@ type Command interface {
 	Execute(client *Client, payload json.RawMessage) error
 }
 
-var defaultSpawn = map[string]float64{"x": 0, "y": 1, "z": 0}
+var defaultSpawn = map[string]float64{"x": 2, "y": 1, "z": -2}
 
 //Команды меню игры
 
@@ -124,7 +125,12 @@ type exitRoomCommand struct{}
 func (c *exitRoomCommand) Name() string { return "exitRoom" }
 
 func (c *exitRoomCommand) Execute(client *Client, payload json.RawMessage) error {
+	if client.room == nil {
+		return client.SendError(errors.New("клиент не находится в комнате"))
+	}
+
 	client.room.RemoveClient(client)
+	client.SetState(MainMenuState())
 
 	return nil
 }
@@ -153,7 +159,7 @@ func (s Sendler) SendEntityCreate(EntityInfo ecs.EntityCreateInfo) error {
 		return err
 	}
 
-	s.room.SendToAll("CrateEntity", payload)
+	s.room.SendToAll("CreateEntity", payload)
 
 	return nil
 }
@@ -227,9 +233,17 @@ func (c *createGameSessionCommand) Name() string { return "createGameSession" }
 func (c *createGameSessionCommand) Execute(client *Client, payload json.RawMessage) error {
 	broadcaster := Sendler{room: client.room}
 	w := game.CreateGame(broadcaster)
+	client.room.World = w
 
-	for id := range client.room.Clients {
+	for id, roomClient := range client.room.Clients {
 		transfer.CreatePlayer(w.EventBus, id)
+
+		roomClient.SetState(PlayerControlState())
+
+		roomClient.SendMessage("GameStarted", map[string]interface{}{
+			"playerId": id,
+			"spawn":    defaultSpawn,
+		})
 	}
 
 	return nil
@@ -258,5 +272,10 @@ type exitGameCommand struct{}
 func (c *exitGameCommand) Name() string { return "exitGame" }
 
 func (c *exitGameCommand) Execute(client *Client, payload json.RawMessage) error {
+	if client.room != nil {
+		client.SetState(GameRoomState())
+	} else {
+		client.SetState(MainMenuState())
+	}
 	return nil
 }

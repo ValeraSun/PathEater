@@ -5,7 +5,6 @@ import { PlayerModel } from "../Models/PlayerModel";
 import { PlayerView } from "../Views/PlayerView";
 import { PlayerController } from "../Controllers/PlayerController";
 import { EntityManager } from "../Services/EntityManager";
-import { CollisionManager } from "../Physics/CollisionManager";
 import { CameraController } from "../Controllers/CameraController";
 import { MAX_DELTA_TIME, MILLISECONDS_IN_SECOND } from "../Config/GameConfig";
 import { InteractionView } from "../Views/InteractionView";
@@ -16,12 +15,11 @@ import { GameServerGateway, type GameStartedPayload } from "../Services/GameServ
 export class Game {
     private static instance: Game;
 
-    private readonly input = new InputController();
-    private readonly collisionManager = new CollisionManager();
-    private readonly interactionView = new InteractionView();
-    private readonly gameView: GameView;
-    private readonly entityManager: EntityManager;
-    private readonly gameServerGateway: GameServerGateway;
+    private input = new InputController();
+    private interactionView = new InteractionView();
+    private gameView: GameView;
+    private entityManager: EntityManager;
+    private gameServerGateway: GameServerGateway;
 
     private playerModel: PlayerModel | null = null;
     private playerView: PlayerView | null = null;
@@ -73,10 +71,6 @@ export class Game {
             return;
         }
 
-        await this.collisionManager.LoadShipColliders(
-            "/data/ship_wall_colliders_v3.json"
-        );
-
         const spawn = new THREE.Vector3(
             payload.spawn.x,
             payload.spawn.y,
@@ -87,6 +81,19 @@ export class Game {
         this.playerView = new PlayerView();
 
         this.gameView.AttachPlayerView(this.playerView);
+
+        this.entityManager.SetLocalPlayerUpdateHandler(data => {
+            if (data.position) {
+                this.playerModel!.position.set(
+                    data.position.x,
+                    data.position.y,
+                    data.position.z
+                );
+            }
+            if (typeof data.rotationY === "number") {
+                this.playerView!.mesh.rotation.y = data.rotationY;
+            }
+        });
 
         this.cameraController = new CameraController(
             this.gameView.GetCamera(),
@@ -99,8 +106,7 @@ export class Game {
             this.playerView,
             this.input,
             this.gameView.GetCamera(),
-            this.gameServerGateway,
-            this.collisionManager
+            this.gameServerGateway
         );
 
         const computerView = this.gameView.GetComputerView();
@@ -119,10 +125,6 @@ export class Game {
             () => {
                 this.computerController!.Enter();
             }
-        );
-
-        this.collisionManager.AddDynamic(
-            this.playerModel.body
         );
 
         this.playerView.mesh.position.copy(

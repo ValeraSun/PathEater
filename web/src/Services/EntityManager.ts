@@ -31,6 +31,10 @@ export class EntityManager {
     private scene: THREE.Scene;
     private entities = new Map<string, EntityRecord>();
     private localPlayerId: string | null = null;
+    private onLocalPlayerUpdate: ((data: EntityTransformData) => void) | null = null;
+    public SetLocalPlayerUpdateHandler(handler: (data: EntityTransformData) => void): void {
+        this.onLocalPlayerUpdate = handler;
+    }
 
     public constructor(scene: THREE.Scene) {
         this.scene = scene;
@@ -43,6 +47,7 @@ export class EntityManager {
 
     public CreateEntity(id: string, type: string, data: EntityTransformData): void {
         if (id === this.localPlayerId) {
+            this.onLocalPlayerUpdate?.(data);
             return;
         }
  
@@ -74,6 +79,7 @@ export class EntityManager {
 
     public UpdateEntity(id: string, type: string, data: EntityTransformData): void {
         if (id === this.localPlayerId) {
+            this.onLocalPlayerUpdate?.(data);
             return;
         }
  
