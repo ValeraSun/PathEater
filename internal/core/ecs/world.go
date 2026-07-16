@@ -32,7 +32,6 @@ type Broadcaster interface {
 	SendEntityCreate(EntityCreateInfo) error
 	SendEntityUpdate(EntityUpdateInfo) error
 	SendEntityDelete(EntityUpdateInfo) error
-	CreateCameraForPlayer(id string, idEntity types.Entity) error
 	SendSnapshotToAll([]EntityCreateInfo) error
 }
 

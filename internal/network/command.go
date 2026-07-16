@@ -208,32 +208,6 @@ func (s Sendler) SendEntityDelete(entityInfo ecs.EntityUpdateInfo) error {
 	return nil
 }
 
-func (s Sendler) CreateCameraForPlayer(id string, idEntity types.Entity) error {
-	var info struct {
-		ID   types.Entity `json:"id"`
-		Type string       `json:"type"`
-	}
-
-	info.ID = idEntity
-	info.Type = "camera"
-	payload, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
-
-	var massange struct {
-		cmd     string
-		payload any
-	}
-
-	massange.cmd = "CreateEntity"
-	massange.payload = payload
-
-	j, _ := json.Marshal(massange)
-	s.room.Clients[id].Send(j)
-	return nil
-}
-
 func (s Sendler) SendSnapshotToAll(entities []ecs.EntityCreateInfo) error {
 	// var info struct {
 	// 	Entities []ecs.EntityCreateInfo `json:"entities"`

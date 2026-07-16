@@ -19,7 +19,6 @@ type Broadcaster interface {
 	SendEntityCreate(ecs.EntityCreateInfo) error
 	SendEntityUpdate(ecs.EntityUpdateInfo) error
 	SendEntityDelete(ecs.EntityUpdateInfo) error
-	CreateCameraForPlayer(id string, idEntity types.Entity) error
 }
 
 type subscriber interface {

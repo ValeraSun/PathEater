@@ -34,8 +34,7 @@ func (s *CreateSystem) drainEvents() {
 	for {
 		select {
 		case e := <-s.eventQueue:
-			player := entities.NewPlayer(s.adder, e.ID)
-			s.broadcaster.CreateCameraForPlayer(e.ID, player)
+			entities.NewPlayer(s.adder, e.ID)
 		default:
 			return
 		}
