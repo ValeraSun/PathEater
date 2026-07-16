@@ -26,6 +26,8 @@ func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	//eb := *w.EventBus
 	initSystems(w, w, w.Broadcaster, w.EventBus)
 
+	go w.EventBus.ProcessEvents()
+	go ecs.HandleWorld(w)
 	return w
 }
 

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { PlayerView } from "../Views/PlayerView";
+import type { Vector3D } from "../Models/NetworkMessages";
 
 export interface EntityTransformData {
     position?: {
@@ -19,11 +20,11 @@ interface EntityRecord {
     targetRotationY: number;
 }
 
-interface SnapshotEntity {
-    id: string;
-    type: string;
-    data: EntityTransformData;
-}
+// interface SnapshotEntity {
+//     id: string;
+//     type: string;
+//     data: EntityTransformData;
+// }
 
 const NETWORK_LERP_SPEED = 12;
 
@@ -45,7 +46,11 @@ export class EntityManager {
         this.DeleteEntity(id);
     }
 
-    public CreateEntity(id: string, type: string, data: EntityTransformData): void {
+    public CreateEntity(id: string, type: string, position: Vector3D, rotation: Vector3D): void {
+        const data = {
+                position: position,
+                rotation: rotation,
+            } 
         if (id === this.localPlayerId) {
             this.onLocalPlayerUpdate?.(data);
             return;
@@ -54,7 +59,7 @@ export class EntityManager {
         const existing = this.entities.get(id);
  
         if (existing) {
-            this.UpdateEntity(id, type, data);
+            this.UpdateEntity(id, position, rotation);
             return;
         }
  
@@ -77,23 +82,20 @@ export class EntityManager {
         });
     }
 
-    public UpdateEntity(id: string, type: string, data: EntityTransformData): void {
+    public UpdateEntity(id: string, position: Vector3D, rotation: Vector3D): void {
+        const data = {
+            position: position,
+            rotation: rotation,
+        } 
         if (id === this.localPlayerId) {
             this.onLocalPlayerUpdate?.(data);
             return;
         }
  
         const entity = this.entities.get(id);
- 
-        if (!entity) {
-            this.CreateEntity(id, type, data);
-            return;
-        }
- 
-        if (entity.type !== type) {
-            this.DeleteEntity(id);
-            this.CreateEntity(id, type, data);
-            return;
+
+        if (typeof entity === 'undefined') {
+            return 
         }
  
         this.setTarget(entity, data);
@@ -111,25 +113,25 @@ export class EntityManager {
         this.entities.delete(id);
     }
 
-    public ApplySnapshot(entities: SnapshotEntity[]): void {
-        const receivedIds = new Set(
-            entities.map(entity => entity.id)
-        );
+    // public ApplySnapshot(entities: SnapshotEntity[]): void {
+    //     const receivedIds = new Set(
+    //         entities.map(entity => entity.id)
+    //     );
 
-        for (const id of [...this.entities.keys()]) {
-            if (!receivedIds.has(id)) {
-                this.DeleteEntity(id);
-            }
-        }
+    //     for (const id of [...this.entities.keys()]) {
+    //         if (!receivedIds.has(id)) {
+    //             this.DeleteEntity(id);
+    //         }
+    //     }
 
-        for (const entity of entities) {
-            this.CreateEntity(
-                entity.id,
-                entity.type,
-                entity.data
-            );
-        }
-    }
+    //     for (const entity of entities) {
+    //         this.CreateEntity(
+    //             entity.id,
+    //             entity.type,
+    //             entity.data
+    //         );
+    //     }
+    // }
 
     public Clear(): void 
     {

@@ -3,6 +3,7 @@ package systems
 import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
+	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 type RenderSystem struct {
@@ -17,18 +18,20 @@ func NewRenderSystem(getter componentsGetter, broadcaster Broadcaster) *RenderSy
 	}
 }
 func (s *RenderSystem) Update(dt float32) error {
-	comps := s.getter.GetEntitiesByComponent("mesh")
+	comps := s.getter.GetEntitiesByComponent("update")
 
-	for id, comp := range comps {
+	for id := range comps {
 		if s.getter.HasComponents(id, "transform") {
-
-			mesh := comp.(*components.MeshComponent)
 			c, _ := s.getter.GetComponent(id, "transform")
 			transform := c.(*components.TransformComponent)
+			if s.getter.HasComponents(id, "control") {
+				c, _ := s.getter.GetComponent(id, "control")
+				control := c.(*components.ControlComponent)
+				id = types.Entity(control.ClientID)
+			}
 
 			s.broadcaster.SendEntityUpdate(ecs.EntityUpdateInfo{
 				ID:        id,
-				Mesh:      mesh.Path,
 				Position:  transform.Position,
 				Direction: transform.Direction,
 			})

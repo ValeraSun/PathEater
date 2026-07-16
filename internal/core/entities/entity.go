@@ -23,6 +23,7 @@ func NewBox(width, depth, height float64, adder entityAdder) types.Entity {
 
 func NewPlayer(adder entityAdder, clientID string) types.Entity {
 	e, _ := adder.AddEntity(
+		components.NewMeshComponent(""),
 		components.NewControlComponent(clientID),
 		components.NewMovementComponent(10),
 		components.NewExternalVelocityComponent(),

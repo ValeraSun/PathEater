@@ -29,7 +29,7 @@ type World struct {
 }
 
 type Broadcaster interface {
-	SendEntityCreate(EntityCreateInfo) error
+	SendEntityCreate(string, EntityCreateInfo) error
 	SendEntityUpdate(EntityUpdateInfo) error
 	SendEntityDelete(EntityUpdateInfo) error
 	SendSnapshotToAll([]EntityCreateInfo) error
@@ -64,7 +64,6 @@ func CreateWorld(room Broadcaster) *World {
 	eb := events.NewEventBus(100)
 	w := newWorld(eb, room)
 
-	go HandleWorld(w)
 	return w
 }
 

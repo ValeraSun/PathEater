@@ -3,6 +3,7 @@ package network
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -139,7 +140,7 @@ type Sendler struct {
 	room *GameRoom
 }
 
-func (s Sendler) SendEntityCreate(EntityInfo ecs.EntityCreateInfo) error {
+func (s Sendler) SendEntityCreate(entityType string, entityInfo ecs.EntityCreateInfo) error {
 	var info struct {
 		ID        types.Entity  `json:"id"`
 		Type      string        `json:"type"`
@@ -148,11 +149,11 @@ func (s Sendler) SendEntityCreate(EntityInfo ecs.EntityCreateInfo) error {
 		Direction geometry.Vec3 `json:"direction"`
 	}
 
-	info.ID = EntityInfo.ID
-	info.Type = "object"
-	info.Mesh = EntityInfo.Mesh
-	info.Position = EntityInfo.Position
-	info.Direction = EntityInfo.Direction
+	info.ID = entityInfo.ID
+	info.Type = entityType
+	info.Mesh = entityInfo.Mesh
+	info.Position = entityInfo.Position
+	info.Direction = entityInfo.Direction
 
 	payload, err := json.Marshal(info)
 	if err != nil {
@@ -180,14 +181,11 @@ func (s Sendler) SendEntityCreate(EntityInfo ecs.EntityCreateInfo) error {
 func (s Sendler) SendEntityUpdate(entityInfo ecs.EntityUpdateInfo) error {
 	var info struct {
 		ID        types.Entity  `json:"id"`
-		Type      string        `json:"type"`
-		Data      []byte        `json:"data"`
 		Position  geometry.Vec3 `json:"position"`
 		Direction geometry.Vec3 `json:"direction"`
 	}
 
 	info.ID = entityInfo.ID
-	info.Type = "object"
 	info.Position = entityInfo.Position
 	info.Direction = entityInfo.Direction
 
@@ -197,6 +195,8 @@ func (s Sendler) SendEntityUpdate(entityInfo ecs.EntityUpdateInfo) error {
 	}
 
 	s.room.SendToAll("UpdateEntity", payload)
+
+	fmt.Printf("Отправлено update в room %v сообщение: %+v\n", s.room.ID, info)
 	return nil
 }
 

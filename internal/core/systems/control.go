@@ -19,7 +19,7 @@ func NewControlSystem(getter componentsGetter, subscriber subscriber) *ControlSy
 		getter:     getter,
 		eventQueue: make(chan *events.SetPlayerStateEvent, 100),
 	}
-	subscriber.Subscribe("control", s.OnEvent)
+	subscriber.Subscribe("setPlayerState", s.OnEvent)
 	return s
 }
 
@@ -54,6 +54,7 @@ func (s *ControlSystem) drainEvents(comps map[types.Entity]types.Component) {
 					continue
 				}
 
+				fmt.Printf("Передано состояние %+v\n", e.PlayerState)
 				if c.ClientID == string(e.ID) {
 					c.Superimpose(&e.PlayerState)
 				}

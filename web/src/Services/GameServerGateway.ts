@@ -1,20 +1,27 @@
 import { EntityManager } from "./EntityManager";
 import { WebSocketClient } from "./WebSocketClient";
 import type { PlayerStatePayload } from "../Controllers/PlayerController";
+import type { Vector3D } from "../Models/NetworkMessages";
 
-export interface EntityInfo {
+export interface EntityCreateInfo {
     id: string;
     type: string;
-    data: unknown;
+    direction: Vector3D;
+    position: Vector3D;
 }
 
+export interface EntityUpdateInfo {
+    id: string;
+    direction: Vector3D;
+    position: Vector3D;
+}
 export interface DeleteEntityPayload {
     id: string;
 }
 
-export interface SnapshotPayload {
-    entities: EntityInfo[];
-}
+// export interface SnapshotPayload {
+//     entities: EntityCreateInfo[];
+// }
 
 export interface RoomInfoPayload {
     roomId: string;
@@ -56,13 +63,13 @@ export class GameServerGateway {
 
     public InitListeners(): void {
         this.wsClient.on("CreateEntity", (payload: unknown) => {
-            if (!this.isValidEntityInfo(payload)) return;
-            this.entityManager.CreateEntity(payload.id, payload.type, payload.data as any);
+            if (!this.isValidEntityCreateInfo(payload)) return;
+            this.entityManager.CreateEntity(payload.id, payload.type, payload.position, payload.direction );
         });
 
-        this.wsClient.on("UpdateEntity", (payload: unknown) => {
-            if (!this.isValidEntityInfo(payload)) return;
-            this.entityManager.UpdateEntity(payload.id, payload.type, payload.data as any);
+        this.wsClient.on("UpdateEntity", (payload: unknown) => { 
+            if (!this.isValidEntityCreateInfo(payload)) return;          
+            this.entityManager.UpdateEntity(payload.id,  payload.position, payload.direction);
         });
 
         this.wsClient.on("DeleteEntity", (payload: unknown) => {
@@ -70,17 +77,17 @@ export class GameServerGateway {
             this.entityManager.DeleteEntity(payload.id);
         });
 
-        this.wsClient.on("Snapshot", (payload: unknown) => {
-            if (!this.isValidSnapshotPayload(payload)) return;
+        // this.wsClient.on("Snapshot", (payload: unknown) => {
+        //     if (!this.isValidSnapshotPayload(payload)) return;
 
-            this.entityManager.ApplySnapshot(
-                payload.entities.map(entity => ({
-                    id: entity.id,
-                    type: entity.type,
-                    data: entity.data as any
-                }))
-            );
-        });
+        //     this.entityManager.ApplySnapshot(
+        //         payload.entities.map(entity => ({
+        //             id: entity.id,
+        //             type: entity.type,
+        //             data: entity.data as any
+        //         }))
+        //     );
+        // });
 
         this.wsClient.on("GameStarted", (payload: GameStartedPayload) => {
             this.localPlayerId = payload.playerId;
@@ -150,12 +157,11 @@ export class GameServerGateway {
         this.entityManager.SetLocalPlayerId(info.playerId);
     }
 
-    private isValidEntityInfo(payload: any): payload is EntityInfo {
+    private isValidEntityCreateInfo(payload: any): payload is EntityCreateInfo {
         return payload
             && typeof payload === "object"
             && typeof payload.id === "string"
             && typeof payload.type === "string"
-            && "data" in payload;
     }
 
     private isValidDeletePayload(payload: any): payload is DeleteEntityPayload {
@@ -164,9 +170,9 @@ export class GameServerGateway {
             && typeof payload.id === "string";
     }
 
-    private isValidSnapshotPayload(payload: any): payload is SnapshotPayload {
-        return payload
-            && typeof payload === "object"
-            && Array.isArray(payload.entities);
-    }
+    // private isValidSnapshotPayload(payload: any): payload is SnapshotPayload {
+    //     return payload
+    //         && typeof payload === "object"
+    //         && Array.isArray(payload.entities);
+    // }
 }

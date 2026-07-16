@@ -3,6 +3,7 @@ package systems
 import (
 	"fmt"
 
+	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 )
@@ -16,11 +17,12 @@ type CreateSystem struct {
 
 func NewCreateSystem(adder entityAdder, getter componentsGetter, broadcaster Broadcaster, subscriber subscriber) *CreateSystem {
 	s := &CreateSystem{
-		adder:      adder,
-		getter:     getter,
-		eventQueue: make(chan *events.CreatePlayerEvent, 100),
+		adder:       adder,
+		getter:      getter,
+		broadcaster: broadcaster,
+		eventQueue:  make(chan *events.CreatePlayerEvent, 100),
 	}
-	subscriber.Subscribe("create", s.OnEvent)
+	subscriber.Subscribe("createPlayer", s.OnEvent)
 	return s
 }
 
@@ -34,7 +36,11 @@ func (s *CreateSystem) drainEvents() {
 	for {
 		select {
 		case e := <-s.eventQueue:
-			entities.NewPlayer(s.adder, e.ID)
+			player := entities.NewPlayer(s.adder, e.ID)
+			info := ecs.EntityCreateInfo{
+				ID: player,
+			}
+			s.broadcaster.SendEntityCreate("player", info)
 		default:
 			return
 		}

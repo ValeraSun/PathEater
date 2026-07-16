@@ -87,7 +87,7 @@ func (c *Client) Close() error {
 
 // Читает сообщения с клиента
 func (c *Client) ReadMessages() {
-	log.Println("Пытается обрабатывать команду")
+	log.Printf("Начал слушать клиента %v\n", c.ID)
 	defer c.Close()
 	for {
 		c.mu.Lock()
@@ -121,7 +121,7 @@ func (c *Client) ReadMessages() {
 			}
 
 			//обработка команды
-			log.Println("HandleCommand ")
+			log.Printf("Принял команду %+v\n от клиента %v", req, c.ID)
 			if err := c.state.HandleCommand(c, req.Cmd, req.Payload); err != nil {
 				c.SendError(err)
 			}
@@ -201,7 +201,7 @@ func (c *Client) SendMessage(typeMsg string, data interface{}) error {
 	if err = c.Send(jsonData); err != nil {
 		return fmt.Errorf("ошибка отправки: %w", err)
 	}
-
+	fmt.Printf("Сервер отправил %+v клиенту %v\n", message, c.ID)
 	return nil
 }
 
