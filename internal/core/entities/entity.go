@@ -40,3 +40,10 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 	return e
 
 }
+
+func NewShip(adder entityAdder) types.Entity {
+	e, _ := adder.AddEntity(
+		components.NewShipComponent(),
+	)
+	return e
+}

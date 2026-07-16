@@ -26,7 +26,7 @@ func (v Vec3) Length() float64      { return math.Sqrt(v.LengthSqr()) }
 func (v Vec3) Normalize() Vec3 {
 	l := v.Length()
 	if l < 1e-9 {
-		return Vec3{0, 1, 0}
+		return Vec3{0, 0, 0}
 	}
 	return Vec3{v.X / l, v.Y / l, v.Z / l}
 }

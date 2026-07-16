@@ -25,6 +25,8 @@ type World struct {
 	systemTimers map[string]time.Duration
 
 	Broadcaster Broadcaster
+
+	done chan struct{}
 }
 
 type Broadcaster interface {
@@ -58,12 +60,22 @@ func CreateWorld(room Broadcaster) *World {
 	return w
 }
 
+func (w *World) Close() {
+	w.done <- struct{}{}
+}
+
 func HandleWorld(world *World) {
 	ticker := time.NewTicker(config.GetMillisecondPerTick() * time.Millisecond)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		world.Update(float32(config.GetMillisecondPerTick()))
+		select {
+		case <-world.done:
+			world.EventBus.Close()
+			return
+		default:
+			world.Update(float32(config.GetMillisecondPerTick()))
+		}
 	}
 }
 

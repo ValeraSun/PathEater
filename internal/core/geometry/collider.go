@@ -28,6 +28,13 @@ func (b *BoxCollider) Collide(other Collider) CollisionResult {
 		return boxBoxCollide(b, o)
 	case *CapsuleCollider:
 		return boxCapsuleCollide(b, o)
+	case *RayCollider:
+		// Инвертируем MTV, чтобы выталкивался Box, а не Ray
+		res := rayBoxCollide(o, b)
+		if res.HasCollision {
+			res.MTV = res.MTV.Scale(-1)
+		}
+		return res
 	default:
 		return CollisionResult{HasCollision: false}
 	}
@@ -53,8 +60,6 @@ func NewCapsuleCollider(center, direction Vec3, halfHeight, radius float64) *Cap
 func (c *CapsuleCollider) Collide(other Collider) CollisionResult {
 	switch o := other.(type) {
 	case *BoxCollider:
-		// Вызываем проверку Box-Capsule, но инвертируем MTV,
-		// так как вызываем со стороны капсулы, и выталкивать нужно именно её
 		res := boxCapsuleCollide(o, c)
 		if res.HasCollision {
 			res.MTV = res.MTV.Scale(-1)
@@ -62,6 +67,13 @@ func (c *CapsuleCollider) Collide(other Collider) CollisionResult {
 		return res
 	case *CapsuleCollider:
 		return capsuleCapsuleCollide(c, o)
+	case *RayCollider:
+		// Инвертируем MTV
+		res := rayCapsuleCollide(o, c)
+		if res.HasCollision {
+			res.MTV = res.MTV.Scale(-1)
+		}
+		return res
 	default:
 		return CollisionResult{HasCollision: false}
 	}
@@ -241,4 +253,131 @@ func closestPtSegmentSegment(p1, q1, p2, q2 Vec3) (Vec3, Vec3) {
 	c1 := p1.Add(d1.Scale(s))
 	c2 := p2.Add(d2.Scale(t))
 	return c1, c2
+}
+
+type RayCollider struct {
+	Origin    Vec3
+	Direction Vec3    // Вектор должен быть нормализован
+	Length    float64 // Длина луча (для бесконечного луча можно использовать math.MaxFloat64)
+}
+
+func NewRayCollider(origin, direction Vec3, length float64) *RayCollider {
+	return &RayCollider{
+		Origin:    origin,
+		Direction: direction.Normalize(),
+		Length:    length,
+	}
+}
+
+func (r *RayCollider) Collide(other Collider) CollisionResult {
+	switch o := other.(type) {
+	case *BoxCollider:
+		return rayBoxCollide(r, o)
+	case *CapsuleCollider:
+		return rayCapsuleCollide(r, o)
+	case *RayCollider:
+		// Пересечение двух бесконечно тонких лучей маловероятно и редко имеет смысл в физике
+		return CollisionResult{HasCollision: false}
+	default:
+		return CollisionResult{HasCollision: false}
+	}
+}
+
+func rayBoxCollide(ray *RayCollider, box *BoxCollider) CollisionResult {
+	minBox := box.Center.Sub(box.HalfExtents)
+	maxBox := box.Center.Add(box.HalfExtents)
+
+	tmin := math.Inf(-1)
+	tmax := math.Inf(1)
+
+	// Вспомогательная функция для проверки осей
+	checkAxis := func(dir, origin, minB, maxB float64) bool {
+		if abs(dir) < 1e-9 {
+			if origin < minB || origin > maxB {
+				return false // Луч параллелен плоскости и находится вне коробки
+			}
+		} else {
+			invD := 1.0 / dir
+			t1 := (minB - origin) * invD
+			t2 := (maxB - origin) * invD
+			if t1 > t2 {
+				t1, t2 = t2, t1
+			}
+			if t1 > tmin {
+				tmin = t1
+			}
+			if t2 < tmax {
+				tmax = t2
+			}
+			if tmin > tmax {
+				return false
+			}
+		}
+		return true
+	}
+
+	if !checkAxis(ray.Direction.X, ray.Origin.X, minBox.X, maxBox.X) {
+		return CollisionResult{HasCollision: false}
+	}
+	if !checkAxis(ray.Direction.Y, ray.Origin.Y, minBox.Y, maxBox.Y) {
+		return CollisionResult{HasCollision: false}
+	}
+	if !checkAxis(ray.Direction.Z, ray.Origin.Z, minBox.Z, maxBox.Z) {
+		return CollisionResult{HasCollision: false}
+	}
+
+	// Если tmax < 0, коробка находится позади начала луча
+	if tmax < 0 {
+		return CollisionResult{HasCollision: false}
+	}
+
+	// Если луч имеет конечную длину, и пересечение дальше этой длины
+	if tmin > ray.Length {
+		return CollisionResult{HasCollision: false}
+	}
+
+	// Вычисляем MTV (выталкивает луч назад по его направлению)
+	hitT := tmin
+	if hitT < 0 {
+		hitT = 0 // Луч начинается внутри коробки
+	}
+	penetration := tmax - hitT
+	mtv := ray.Direction.Scale(-penetration)
+
+	return CollisionResult{HasCollision: true, MTV: mtv}
+}
+
+func rayCapsuleCollide(ray *RayCollider, cap *CapsuleCollider) CollisionResult {
+	// Конечная точка луча
+	rayEnd := ray.Origin.Add(ray.Direction.Scale(ray.Length))
+
+	// Крайние точки внутреннего отрезка капсулы
+	capA := cap.Center.Sub(cap.Direction.Scale(cap.HalfHeight))
+	capB := cap.Center.Add(cap.Direction.Scale(cap.HalfHeight))
+
+	// Находим ближайшие точки между отрезком луча и стержнем капсулы
+	c1, c2 := closestPtSegmentSegment(ray.Origin, rayEnd, capA, capB)
+
+	// Вектор от оси капсулы к лучу
+	dir := c1.Sub(c2)
+	distSqr := dir.LengthSqr()
+
+	// Если расстояние больше радиуса капсулы, коллизии нет
+	if distSqr > cap.Radius*cap.Radius {
+		return CollisionResult{HasCollision: false}
+	}
+
+	dist := math.Sqrt(distSqr)
+	overlap := cap.Radius - dist
+
+	var mtv Vec3
+	if dist > 1e-9 {
+		// Стандартный случай: расталкиваем по нормали
+		mtv = dir.Normalize().Scale(overlap)
+	} else {
+		// Отрезки идеально пересеклись, выталкиваем по произвольной перпендикулярной оси
+		mtv = Vec3{X: 0, Y: overlap, Z: 0}
+	}
+
+	return CollisionResult{HasCollision: true, MTV: mtv}
 }

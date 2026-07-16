@@ -46,7 +46,7 @@ func (r *GameRoom) Close() {
 	r.Clients = make(map[string]*Client)
 
 	if r.World != nil {
-		//r.World.Close()
+		r.World.Close()
 	}
 
 	r.ID = ""

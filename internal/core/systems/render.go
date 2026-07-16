@@ -19,16 +19,22 @@ func NewRenderSystem(getter componentsGetter, broadcaster Broadcaster) *RenderSy
 	}
 }
 
-type PlayerData struct {
+type playerData struct {
 	Position geometry.Vec3 `json:"position"`
 	Rotation geometry.Vec3 `json:"rotation"`
+	Health   int
+}
+
+type shipData struct {
+	baggageStatus int
+	health        int
 }
 
 func (s *RenderSystem) Update(dt float32) error {
 	comps := s.getter.GetEntitiesByComponent("update")
 
 	for id := range comps {
-		if s.getter.HasComponents(id, "transform") && s.getter.HasComponents(id, "player") {
+		if s.getter.HasComponents(id, "transform") && s.getter.HasComponents(id, "control") {
 			c, _ := s.getter.GetComponent(id, "transform")
 			transform := c.(*components.TransformComponent)
 
@@ -39,14 +45,27 @@ func (s *RenderSystem) Update(dt float32) error {
 			s.broadcaster.SendEntityUpdate(ecs.EntityInfo{
 				ID:   id,
 				Type: "player",
-				Data: PlayerData{
+				Data: playerData{
 					Position: transform.Position,
 					Rotation: transform.Direction,
-				},
-			},
-			)
+				}})
 		}
+		if s.getter.HasComponents(id, "ship") {
+			c, _ := s.getter.GetComponent(id, "ship")
+			ship := c.(*components.ShipComponent)
 
+			c, _ = s.getter.GetComponent(id, "health")
+			hp := c.(*components.HealthComponent)
+
+			s.broadcaster.SendEntityUpdate(ecs.EntityInfo{
+				ID:   id,
+				Type: "ship",
+				Data: shipData{
+					baggageStatus: ship.StatusBag,
+					health:        hp.Health,
+				}})
+
+		}
 	}
 
 	return nil

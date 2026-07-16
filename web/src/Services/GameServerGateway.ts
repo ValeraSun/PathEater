@@ -1,19 +1,17 @@
 import { EntityManager } from "./EntityManager";
 import { WebSocketClient } from "./WebSocketClient";
 import type { PlayerStatePayload } from "../Controllers/PlayerController";
-import type { Vector3D } from "../Models/NetworkMessages";
-
+import { EntityParser } from "./EntityParser"
 export interface EntityCreateInfo {
     id: string;
     type: string;
-    direction: Vector3D;
-    position: Vector3D;
+    data: unknown;
 }
 
 export interface EntityUpdateInfo {
     id: string;
-    direction: Vector3D;
-    position: Vector3D;
+    type: string;
+    data: unknown;
 }
 export interface DeleteEntityPayload {
     id: string;
@@ -62,17 +60,20 @@ export class GameServerGateway {
     }
 
     public InitListeners(): void {
-        this.wsClient.on("CreateEntity", (payload: unknown) => {
+        this.wsClient.on("CreateEntity", (payload: EntityCreateInfo) => {
+            console.dir(payload)
             if (!this.isValidEntityCreateInfo(payload)) return;
-            this.entityManager.CreateEntity(payload.id, payload.type, payload.position, payload.direction );
+            const parsed = EntityParser.Parse(payload.type, payload.data)
+            this.entityManager.CreateEntity(payload.id, payload.type, parsed);
         });
 
-        this.wsClient.on("UpdateEntity", (payload: unknown) => { 
+        this.wsClient.on("UpdateEntity", (payload: EntityUpdateInfo) => { 
+            console.dir(payload)
             if (!this.isValidEntityCreateInfo(payload)) return;          
-            this.entityManager.UpdateEntity(payload.id,  payload.position, payload.direction);
+            this.entityManager.UpdateEntity(payload.id, payload.type, payload.data);
         });
 
-        this.wsClient.on("DeleteEntity", (payload: unknown) => {
+        this.wsClient.on("DeleteEntity", (payload: DeleteEntityPayload) => {
             if (!this.isValidDeletePayload(payload)) return;
             this.entityManager.DeleteEntity(payload.id);
         });

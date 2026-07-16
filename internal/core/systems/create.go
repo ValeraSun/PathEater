@@ -43,7 +43,7 @@ func (s *CreateSystem) drainEvents() {
 				ecs.EntityInfo{
 					ID:   player,
 					Type: "player",
-					Data: PlayerData{
+					Data: playerData{
 						Position: geometry.GetZeroVector(),
 						Rotation: geometry.GetZeroVector(),
 					},

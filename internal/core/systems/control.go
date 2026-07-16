@@ -2,7 +2,6 @@ package systems
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -35,10 +34,7 @@ func (s *ControlSystem) Update(dt float32) error {
 
 func (s *ControlSystem) resetComponents(comps map[types.Entity]types.Component) {
 	for _, comp := range comps {
-		c, ok := comp.(*components.ControlComponent)
-		if !ok {
-			log.Printf("по комоненту control вернулся не control а %+v\n", comp)
-		}
+		c, _ := comp.(*components.ControlComponent)
 		c.Reset()
 	}
 }

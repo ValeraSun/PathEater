@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { PlayerView } from "../Views/PlayerView";
-import type { Vector3D } from "../Models/NetworkMessages";
 
 export interface EntityTransformData {
     position?: {
@@ -46,11 +45,7 @@ export class EntityManager {
         this.DeleteEntity(id);
     }
 
-    public CreateEntity(id: string, type: string, position: Vector3D, rotation: Vector3D): void {
-        const data = {
-                position: position,
-                rotation: rotation,
-            } 
+    public CreateEntity(id: string, type: string, data: any): void {
         if (id === this.localPlayerId) {
             this.onLocalPlayerUpdate?.(data);
             return;
@@ -59,7 +54,7 @@ export class EntityManager {
         const existing = this.entities.get(id);
  
         if (existing) {
-            this.UpdateEntity(id, position, rotation);
+            this.UpdateEntity(id, type, data);
             return;
         }
  
@@ -82,11 +77,7 @@ export class EntityManager {
         });
     }
 
-    public UpdateEntity(id: string, position: Vector3D, rotation: Vector3D): void {
-        const data = {
-            position: position,
-            rotation: rotation,
-        } 
+    public UpdateEntity(id: string, _: string, data: any): void {
         if (id === this.localPlayerId) {
             this.onLocalPlayerUpdate?.(data);
             return;
