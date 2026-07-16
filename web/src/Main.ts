@@ -39,7 +39,7 @@ function showScreen(name: ScreenName): void {
 
     document.body.classList.toggle(
         "background--blurred",
-        name !== "menu" && name != "lobby"
+        name !== "menu"
     );
 }
 
