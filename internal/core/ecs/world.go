@@ -65,20 +65,24 @@ func (w *World) Close() {
 }
 
 func HandleWorld(world *World) {
-	ticker := time.NewTicker(config.GetMillisecondPerTick() * time.Millisecond)
+	ticker := time.NewTicker(config.GetNanosecondPerTick())
 	defer ticker.Stop()
 
-	for range ticker.C {
+	lastTick := time.Now()
+
+	for {
 		select {
 		case <-world.done:
 			world.EventBus.Close()
 			return
-		default:
-			world.Update(float32(config.GetMillisecondPerTick()))
+		case now := <-ticker.C:
+			dt := time.Since(lastTick).Seconds()
+			lastTick = now
+
+			world.Update(float32(dt))
 		}
 	}
 }
-
 func (w *World) AddSystem(system types.System) {
 	w.mu.Lock()
 	defer w.mu.Unlock()

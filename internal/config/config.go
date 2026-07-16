@@ -34,9 +34,9 @@ func getTickPerSecond() int {
 	return cfg.Server.World.TickPerSecond
 }
 
-func GetMillisecondPerTick() time.Duration {
+func GetNanosecondPerTick() time.Duration {
 	tickPerSecond := getTickPerSecond()
-	millisecondPerTick := 1000 / tickPerSecond
-
-	return time.Duration(millisecondPerTick)
+	secondPerTick := 1.0 / float32(tickPerSecond)
+	answer := time.Duration(secondPerTick * float32(time.Second))
+	return answer
 }

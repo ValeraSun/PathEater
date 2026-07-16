@@ -121,7 +121,7 @@ func (c *Client) ReadMessages() {
 			}
 
 			//обработка команды
-			log.Printf("Принял команду %+v\n от клиента %v", req, c.ID)
+			//log.Printf("Принял команду %+v\n от клиента %v", req, c.ID)
 			if err := c.state.HandleCommand(c, req.Cmd, req.Payload); err != nil {
 				c.SendError(err)
 			}
@@ -201,7 +201,7 @@ func (c *Client) SendMessage(typeMsg string, data interface{}) error {
 	if err = c.Send(jsonData); err != nil {
 		return fmt.Errorf("ошибка отправки: %w", err)
 	}
-	fmt.Printf("Сервер отправил %+v клиенту %v\n", message, c.ID)
+	//fmt.Printf("Сервер отправил %+v клиенту %v\n", message, c.ID)
 	return nil
 }
 

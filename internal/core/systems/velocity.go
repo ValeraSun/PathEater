@@ -28,7 +28,7 @@ func (s *VelocitySystem) Update(dt float32) error {
 
 			movement, _ := comp.(*components.MovementComponent)
 
-			velocity.Movement = movement.Direction.Scale(movement.Speed)
+			velocity.Movement = movement.Direction.Scale(movement.Speed * float64(dt))
 		}
 
 		if s.getter.HasComponents(entity, "externalVelocity") {
@@ -36,7 +36,7 @@ func (s *VelocitySystem) Update(dt float32) error {
 
 			externalV, _ := comp.(*components.ExternalVelocityComponent)
 
-			velocity.External = externalV.Direction.Scale(externalV.Speed)
+			velocity.External = externalV.Direction.Scale(externalV.Speed * float64(dt))
 		}
 
 	}

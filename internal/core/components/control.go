@@ -55,10 +55,10 @@ func (c *ControlComponent) GetInputVector() geometry.Vec3 {
 		input.Z -= 1
 	}
 	if c.MoveRight {
-		input.X += 1
+		input.X -= 1
 	}
 	if c.MoveLeft {
-		input.X -= 1
+		input.X += 1
 	}
 	return input.Normalize()
 }
