@@ -16,27 +16,36 @@ type Collider interface {
 type BoxCollider struct {
 	Center      Vec3
 	HalfExtents Vec3
+	Axes        [3]Vec3 // Локальные оси OBB (X, Y, Z). Должны быть ортогональны и нормализованы.
 }
 
-func NewBoxCollider(center, halfExtents Vec3) *BoxCollider {
-	return &BoxCollider{Center: center, HalfExtents: halfExtents}
+func NewBoxCollider(center, halfExtents Vec3, axes [3]Vec3) *BoxCollider {
+	return &BoxCollider{
+		Center:      center,
+		HalfExtents: halfExtents,
+		Axes: [3]Vec3{
+			axes[0].Normalize(),
+			axes[1].Normalize(),
+			axes[2].Normalize(),
+		},
+	}
 }
 
 func (b *BoxCollider) Collide(other Collider) CollisionResult {
 	switch o := other.(type) {
 	case *BoxCollider:
-		return boxBoxCollide(b, o)
+		return boxBoxCollide(b, o) //
 	case *CapsuleCollider:
-		return boxCapsuleCollide(b, o)
+		return boxCapsuleCollide(b, o) //
 	case *RayCollider:
 		// Инвертируем MTV, чтобы выталкивался Box, а не Ray
-		res := rayBoxCollide(o, b)
+		res := rayBoxCollide(o, b) //
 		if res.HasCollision {
-			res.MTV = res.MTV.Scale(-1)
+			res.MTV = res.MTV.Scale(-1) //
 		}
 		return res
 	default:
-		return CollisionResult{HasCollision: false}
+		return CollisionResult{HasCollision: false} //[cite: 1]
 	}
 }
 
@@ -80,46 +89,63 @@ func (c *CapsuleCollider) Collide(other Collider) CollisionResult {
 }
 
 func boxBoxCollide(a, b *BoxCollider) CollisionResult {
-	d := a.Center.Sub(b.Center)
+	// Подготавливаем 15 потенциальных разделяющих осей
+	axes := make([]Vec3, 0, 15)
+	axes = append(axes, a.Axes[0], a.Axes[1], a.Axes[2])
+	axes = append(axes, b.Axes[0], b.Axes[1], b.Axes[2])
 
-	overlapX := (a.HalfExtents.X + b.HalfExtents.X) - abs(d.X)
-	if overlapX <= 0 {
-		return CollisionResult{HasCollision: false}
-	}
-
-	overlapY := (a.HalfExtents.Y + b.HalfExtents.Y) - abs(d.Y)
-	if overlapY <= 0 {
-		return CollisionResult{HasCollision: false}
-	}
-
-	overlapZ := (a.HalfExtents.Z + b.HalfExtents.Z) - abs(d.Z)
-	if overlapZ <= 0 {
-		return CollisionResult{HasCollision: false}
-	}
-
-	// Ищем минимальное перекрытие для выбора оси выталкивания
-	minOverlap := overlapX
-	mtv := Vec3{X: overlapX, Y: 0, Z: 0}
-	if d.X < 0 {
-		mtv.X = -mtv.X
-	}
-
-	if overlapY < minOverlap {
-		minOverlap = overlapY
-		mtv = Vec3{X: 0, Y: overlapY, Z: 0}
-		if d.Y < 0 {
-			mtv.Y = -mtv.Y
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			cross := a.Axes[i].Cross(b.Axes[j])
+			// Избегаем нулевых векторов при параллельных осях
+			if cross.LengthSqr() > 1e-9 {
+				axes = append(axes, cross.Normalize())
+			}
 		}
 	}
 
-	if overlapZ < minOverlap {
-		mtv = Vec3{X: 0, Y: 0, Z: overlapZ}
-		if d.Z < 0 {
-			mtv.Z = -mtv.Z
+	minOverlap := math.MaxFloat64
+	var mtvAxis Vec3
+	d := a.Center.Sub(b.Center) // Вектор от центра B к центру A[cite: 1]
+
+	for _, axis := range axes {
+		if axis.LengthSqr() < 1e-9 {
+			continue //[cite: 1]
+		}
+		axis = axis.Normalize()
+
+		// Проецируем полуразмеры (HalfExtents) коробки A на ось
+		rA := a.HalfExtents.X*math.Abs(a.Axes[0].Dot(axis)) +
+			a.HalfExtents.Y*math.Abs(a.Axes[1].Dot(axis)) +
+			a.HalfExtents.Z*math.Abs(a.Axes[2].Dot(axis))
+
+		// Проецируем полуразмеры (HalfExtents) коробки B на ось
+		rB := b.HalfExtents.X*math.Abs(b.Axes[0].Dot(axis)) +
+			b.HalfExtents.Y*math.Abs(b.Axes[1].Dot(axis)) +
+			b.HalfExtents.Z*math.Abs(b.Axes[2].Dot(axis))
+
+		// Расстояние между центрами, спроецированное на ось
+		dist := math.Abs(d.Dot(axis))
+
+		// Если расстояние между центрами больше суммы спроецированных радиусов, то коллизии нет
+		overlap := rA + rB - dist
+		if overlap <= 0 {
+			return CollisionResult{HasCollision: false}
+		}
+
+		// Ищем минимальное перекрытие для выбора оси выталкивания[cite: 1]
+		if overlap < minOverlap {
+			minOverlap = overlap
+			mtvAxis = axis
 		}
 	}
 
-	return CollisionResult{HasCollision: true, MTV: mtv}
+	// Направление вектора MTV должно выталкивать A из B[cite: 1]
+	if d.Dot(mtvAxis) < 0 {
+		mtvAxis = mtvAxis.Scale(-1) //[cite: 1]
+	}
+
+	return CollisionResult{HasCollision: true, MTV: mtvAxis.Scale(minOverlap)} //[cite: 1]
 }
 
 func capsuleCapsuleCollide(a, b *CapsuleCollider) CollisionResult {
@@ -153,60 +179,64 @@ func capsuleCapsuleCollide(a, b *CapsuleCollider) CollisionResult {
 }
 
 func boxCapsuleCollide(box *BoxCollider, cap *CapsuleCollider) CollisionResult {
-	a := cap.Center.Sub(cap.Direction.Scale(cap.HalfHeight))
-	b := cap.Center.Add(cap.Direction.Scale(cap.HalfHeight))
+	a := cap.Center.Sub(cap.Direction.Scale(cap.HalfHeight)) //[cite: 1]
+	b := cap.Center.Add(cap.Direction.Scale(cap.HalfHeight)) //[cite: 1]
 
-	axes := [7]Vec3{
-		{1, 0, 0},
-		{0, 1, 0},
-		{0, 0, 1},
-		cap.Direction,
-		cap.Direction.Cross(Vec3{1, 0, 0}),
-		cap.Direction.Cross(Vec3{0, 1, 0}),
-		cap.Direction.Cross(Vec3{0, 0, 1}),
+	// Тестируем локальные оси OBB, ось капсулы и их попарные векторные произведения[cite: 1]
+	axes := []Vec3{
+		box.Axes[0],
+		box.Axes[1],
+		box.Axes[2],
+		cap.Direction,                    //[cite: 1]
+		cap.Direction.Cross(box.Axes[0]), //[cite: 1]
+		cap.Direction.Cross(box.Axes[1]), //[cite: 1]
+		cap.Direction.Cross(box.Axes[2]), //[cite: 1]
 	}
 
-	minOverlap := math.MaxFloat64
-	var mtvAxis Vec3
+	minOverlap := math.MaxFloat64 //[cite: 1]
+	var mtvAxis Vec3              //[cite: 1]
 
 	for _, axis := range axes {
-		if axis.LengthSqr() < 1e-9 {
-			continue
+		if axis.LengthSqr() < 1e-9 { //[cite: 1]
+			continue //[cite: 1]
 		}
-		// Нормализация обязательна для правильного расчета глубины проникновения
-		axis = axis.Normalize()
+		axis = axis.Normalize() //[cite: 1]
 
-		boxProj := abs(box.HalfExtents.X*axis.X) + abs(box.HalfExtents.Y*axis.Y) + abs(box.HalfExtents.Z*axis.Z)
-		boxCenterProj := box.Center.Dot(axis)
-		boxMin := boxCenterProj - boxProj
-		boxMax := boxCenterProj + boxProj
+		// Проецируем OBB на ось
+		boxProj := box.HalfExtents.X*math.Abs(box.Axes[0].Dot(axis)) +
+			box.HalfExtents.Y*math.Abs(box.Axes[1].Dot(axis)) +
+			box.HalfExtents.Z*math.Abs(box.Axes[2].Dot(axis)) //[cite: 1]
 
-		projA := a.Dot(axis)
-		projB := b.Dot(axis)
-		segMin := min(projA, projB) - cap.Radius
-		segMax := max(projA, projB) + cap.Radius
+		boxCenterProj := box.Center.Dot(axis) //[cite: 1]
+		boxMin := boxCenterProj - boxProj     //[cite: 1]
+		boxMax := boxCenterProj + boxProj     //[cite: 1]
 
-		// Если найдена разделяющая ось — коллизии нет
-		if segMax < boxMin || boxMax < segMin {
-			return CollisionResult{HasCollision: false}
+		projA := a.Dot(axis)                     //[cite: 1]
+		projB := b.Dot(axis)                     //[cite: 1]
+		segMin := min(projA, projB) - cap.Radius //[cite: 1]
+		segMax := max(projA, projB) + cap.Radius //[cite: 1]
+
+		// Если найдена разделяющая ось — коллизии нет[cite: 1]
+		if segMax < boxMin || boxMax < segMin { //[cite: 1]
+			return CollisionResult{HasCollision: false} //[cite: 1]
 		}
 
-		// Вычисляем глубину перекрытия
-		overlap := min(boxMax-segMin, segMax-boxMin)
+		// Вычисляем глубину перекрытия[cite: 1]
+		overlap := min(boxMax-segMin, segMax-boxMin) //[cite: 1]
 
-		if overlap < minOverlap {
-			minOverlap = overlap
-			mtvAxis = axis
+		if overlap < minOverlap { //[cite: 1]
+			minOverlap = overlap //[cite: 1]
+			mtvAxis = axis       //[cite: 1]
 		}
 	}
 
-	// Определяем направление вектора MTV (должен выталкивать Box из Capsule)
-	dir := box.Center.Sub(cap.Center)
-	if dir.Dot(mtvAxis) < 0 {
-		mtvAxis = mtvAxis.Scale(-1)
+	// Определяем направление вектора MTV (должен выталкивать Box из Capsule)[cite: 1]
+	dir := box.Center.Sub(cap.Center) //[cite: 1]
+	if dir.Dot(mtvAxis) < 0 {         //[cite: 1]
+		mtvAxis = mtvAxis.Scale(-1) //[cite: 1]
 	}
 
-	return CollisionResult{HasCollision: true, MTV: mtvAxis.Scale(minOverlap)}
+	return CollisionResult{HasCollision: true, MTV: mtvAxis.Scale(minOverlap)} //[cite: 1]
 }
 
 // ... Оставшиеся вспомогательные функции (closestPtSegmentSegment) остаются без изменений ...
@@ -284,67 +314,63 @@ func (r *RayCollider) Collide(other Collider) CollisionResult {
 }
 
 func rayBoxCollide(ray *RayCollider, box *BoxCollider) CollisionResult {
-	minBox := box.Center.Sub(box.HalfExtents)
-	maxBox := box.Center.Add(box.HalfExtents)
+	tmin := math.Inf(-1) //[cite: 1]
+	tmax := math.Inf(1)  //[cite: 1]
 
-	tmin := math.Inf(-1)
-	tmax := math.Inf(1)
+	// Вектор от начала луча до центра коробки
+	delta := box.Center.Sub(ray.Origin)
 
-	// Вспомогательная функция для проверки осей
-	checkAxis := func(dir, origin, minB, maxB float64) bool {
-		if abs(dir) < 1e-9 {
-			if origin < minB || origin > maxB {
-				return false // Луч параллелен плоскости и находится вне коробки
-			}
-		} else {
-			invD := 1.0 / dir
-			t1 := (minB - origin) * invD
-			t2 := (maxB - origin) * invD
+	// Полуразмеры для доступа по индексу
+	he := []float64{box.HalfExtents.X, box.HalfExtents.Y, box.HalfExtents.Z}
+
+	// Проверяем каждую из 3-х локальных осей OBB
+	for i := 0; i < 3; i++ {
+		axis := box.Axes[i]
+		e := axis.Dot(delta)         // Проекция вектора к центру на ось OBB
+		f := ray.Direction.Dot(axis) // Проекция направления луча на ось OBB
+
+		if math.Abs(f) > 1e-9 {
+			invF := 1.0 / f
+			t1 := (e - he[i]) * invF
+			t2 := (e + he[i]) * invF
+
 			if t1 > t2 {
-				t1, t2 = t2, t1
+				t1, t2 = t2, t1 //[cite: 1]
 			}
 			if t1 > tmin {
-				tmin = t1
+				tmin = t1 //[cite: 1]
 			}
 			if t2 < tmax {
-				tmax = t2
+				tmax = t2 //[cite: 1]
 			}
-			if tmin > tmax {
-				return false
+			if tmin > tmax { //[cite: 1]
+				return CollisionResult{HasCollision: false} //[cite: 1]
+			}
+			if tmax < 0 { //[cite: 1]
+				return CollisionResult{HasCollision: false} //[cite: 1]
+			}
+		} else {
+			// Луч параллелен плоскости, проверяем, находится ли он вне коробки по этой оси[cite: 1]
+			if -e-he[i] > 0 || -e+he[i] < 0 {
+				return CollisionResult{HasCollision: false} //[cite: 1]
 			}
 		}
-		return true
 	}
 
-	if !checkAxis(ray.Direction.X, ray.Origin.X, minBox.X, maxBox.X) {
-		return CollisionResult{HasCollision: false}
-	}
-	if !checkAxis(ray.Direction.Y, ray.Origin.Y, minBox.Y, maxBox.Y) {
-		return CollisionResult{HasCollision: false}
-	}
-	if !checkAxis(ray.Direction.Z, ray.Origin.Z, minBox.Z, maxBox.Z) {
-		return CollisionResult{HasCollision: false}
+	// Если луч имеет конечную длину, и пересечение дальше этой длины[cite: 1]
+	if tmin > ray.Length { //[cite: 1]
+		return CollisionResult{HasCollision: false} //[cite: 1]
 	}
 
-	// Если tmax < 0, коробка находится позади начала луча
-	if tmax < 0 {
-		return CollisionResult{HasCollision: false}
+	// Вычисляем MTV (выталкивает луч назад по его направлению)[cite: 1]
+	hitT := tmin  //[cite: 1]
+	if hitT < 0 { //[cite: 1]
+		hitT = 0 // Луч начинается внутри коробки[cite: 1]
 	}
+	penetration := tmax - hitT               //[cite: 1]
+	mtv := ray.Direction.Scale(-penetration) //[cite: 1]
 
-	// Если луч имеет конечную длину, и пересечение дальше этой длины
-	if tmin > ray.Length {
-		return CollisionResult{HasCollision: false}
-	}
-
-	// Вычисляем MTV (выталкивает луч назад по его направлению)
-	hitT := tmin
-	if hitT < 0 {
-		hitT = 0 // Луч начинается внутри коробки
-	}
-	penetration := tmax - hitT
-	mtv := ray.Direction.Scale(-penetration)
-
-	return CollisionResult{HasCollision: true, MTV: mtv}
+	return CollisionResult{HasCollision: true, MTV: mtv} //[cite: 1]
 }
 
 func rayCapsuleCollide(ray *RayCollider, cap *CapsuleCollider) CollisionResult {

@@ -35,12 +35,12 @@ func (v Vec3) Cross(u Vec3) Vec3 {
 	return Vec3{v.Y*u.Z - v.Z*u.Y, v.Z*u.X - v.X*u.Z, v.X*u.Y - v.Y*u.X}
 }
 
-func abs(f float64) float64 {
-	if f < 0 {
-		return -f
-	}
-	return f
-}
+// func abs(f float64) float64 {
+// 	if f < 0 {
+// 		return -f
+// 	}
+// 	return f
+// }
 
 func min(a, b float64) float64 {
 	if a < b {
