@@ -36,6 +36,11 @@ function showScreen(name: ScreenName): void {
     }
 
     screens[name].classList.add("screen--active");
+
+    document.body.classList.toggle(
+        "background--blurred",
+        name !== "menu" && name != "lobby"
+    );
 }
 
 playButton.addEventListener("click", async () => {
