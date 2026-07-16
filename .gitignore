@@ -35,7 +35,6 @@ go.work.sum
 web/node_modules/
 web/dist/
 
-.air.toml
 
 supervisord.log
 supervisord.pid
