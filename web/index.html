@@ -6,22 +6,19 @@
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
-    <title>Void Haulers</title>
+    <title>Path Eater</title>
     <link rel="stylesheet" href="/src/style.css">
 </head>
 
 <body>
     <main id="app">
         <section class="screen screen--active" id="menu-screen">
-            <header class="screen-header">
-                ГЛАВНОЕ МЕНЮ
-            </header>
 
             <div class="menu-content">
                 <h1 class="game-title">PATH EATER</h1>
 
                 <p class="game-subtitle">
-                    Выживание в космосе
+                    Спасай планету вместе с друзьями
                 </p>
 
                 <nav class="menu">
@@ -39,47 +36,59 @@
 
         <section class="screen" id="room-screen">
             <header class="screen-header">
-                ПОДКЛЮЧЕНИЕ К ИГРЕ
+                подключение к игре
             </header>
 
             <div class="room-layout">
-                <article class="panel">
-                    <h2>Создать игру</h2>
-
-                    <p>
-                        Создайте новую комнату и пригласите
-                        остальных игроков.
+                <div class="main-phrase">
+                    <p class="first-part">
+                        собери новую команду 
                     </p>
+                    <p class="second-part">
+                        или присоединись к другим игрокам
+                    </p>
+                </div>
+                <div class="panels">
+                    <div class="panel">
+                        <img src="/images/create_room.png" width="200">
+                        <h2>Создать игру</h2>
+                        <p>
+                            Создайте новую комнату и пригласите
+                            остальных игроков.
+                        </p>
 
-                    <button
-                        class="button button--primary"
-                        id="create-room-button"
-                        type="button"
-                    >
-                        Создать комнату
-                    </button>
-                </article>
-
-                <article class="panel">
-                    <h2>Присоединиться</h2>
-
-                    <label class="field">
-                        <span>Код комнаты</span>
-
-                        <input
-                            id="room-code-input"
-                            type="text"
+                        <button
+                            class="button"
+                            id="create-room-button"
+                            type="button"
                         >
-                    </label>
+                            Создать комнату
+                        </button>
+                    </div>
 
-                    <button
-                        class="button"
-                        id="join-room-button"
-                        type="button"
-                    >
-                        Присоединиться
-                    </button>
-                </article>
+                    <div class="panel">
+                        <img src="/images/join_room.png" width="200">
+                        <h2>Присоединиться</h2>
+
+                        <label class="field">
+                            <span>Код комнаты</span>
+
+                            <input
+                                id="room-code-input"
+                                type="text"
+                            >
+                        </label>
+
+                        <button
+                            class="button"
+                            id="join-room-button"
+                            type="button"
+                        >
+                            Присоединиться
+                        </button>
+                    </div>
+                </div>
+                
             </div>
 
             <p class="status" id="room-status"></p>
@@ -94,25 +103,30 @@
         </section>
 
         <section class="screen" id="lobby-screen">
-            <header class="screen-header">
+            <header class="screen-header lobby-header">
                 <span>ЛОББИ</span>
                 <span class="players-count">1/4</span>
             </header>
 
-            <div class="lobby">
-                <section class="panel crew-panel">
-                    <h2>Команда</h2>
+            <div class="lobby-layout">
+                <section class="crew-panel">
+                    <h2 class="crew-title">Команда</h2>
 
                     <ul class="players" id="player-list">
                         <li class="player">
-                            <div class="player-avatar"></div>
+                            <div class="player-avatar">
+                                <img
+                                    src="/images/avatar.png"
+                                    alt="Аватар игрока"
+                                >
+                            </div>
 
-                            <div>
+                            <div class="player-info">
                                 <strong>Вы</strong>
                                 <span class="ready">Готов</span>
                             </div>
 
-                            <span>Капитан</span>
+                            <span class="player-role">Капитан</span>
                         </li>
 
                         <li class="empty-player">
@@ -128,28 +142,34 @@
                         </li>
                     </ul>
                 </section>
+
+                <aside class="lobby-info">
+                    <div class="room-code-card">
+                        <span class="room-code-label">Код комнаты</span>
+
+                        <p class="status room-code" id="lobby-status"></p>
+                    </div>
+
+                    <div class="lobby-actions">
+                        <button
+                            class="button lobby-action-button"
+                            id="leave-lobby-button"
+                            type="button"
+                        >
+                            Выйти
+                        </button>
+
+                        <button
+                            class="button button--primary lobby-action-button"
+                            id="start-game-button"
+                            type="button"
+                        >
+                            Начать игру
+                        </button>
+                    </div>
+                </aside>
             </div>
-
-            <p class="status" id="lobby-status"></p>
-
-            <footer class="lobby-footer">
-                <button
-                    class="button"
-                    id="leave-lobby-button"
-                    type="button"
-                >
-                    Выйти
-                </button>
-
-                <button
-                    class="button button--primary"
-                    id="start-game-button"
-                    type="button"
-                >
-                    Начать игру
-                </button>
-            </footer>
-        </section>
+</section>
 
         <section class="screen" id="game-screen">
             <div id="game-container"></div>
