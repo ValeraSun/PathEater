@@ -17,6 +17,10 @@ type componentsGetter interface {
 	GetComponent(entity types.Entity, componentType string) (types.Component, bool)
 }
 
+type entitiesRemover interface {
+	RemoveEntity(entity types.Entity)
+}
+
 type Broadcaster interface {
 	SendEntityCreate(ecs.EntityCreateInfo) error
 	SendEntityUpdate(ecs.EntityUpdateInfo) error

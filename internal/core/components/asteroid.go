@@ -7,6 +7,7 @@ import (
 )
 
 const sizeField = 200
+const sizeDisplay = 200
 const speedAsteroidMax = 10.5
 const speedAsteroidMin = 0
 const sizeAsteroidMax = 25.5
@@ -28,6 +29,10 @@ func NewAsteroidComponent(pos, dir, vel geometry.Vec2) *AsteroidComponent {
 		Direction: dir,
 		Velocity:  vel,
 	}
+}
+
+func (c *AsteroidComponent) Visible(pos geometry.Vec2) bool {
+	return (c.Position.X <= pos.X - sizeDisplay/2) && (c.Position.X >= pos.X + sizeDisplay/2) && (c.Position.Y <= pos.Y - sizeDisplay/2) && (c.Position.Y >= pos.Y + sizeDisplay/2)
 }
 
 func RandomAsteroid() (geometry.Vec2, geometry.Vec2, geometry.Vec2, float64) {

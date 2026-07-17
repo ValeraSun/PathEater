@@ -33,7 +33,24 @@ func (s *RenderSystem) Update(dt float32) error {
 				Direction: transform.Direction,
 			})
 		}
+	}	
+	
+	var navShip *components.NavigationShipComponent
+	for id, comp := range compsShip {
+		navShip = comp.(*components.NavigationShipComponent)
+	}
 
+	comps := s.getter.GetEntitiesByComponent("asteroid")
+	for id, comp := range comps {
+		asteroid := comp.(*components.AsteroidComponent)
+		if s.getter.HasComponents(id, "asteroid") && asteroid.Visible(navShip.Position){
+			s.broadcaster.SendEntityUpdate(ecs.EntityUpdateInfo{
+				ID:        id,
+				//Mesh:      mesh.Path,
+				Position:  asteroid.Position.Vec2ToVec3(),
+				Direction: asteroid.Direction.Vec2ToVec3(),
+			})
+		}
 	}
 
 	return nil
