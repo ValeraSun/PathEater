@@ -17,7 +17,7 @@ type Command interface {
 	Execute(client *Client, payload json.RawMessage) error
 }
 
-var defaultSpawn = map[string]float64{"x": 2, "y": 1, "z": -2}
+var defaultSpawn = map[string]float64{"x": 2, "y": 2, "z": -3}
 
 //Команды меню игры
 

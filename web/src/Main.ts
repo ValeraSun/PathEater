@@ -94,7 +94,7 @@ createRoomButton.addEventListener("click", async () => {
 });
 
 joinRoomButton.addEventListener("click", async () => {
-    const code = roomCodeInput.value.trim().toUpperCase();
+    const code = roomCodeInput.value.trim();
 
     if (!code) {
         roomStatus.textContent = "Введите код комнаты";
@@ -166,9 +166,7 @@ gateway.onGameStarted = async payload => {
 };
 
 roomCodeInput.addEventListener("input", () => {
-    roomCodeInput.value = roomCodeInput.value
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, "");
+    roomCodeInput.value = roomCodeInput.value;
 });
 
 function setRoomButtonsDisabled(disabled: boolean): void {

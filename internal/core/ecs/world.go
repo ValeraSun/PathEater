@@ -131,22 +131,19 @@ func (w *World) AddEntity(components ...types.Component) (types.Entity, error) {
 }
 
 func (w *World) AddEntityByID(entity types.Entity, components ...types.Component) error {
-	_, exists := w.GetEntity(entity)
+	w.mu.Lock()
+	defer w.mu.Unlock()
 
-	if !exists {
+	if _, exists := w.entities[entity]; exists {
 		return errors.New("уже существует entity с таким id")
 	}
 
-	defer w.mu.Unlock()
-
 	w.entities[entity] = make(map[string]types.Component)
-
 	for _, comp := range components {
 		if err := w.addComponentToEntity(entity, comp); err != nil {
 			return fmt.Errorf("failed to add component: %w", err)
 		}
 	}
-
 	w.entityCount++
 	return nil
 }
