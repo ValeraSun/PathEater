@@ -1,5 +1,7 @@
 package geometry
 
+import "math"
+
 //модуль числа
 func abs(f float64) float64 {
 	if f < 0 {
@@ -33,4 +35,9 @@ func clamp(v, lo, hi float64) float64 {
 		return hi
 	}
 	return v
+}
+
+//находит синус с помощью косинуса
+func cosToSin(cos float64) float64 {
+	return math.Sqrt(1 - cos*cos)
 }

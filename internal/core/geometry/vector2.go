@@ -64,14 +64,31 @@ func CombineVectors2(direction, controlInput Vec2) Vec2 {
 	}
 }
 
-func minVec2(v1, v2 Vec2) Vec2 {
-	len1 := v1.Length()
-	len2 := v2.Length()
+func (v1 Vec2) CosOfAngleBetweenVec2(v2 Vec2) float64 {
+	return v1.Dot(v2) / (v1.Length() * v2.Length())
+}
 
-	if len1 < len2 {
-		return v1
+func (v Vec2) Rotate(sin, cos float64) {
+	v.X = v.X*cos - v.Y*sin
+	v.Y = v.Y*cos + v.X*sin
+}
+
+func (v Vec2) RotateAroundPoint(pos *Vec2, center Vec2, cos float64) {
+	sin := cosToSin(cos)
+	v.Rotate(sin, cos)
+	dxA := pos.X - center.X
+	dyA := pos.Y - center.Y
+	pos.X = center.X + dxA*cos - dyA*sin
+	pos.Y = center.Y + dxA*sin + dyA*cos
+}
+
+//преобразование двумерного вектора в трёхмерный
+func (v Vec2) Vec2ToVec3() Vec3 {
+	return Vec3{
+		X: v.X,
+		Y: v.Y,
+		Z: 0,
 	}
-	return v2
 }
 
 func heightFromA(A, B, C Vec2) Vec2 {

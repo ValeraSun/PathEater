@@ -13,35 +13,42 @@ const sizeAsteroidMax = 25.5
 const sizeAsteroidMin = 5.5
 
 type AsteroidComponent struct {
-	position geometry.Vec2
-	velocity geometry.Vec2
-	radius   float64
+	Position  geometry.Vec2
+	Direction geometry.Vec2
+	Velocity  geometry.Vec2
 }
 
 func (*AsteroidComponent) Type() string {
 	return "asteroid"
 }
 
-func NewAsteroidComponent() *AsteroidComponent {
-	return &AsteroidComponent{}
+func NewAsteroidComponent(pos, dir, vel geometry.Vec2) *AsteroidComponent {
+	return &AsteroidComponent{
+		Position:  pos,
+		Direction: dir,
+		Velocity:  vel,
+	}
 }
 
-func (c *AsteroidComponent) Random() {
-	c.RandomPosition()
-	c.RandomVelocity()
-	c.RandomRadius()
+func RandomAsteroid() (geometry.Vec2, geometry.Vec2, geometry.Vec2, float64) {
+	vel := RandomVelocity()
+	return RandomPosition(), vel.Normalize(), vel, RandomRadius()
 }
 
-func (c *AsteroidComponent) RandomPosition() {
-	c.position.X = rand.Float64()*(sizeField) - sizeField/2
-	c.position.Y = rand.Float64()*(sizeField) - sizeField/2
+func RandomPosition() geometry.Vec2 {
+	return geometry.Vec2{
+		X: rand.Float64()*(sizeField) - sizeField/2,
+		Y: rand.Float64()*(sizeField) - sizeField/2,
+	}
 }
 
-func (c *AsteroidComponent) RandomVelocity() {
-	c.position.X = speedAsteroidMin + rand.Float64()*(speedAsteroidMax-speedAsteroidMin)
-	c.position.Y = speedAsteroidMin + rand.Float64()*(speedAsteroidMax-speedAsteroidMin)
+func RandomVelocity() geometry.Vec2 {
+	return geometry.Vec2{
+		X: speedAsteroidMin + rand.Float64()*(speedAsteroidMax-speedAsteroidMin),
+		Y: speedAsteroidMin + rand.Float64()*(speedAsteroidMax-speedAsteroidMin),
+	}
 }
 
-func (c *AsteroidComponent) RandomRadius() {
-	c.radius = sizeAsteroidMin + rand.Float64()*(sizeAsteroidMax-sizeAsteroidMin)
+func RandomRadius() float64 {
+	return sizeAsteroidMin + rand.Float64()*(sizeAsteroidMax-sizeAsteroidMin)
 }

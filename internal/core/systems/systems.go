@@ -16,6 +16,7 @@ type componentsGetter interface {
 	HasComponents(entity types.Entity, componentTypes ...string) bool
 	GetComponent(entity types.Entity, componentType string) (types.Component, bool)
 }
+
 type Broadcaster interface {
 	SendEntityCreate(ecs.EntityCreateInfo) error
 	SendEntityUpdate(ecs.EntityUpdateInfo) error

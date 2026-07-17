@@ -5,17 +5,42 @@ import (
 )
 
 type NavigationShipComponent struct {
-	position geometry.Vec2
-	velocity geometry.Vec2
+	Position  geometry.Vec2
+	Direction geometry.Vec2
+	Velocity  geometry.Vec2
 }
 
 func (*NavigationShipComponent) Type() string {
 	return "navigation_ship"
 }
 
-func NewNavigationShipComponent(pos, vel geometry.Vec2) *NavigationShipComponent {
+func NewNavigationShipComponent(pos, dir, vel geometry.Vec2, rot float64) *NavigationShipComponent {
 	return &NavigationShipComponent{
-		position: pos,
-		velocity: vel,
+		Position:  pos,
+		Direction: dir,
+		Velocity:  vel,
 	}
+}
+
+func (c *ControlComponent) GetInputVector2() geometry.Vec2 {
+	input := geometry.Vec2{}
+	if c.MoveFront {
+		input.X += 1
+	}
+	if c.MoveBack {
+		input.X -= 1
+	}
+	if c.MoveRight {
+		input.Y += 1
+	}
+	if c.MoveLeft {
+		input.Y -= 1
+	}
+	return input.Normalize()
+}
+
+func (c *NavigationShipComponent) ApplyControl(state *ControlComponent) {
+	forwardVector := state.GetInputVector2().Normalize()
+
+	c.Direction = geometry.CombineVectors2(c.Direction, forwardVector)
 }
