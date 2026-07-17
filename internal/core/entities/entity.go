@@ -30,6 +30,7 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 		components.NewMovementComponent(10),
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
+		components.NewHealthComponent(100),
 		components.NewColliderComponent(geometry.NewBoxCollider(
 			geometry.GetZeroVector(),
 			geometry.Vec3{X: 100, Y: 100, Z: 100},

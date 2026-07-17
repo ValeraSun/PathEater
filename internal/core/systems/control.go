@@ -43,19 +43,15 @@ func (s *ControlSystem) drainEvents(comps map[types.Entity]types.Component) {
 	for {
 		select {
 		case e := <-s.eventQueue:
-			for _, comp := range comps {
-				c, ok := comp.(*components.ControlComponent)
-
-				if !ok {
-					continue
-				}
-
-				fmt.Printf("Передано состояние %+v\n", e.PlayerState)
-				if c.ClientID == string(e.ID) {
-					c.Superimpose(&e.PlayerState)
-				}
+			comp, ok := comps[e.ID]
+			if !ok {
+				continue
 			}
-
+			c, ok := comp.(*components.ControlComponent)
+			if !ok {
+				continue
+			}
+			c.Superimpose(&e.PlayerState)
 		default:
 			return
 		}

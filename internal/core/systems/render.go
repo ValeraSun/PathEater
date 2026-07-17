@@ -25,15 +25,15 @@ type playerData struct {
 }
 
 type shipData struct {
-	baggageStatus int
-	health        int
+	BaggageStatus int
+	Health        int
 }
 
 func (s *RenderSystem) Update(dt float32) error {
 	comps := s.getter.GetEntitiesByComponent("update")
 
 	for id := range comps {
-		if s.getter.HasComponents(id, "transform") && s.getter.HasComponents(id, "control") && s.getter.HasComponents("health") {
+		if s.getter.HasComponents(id, "transform") && s.getter.HasComponents(id, "control") && s.getter.HasComponents(id, "health") {
 			c, _ := s.getter.GetComponent(id, "transform")
 			transform := c.(*components.TransformComponent)
 
@@ -60,8 +60,8 @@ func (s *RenderSystem) Update(dt float32) error {
 				ID:   id,
 				Type: "ship",
 				Data: shipData{
-					baggageStatus: ship.StatusBag,
-					health:        hp.Health,
+					BaggageStatus: ship.StatusBag,
+					Health:        hp.Health,
 				}})
 
 		}
