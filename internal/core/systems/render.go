@@ -1,9 +1,7 @@
 package systems
 
 import (
-	"github.com/ValeraSun/PathEater/internal/core/components"
-	"github.com/ValeraSun/PathEater/internal/core/ecs"
-	"github.com/ValeraSun/PathEater/internal/core/geometry"
+	"github.com/ValeraSun/PathEater/internal/core/entities"
 )
 
 type RenderSystem struct {
@@ -18,53 +16,22 @@ func NewRenderSystem(getter componentsGetter, broadcaster Broadcaster) *RenderSy
 	}
 }
 
-type playerData struct {
-	Position geometry.Vec3 `json:"position"`
-	Rotation geometry.Vec3 `json:"rotation"`
-	Health   int
-}
-
-type shipData struct {
-	baggageStatus int
-	health        int
-}
-
 func (s *RenderSystem) Update(dt float32) error {
 	comps := s.getter.GetEntitiesByComponent("update")
-
 	for id := range comps {
-		if s.getter.HasComponents(id, "transform") && s.getter.HasComponents(id, "control") && s.getter.HasComponents("health") {
-			c, _ := s.getter.GetComponent(id, "transform")
-			transform := c.(*components.TransformComponent)
+		var err error
 
-			c, _ = s.getter.GetComponent(id, "health")
-			hp := c.(*components.HealthComponent)
-
-			s.broadcaster.SendEntityUpdate(ecs.EntityInfo{
-				ID:   id,
-				Type: "player",
-				Data: playerData{
-					Position: transform.Position,
-					Rotation: transform.Direction,
-					Health:   hp.Health,
-				}})
+		switch {
+		case entities.IsPlayer(id, s.getter):
+			err = entities.SendPlayer(id, s.getter, s.broadcaster)
+		case entities.IsShip(id, s.getter):
+			err = entities.SendShip(id, s.getter, s.broadcaster)
 		}
-		if s.getter.HasComponents(id, "ship") {
-			c, _ := s.getter.GetComponent(id, "ship")
-			ship := c.(*components.ShipComponent)
 
-			c, _ = s.getter.GetComponent(id, "health")
-			hp := c.(*components.HealthComponent)
-
-			s.broadcaster.SendEntityUpdate(ecs.EntityInfo{
-				ID:   id,
-				Type: "ship",
-				Data: shipData{
-					baggageStatus: ship.StatusBag,
-					health:        hp.Health,
-				}})
-
+		if err != nil {
+			return err
 		}
+
 	}
 
 	return nil

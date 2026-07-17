@@ -11,6 +11,7 @@ type CollisionResult struct {
 
 type Collider interface {
 	Collide(other Collider) CollisionResult
+	ChangeCenter(center Vec3)
 }
 
 type BoxCollider struct {
@@ -29,6 +30,10 @@ func NewBoxCollider(center, halfExtents Vec3, axes [3]Vec3) *BoxCollider {
 			axes[2].Normalize(),
 		},
 	}
+}
+
+func (b *BoxCollider) ChangeCenter(center Vec3) {
+	b.Center = center
 }
 
 func (b *BoxCollider) Collide(other Collider) CollisionResult {
@@ -64,6 +69,10 @@ func NewCapsuleCollider(center, direction Vec3, halfHeight, radius float64) *Cap
 		HalfHeight: halfHeight,
 		Radius:     radius,
 	}
+}
+
+func (b *CapsuleCollider) ChangeCenter(center Vec3) {
+	b.Center = center
 }
 
 func (c *CapsuleCollider) Collide(other Collider) CollisionResult {
@@ -297,6 +306,10 @@ func NewRayCollider(origin, direction Vec3, length float64) *RayCollider {
 		Direction: direction.Normalize(),
 		Length:    length,
 	}
+}
+
+func (r *RayCollider) ChangeCenter(center Vec3) {
+	r.Origin = center
 }
 
 func (r *RayCollider) Collide(other Collider) CollisionResult {

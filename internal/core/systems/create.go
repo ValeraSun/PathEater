@@ -3,10 +3,8 @@ package systems
 import (
 	"fmt"
 
-	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/events"
-	"github.com/ValeraSun/PathEater/internal/core/geometry"
 )
 
 type CreateSystem struct {
@@ -28,28 +26,30 @@ func NewCreateSystem(adder entityAdder, getter componentsGetter, broadcaster Bro
 }
 
 func (s *CreateSystem) Update(dt float32) error {
-
-	s.drainEvents()
-	return nil
+	return s.drainEvents()
 }
 
-func (s *CreateSystem) drainEvents() {
+func (s *CreateSystem) drainEvents() error {
 	for {
 		select {
 		case e := <-s.eventQueue:
-			player := entities.NewPlayer(s.adder, e.ID)
+			typ := e.Type()
+			var err error
 
-			s.broadcaster.SendEntityCreate(
-				ecs.EntityInfo{
-					ID:   player,
-					Type: "player",
-					Data: playerData{
-						Position: geometry.GetZeroVector(),
-						Rotation: geometry.GetZeroVector(),
-					},
-				})
+			switch typ {
+			case "player":
+				player := entities.NewPlayer(s.adder, e.ID)
+				err = entities.SendPlayer(player, s.getter, s.broadcaster)
+			case "ship":
+				ship := entities.NewShip(s.adder)
+				err = entities.SendShip(ship, s.getter, s.broadcaster)
+			}
+
+			if err != nil {
+				return err
+			}
 		default:
-			return
+			return nil
 		}
 	}
 }
