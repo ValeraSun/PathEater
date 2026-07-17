@@ -16,7 +16,6 @@ func NewColliderComponent(collider geometry.Collider) *ColliderComponent {
 	}
 }
 
-func (c *ColliderComponent) Collide(other *ColliderComponent) (geometry.Vec3, bool) {
 	result := c.collider.Collide(other.collider)
 	return result.MTV, result.HasCollision
 }
