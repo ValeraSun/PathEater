@@ -13,6 +13,7 @@ type subscriber interface {
 type systemAdder interface {
 	AddSystem(types.System)
 	AddEntity(components ...types.Component) (types.Entity, error)
+	AddEntityByID(entity types.Entity, components ...types.Component) error
 }
 
 type componentsGetter interface {
