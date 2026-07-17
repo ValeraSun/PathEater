@@ -34,12 +34,16 @@ func (s *RenderSystem) Update(dt float32) error {
 	comps := s.getter.GetEntitiesByComponent("update")
 
 	for id := range comps {
-		if s.getter.HasComponents(id, "transform") && s.getter.HasComponents(id, "control") {
+		if s.getter.HasComponents(id, "transform") && s.getter.HasComponents(id, "control") && s.getter.HasComponents("health") {
 			c, _ := s.getter.GetComponent(id, "transform")
 			transform := c.(*components.TransformComponent)
 
 			c, _ = s.getter.GetComponent(id, "control")
 			control := c.(*components.ControlComponent)
+
+			c, _ = s.getter.GetComponent(id, "health")
+			hp := c.(*components.HealthComponent)
+
 			id = types.Entity(control.ClientID)
 
 			s.broadcaster.SendEntityUpdate(ecs.EntityInfo{
@@ -48,6 +52,7 @@ func (s *RenderSystem) Update(dt float32) error {
 				Data: playerData{
 					Position: transform.Position,
 					Rotation: transform.Direction,
+					Health:   hp.Health,
 				}})
 		}
 		if s.getter.HasComponents(id, "ship") {
