@@ -29,21 +29,32 @@ func getWalls(path string) []wall {
 		log.Fatal(err)
 	}
 
-	var data map[string]interface{}
-	json.Unmarshal(jsonData, &data)
+	type rootDTO struct {
+		Colliders []struct {
+			shape       string
+			center      geometry.Vec3
+			halfExtents geometry.Vec3
+			Quaternion  geometry.Quaternion
+		} `json:"colliders"`
+	}
 
-	rawColliders := data["colliders"].([]interface{})
+	var DTO rootDTO
+	err = json.Unmarshal(jsonData, &DTO)
 
-	colliders := make([]wall, 0)
-	for _, col := range rawColliders {
-		c := col.(map[string]interface{})
+	if err != nil {
+		log.Fatal("Не распарсились стены")
+	}
 
+	collidersDTO := DTO.Colliders
+	colliders := make([]wall, 0, len(collidersDTO))
+
+	for _, col := range collidersDTO {
 		colliders = append(colliders,
 			wall{
-				shape:       c["shape"].(string),
-				center:      c["center"].(geometry.Vec3),
-				halfExtents: c["halfExtents"].(geometry.Vec3),
-				rotation:    c["rotation"].(geometry.Quaternion).ToRotationMatrix(),
+				shape:       col.shape,
+				center:      col.center,
+				halfExtents: col.halfExtents,
+				rotation:    col.Quaternion.ToRotationMatrix(),
 			})
 
 	}

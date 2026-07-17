@@ -47,10 +47,31 @@ func (s *CollisionSystem) Update(dt float32) error {
 			mtv, isColliding := collision1.Collide(collision2)
 
 			if isColliding {
-				if s.getter.HasComponents(id1, "movable") {
+				switch {
+				case s.getter.HasComponents(id1, "transform") && s.getter.HasComponents(id2, "transform"):
+
+					c, _ := s.getter.GetComponent(id1, "transform")
+					transform1, _ := c.(*components.TransformComponent)
+
+					c, _ = s.getter.GetComponent(id2, "transform")
+					transform2, _ := c.(*components.TransformComponent)
+
+					transform1.Position.Add(mtv.Scale(0.5))
+					transform2.Position.Add(mtv.Scale(-0.5))
+
+				case s.getter.HasComponents(id1, "transform"):
+
+					c, _ := s.getter.GetComponent(id1, "transform")
+					transform1, _ := c.(*components.TransformComponent)
+
 					transform1.Position.Add(mtv)
-				} else {
-					transform2.Position.Add(mtv)
+
+				case s.getter.HasComponents(id2, "transform"):
+
+					c, _ := s.getter.GetComponent(id2, "transform")
+					transform2, _ := c.(*components.TransformComponent)
+
+					transform2.Position.Add(mtv.Scale(-1))
 				}
 
 			}
