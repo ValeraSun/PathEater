@@ -28,7 +28,7 @@ type entityAdder interface {
 func NewPlayer(adder entityAdder, clientID string) types.Entity {
 	adder.AddEntityByID(
 		types.Entity(clientID),
-		components.NewMeshComponent(""),
+		components.NewUpdateComponent(),
 		components.NewControlComponent(clientID),
 		components.NewMovementComponent(10),
 		components.NewExternalVelocityComponent(),
@@ -45,7 +45,11 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 		)),
 		components.NewMovableComponent(),
 		components.NewTransformComponent(
-			geometry.GetZeroVector(),
+			geometry.Vec3{
+				X: 0,
+				Y: 100,
+				Z: 0,
+			},
 			geometry.GetZeroVector(),
 		),
 	)

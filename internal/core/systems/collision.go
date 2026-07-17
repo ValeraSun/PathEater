@@ -19,61 +19,66 @@ func NewCollisionSystem(getter componentsGetter) *CollisionSystem {
 func (s *CollisionSystem) Update(dt float32) error {
 	comps := s.getter.GetEntitiesByComponent("collider")
 
-	for id := range comps {
-		s.entitiesID = append(s.entitiesID, id)
+	// Структура для кэширования данных сущности
+	type entityData struct {
+		id        types.Entity // или ваш тип ID
+		collider  *components.ColliderComponent
+		transform *components.TransformComponent
 	}
-	for i := 0; i < len(s.entitiesID); i++ {
-		for j := i + 1; j < len(s.entitiesID); j++ {
 
-			id1 := s.entitiesID[i]
-			id2 := s.entitiesID[j]
-			collision1, _ := comps[id1].(*components.ColliderComponent)
-			collision2, _ := comps[id2].(*components.ColliderComponent)
+	// Предварительно выделяем память
+	entities := make([]entityData, 0, len(comps))
 
-			if s.getter.HasComponents(id1, "transform") {
-				c, _ := s.getter.GetComponent(id1, "transform")
-				transform1, _ := c.(*components.TransformComponent)
+	// Первый проход: собираем все данные и обновляем позиции коллайдеров
+	for id, comp := range comps {
+		collider, ok := comp.(*components.ColliderComponent)
+		if !ok || collider == nil {
+			continue
+		}
 
-				collision1.Collider.ChangeCenter(transform1.Position)
+		ed := entityData{
+			id:       id,
+			collider: collider,
+		}
+
+		// Получаем трансформ, если есть
+		if s.getter.HasComponents(id, "transform") {
+			c, _ := s.getter.GetComponent(id, "transform")
+			if transform, ok := c.(*components.TransformComponent); ok {
+				ed.transform = transform
+				// Обновляем позицию коллайдера
+				collider.Collider.ChangeCenter(transform.Position)
+			}
+		}
+
+		entities = append(entities, ed)
+	}
+
+	// Второй проход: проверка коллизий
+	for i := 0; i < len(entities); i++ {
+		for j := i + 1; j < len(entities); j++ {
+			e1, e2 := entities[i], entities[j]
+
+			// Проверяем коллизию
+			mtv, isColliding := e1.collider.Collide(e2.collider)
+			if !isColliding {
+				continue
 			}
 
-			if s.getter.HasComponents(id2, "transform") {
-				c, _ := s.getter.GetComponent(id2, "transform")
-				transform2, _ := c.(*components.TransformComponent)
+			// Обрабатываем разрешение коллизии
+			switch {
+			case e1.transform != nil && e2.transform != nil:
+				// Оба двигаются
+				e1.transform.Position.Add(mtv.Scale(0.5))
+				e2.transform.Position.Add(mtv.Scale(-0.5))
 
-				collision1.Collider.ChangeCenter(transform2.Position)
-			}
+			case e1.transform != nil:
+				// Двигается только первый
+				e1.transform.Position.Add(mtv)
 
-			mtv, isColliding := collision1.Collide(collision2)
-
-			if isColliding {
-				switch {
-				case s.getter.HasComponents(id1, "transform") && s.getter.HasComponents(id2, "transform"):
-
-					c, _ := s.getter.GetComponent(id1, "transform")
-					transform1, _ := c.(*components.TransformComponent)
-
-					c, _ = s.getter.GetComponent(id2, "transform")
-					transform2, _ := c.(*components.TransformComponent)
-
-					transform1.Position.Add(mtv.Scale(0.5))
-					transform2.Position.Add(mtv.Scale(-0.5))
-
-				case s.getter.HasComponents(id1, "transform"):
-
-					c, _ := s.getter.GetComponent(id1, "transform")
-					transform1, _ := c.(*components.TransformComponent)
-
-					transform1.Position.Add(mtv)
-
-				case s.getter.HasComponents(id2, "transform"):
-
-					c, _ := s.getter.GetComponent(id2, "transform")
-					transform2, _ := c.(*components.TransformComponent)
-
-					transform2.Position.Add(mtv.Scale(-1))
-				}
-
+			case e2.transform != nil:
+				// Двигается только второй
+				e2.transform.Position.Add(mtv.Scale(-1))
 			}
 		}
 	}

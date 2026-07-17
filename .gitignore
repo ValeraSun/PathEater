@@ -38,3 +38,7 @@ web/dist/
 
 supervisord.log
 supervisord.pid
+
+node_modules/
+package.json
+package-lock.json
