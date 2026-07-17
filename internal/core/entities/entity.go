@@ -8,6 +8,7 @@ import (
 
 type entityAdder interface {
 	AddEntity(components ...types.Component) (types.Entity, error)
+	AddEntityByID(entity types.Entity, components ...types.Component) error
 }
 
 // func NewBox(width, depth, height float64, adder entityAdder) types.Entity {
@@ -22,7 +23,8 @@ type entityAdder interface {
 // }
 
 func NewPlayer(adder entityAdder, clientID string) types.Entity {
-	e, _ := adder.AddEntity(
+	adder.AddEntityByID(
+		types.Entity(clientID),
 		components.NewMeshComponent(""),
 		components.NewControlComponent(clientID),
 		components.NewMovementComponent(10),
@@ -43,13 +45,14 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 			geometry.GetZeroVector(),
 		),
 	)
-	return e
+	return types.Entity(clientID)
 
 }
 
 func NewShip(adder entityAdder) types.Entity {
 	e, _ := adder.AddEntity(
 		components.NewShipComponent(),
+		components.NewHealthComponent(100),
 	)
 	return e
 }

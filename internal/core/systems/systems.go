@@ -8,6 +8,7 @@ import (
 
 type entityAdder interface {
 	AddEntity(components ...types.Component) (types.Entity, error)
+	AddEntityByID(entity types.Entity, components ...types.Component) error
 }
 
 type componentsGetter interface {

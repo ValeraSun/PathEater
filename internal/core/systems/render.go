@@ -4,7 +4,6 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
-	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 type RenderSystem struct {
@@ -38,13 +37,8 @@ func (s *RenderSystem) Update(dt float32) error {
 			c, _ := s.getter.GetComponent(id, "transform")
 			transform := c.(*components.TransformComponent)
 
-			c, _ = s.getter.GetComponent(id, "control")
-			control := c.(*components.ControlComponent)
-
 			c, _ = s.getter.GetComponent(id, "health")
 			hp := c.(*components.HealthComponent)
-
-			id = types.Entity(control.ClientID)
 
 			s.broadcaster.SendEntityUpdate(ecs.EntityInfo{
 				ID:   id,
