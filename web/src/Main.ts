@@ -36,6 +36,11 @@ function showScreen(name: ScreenName): void {
     }
 
     screens[name].classList.add("screen--active");
+
+    document.body.classList.toggle(
+        "background--blurred",
+        name !== "menu"
+    );
 }
 
 playButton.addEventListener("click", async () => {
@@ -51,6 +56,8 @@ playButton.addEventListener("click", async () => {
         await game.Connect();
 
         connected = true;
+        menuStatus.textContent = "";
+        playButton.disabled = false;
         showScreen("room");
     } catch (error) {
         menuStatus.textContent =
@@ -87,7 +94,7 @@ createRoomButton.addEventListener("click", async () => {
 });
 
 joinRoomButton.addEventListener("click", async () => {
-    const code = roomCodeInput.value.trim().toUpperCase();
+    const code = roomCodeInput.value.trim();
 
     if (!code) {
         roomStatus.textContent = "Введите код комнаты";
@@ -124,10 +131,17 @@ roomBackButton.addEventListener("click", () => {
 });
 
 leaveLobbyButton.addEventListener("click", () => {
+    gateway.ExitRoom();
+
     roomId = null;
     isHost = false;
 
     roomStatus.textContent = "";
+    lobbyStatus.textContent = "";
+
+    startGameButton.hidden = true;
+    startGameButton.disabled = false;
+
     setRoomButtonsDisabled(false);
 
     showScreen("room");
@@ -152,9 +166,7 @@ gateway.onGameStarted = async payload => {
 };
 
 roomCodeInput.addEventListener("input", () => {
-    roomCodeInput.value = roomCodeInput.value
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, "");
+    roomCodeInput.value = roomCodeInput.value;
 });
 
 function setRoomButtonsDisabled(disabled: boolean): void {

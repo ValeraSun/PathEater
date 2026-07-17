@@ -2,11 +2,12 @@ package network
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/game"
-	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/transfer"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
@@ -16,7 +17,7 @@ type Command interface {
 	Execute(client *Client, payload json.RawMessage) error
 }
 
-var defaultSpawn = map[string]float64{"x": 0, "y": 1, "z": 0}
+var defaultSpawn = map[string]float64{"x": 2, "y": 2, "z": -3}
 
 //Команды меню игры
 
@@ -124,7 +125,12 @@ type exitRoomCommand struct{}
 func (c *exitRoomCommand) Name() string { return "exitRoom" }
 
 func (c *exitRoomCommand) Execute(client *Client, payload json.RawMessage) error {
+	if client.room == nil {
+		return client.SendError(errors.New("клиент не находится в комнате"))
+	}
+
 	client.room.RemoveClient(client)
+	client.SetState(MainMenuState())
 
 	return nil
 }
@@ -133,27 +139,23 @@ type Sendler struct {
 	room *GameRoom
 }
 
-func (s Sendler) SendEntityCreate(EntityInfo ecs.EntityCreateInfo) error {
+func (s Sendler) SendEntityCreate(entityInfo ecs.EntityInfo) error {
 	var info struct {
-		ID        types.Entity  `json:"id"`
-		Type      string        `json:"type"`
-		Mesh      string        `json:"mesh"`
-		Position  geometry.Vec3 `json:"position"`
-		Direction geometry.Vec3 `json:"direction"`
+		ID   types.Entity `json:"id"`
+		Type string       `json:"type"`
+		Data any          `json:"data"`
 	}
 
-	info.ID = EntityInfo.ID
-	info.Type = "object"
-	info.Mesh = EntityInfo.Mesh
-	info.Position = EntityInfo.Position
-	info.Direction = EntityInfo.Direction
+	info.ID = entityInfo.ID
+	info.Type = entityInfo.Type
+	info.Data = entityInfo.Data
 
 	payload, err := json.Marshal(info)
 	if err != nil {
 		return err
 	}
 
-	s.room.SendToAll("CrateEntity", payload)
+	s.room.SendToAll("CreateEntity", payload)
 
 	return nil
 }
@@ -171,19 +173,16 @@ func (s Sendler) SendEntityCreate(EntityInfo ecs.EntityCreateInfo) error {
 // 	return nil
 // }
 
-func (s Sendler) SendEntityUpdate(entityInfo ecs.EntityUpdateInfo) error {
+func (s Sendler) SendEntityUpdate(entityInfo ecs.EntityInfo) error {
 	var info struct {
-		ID        types.Entity  `json:"id"`
-		Type      string        `json:"type"`
-		Data      []byte        `json:"data"`
-		Position  geometry.Vec3 `json:"position"`
-		Direction geometry.Vec3 `json:"direction"`
+		ID   types.Entity `json:"id"`
+		Type string       `json:"type"`
+		Data any          `json:"data"`
 	}
 
 	info.ID = entityInfo.ID
-	info.Type = "object"
-	info.Position = entityInfo.Position
-	info.Direction = entityInfo.Direction
+	info.Type = entityInfo.Type
+	info.Data = entityInfo.Data
 
 	payload, err := json.Marshal(info)
 	if err != nil {
@@ -191,10 +190,12 @@ func (s Sendler) SendEntityUpdate(entityInfo ecs.EntityUpdateInfo) error {
 	}
 
 	s.room.SendToAll("UpdateEntity", payload)
+
+	fmt.Printf("Отправлено update в room %v сообщение: %+v\n", s.room.ID, info)
 	return nil
 }
 
-func (s Sendler) SendEntityDelete(entityInfo ecs.EntityUpdateInfo) error {
+func (s Sendler) SendEntityDelete(entityInfo ecs.EntityInfo) error {
 	var info struct {
 		ID types.Entity `json:"id"`
 	}
@@ -208,33 +209,7 @@ func (s Sendler) SendEntityDelete(entityInfo ecs.EntityUpdateInfo) error {
 	return nil
 }
 
-func (s Sendler) CreateCameraForPlayer(id string, idEntity types.Entity) error {
-	var info struct {
-		ID   types.Entity `json:"id"`
-		Type string       `json:"type"`
-	}
-
-	info.ID = idEntity
-	info.Type = "camera"
-	payload, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
-
-	var massange struct {
-		cmd     string
-		payload any
-	}
-
-	massange.cmd = "CreateEntity"
-	massange.payload = payload
-
-	j, _ := json.Marshal(massange)
-	s.room.Clients[id].Send(j)
-	return nil
-}
-
-func (s Sendler) SendSnapshotToAll(entities []ecs.EntityCreateInfo) error {
+func (s Sendler) SendSnapshotToAll(entities []ecs.EntityInfo) error {
 	// var info struct {
 	// 	Entities []ecs.EntityCreateInfo `json:"entities"`
 	// }
@@ -253,9 +228,17 @@ func (c *createGameSessionCommand) Name() string { return "createGameSession" }
 func (c *createGameSessionCommand) Execute(client *Client, payload json.RawMessage) error {
 	broadcaster := Sendler{room: client.room}
 	w := game.CreateGame(broadcaster)
+	client.room.World = w
 
-	for id := range client.room.Clients {
+	for id, roomClient := range client.room.Clients {
 		transfer.CreatePlayer(w.EventBus, id)
+
+		roomClient.SetState(PlayerControlState())
+
+		roomClient.SendMessage("GameStarted", map[string]interface{}{
+			"playerId": id,
+			"spawn":    defaultSpawn,
+		})
 	}
 
 	return nil
@@ -284,5 +267,10 @@ type exitGameCommand struct{}
 func (c *exitGameCommand) Name() string { return "exitGame" }
 
 func (c *exitGameCommand) Execute(client *Client, payload json.RawMessage) error {
+	if client.room != nil {
+		client.SetState(GameRoomState())
+	} else {
+		client.SetState(MainMenuState())
+	}
 	return nil
 }

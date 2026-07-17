@@ -17,7 +17,7 @@ func (s *TransformSystem) Update(dt float32) error {
 	for id, comp := range comps {
 		transform, _ := comp.(*components.TransformComponent)
 
-		if s.getter.HasComponents("velocity") {
+		if s.getter.HasComponents(id, "velocity") {
 			c, _ := s.getter.GetComponent(id, "velocity")
 			velocity, _ := c.(*components.VelocityComponent)
 			transform.Position = transform.Position.Add(velocity.GetTotalVelocity())

@@ -72,12 +72,24 @@ export class WebSocketClient extends EventEmitter {
                 this.emit("disconnected", null);
             };
 
-            this.socket.onmessage = (event: MessageEvent) => {
+           this.socket.onmessage = (event: MessageEvent) => {
                 try {
                     const message = JSON.parse(event.data);
 
                     if (this.isCorrectJSON(message)) {
-                        this.emit(message.type, message.data);
+                        let processedData = message.data;
+
+                        // Если данные пришли в виде Base64-строки, декодируем их
+                        if (typeof message.data === "string") {
+                            try {
+                                const decoded = atob(message.data); // Декодируем Base64
+                                processedData = JSON.parse(decoded); // Парсим в JSON-объект
+                            } catch (e) {
+                                // Если это была обычная строка, а не Base64 JSON, оставляем как есть
+                            }
+                        }
+
+                        this.emit(message.type, processedData);
                     } else {
                         console.warn("Получено некорректное сообщение с сервера", message);
                     }

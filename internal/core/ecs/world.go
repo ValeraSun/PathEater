@@ -1,13 +1,13 @@
 package ecs
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/events"
-	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
@@ -26,28 +26,21 @@ type World struct {
 	systemTimers map[string]time.Duration
 
 	Broadcaster Broadcaster
+
+	done chan struct{}
 }
 
 type Broadcaster interface {
-	SendEntityCreate(EntityCreateInfo) error
-	SendEntityUpdate(EntityUpdateInfo) error
-	SendEntityDelete(EntityUpdateInfo) error
-	CreateCameraForPlayer(id string, idEntity types.Entity) error
-	SendSnapshotToAll([]EntityCreateInfo) error
+	SendEntityCreate(EntityInfo) error
+	SendEntityUpdate(EntityInfo) error
+	SendEntityDelete(EntityInfo) error
+	SendSnapshotToAll([]EntityInfo) error
 }
 
-type EntityCreateInfo struct {
-	ID        types.Entity
-	Mesh      string
-	Position  geometry.Vec3
-	Direction geometry.Vec3
-}
-
-type EntityUpdateInfo struct {
-	ID        types.Entity
-	Mesh      string
-	Position  geometry.Vec3
-	Direction geometry.Vec3
+type EntityInfo struct {
+	ID   types.Entity
+	Type string
+	Data any
 }
 
 func newWorld(eventBus *events.EventBus, room Broadcaster) *World {
@@ -65,19 +58,32 @@ func CreateWorld(room Broadcaster) *World {
 	eb := events.NewEventBus(100)
 	w := newWorld(eb, room)
 
-	go HandleWorld(w)
 	return w
 }
 
-func HandleWorld(world *World) {
-	ticker := time.NewTicker(config.GetMillisecondPerTick() * time.Millisecond)
-	defer ticker.Stop()
-
-	for range ticker.C {
-		world.Update(float32(config.GetMillisecondPerTick()))
-	}
+func (w *World) Close() {
+	w.done <- struct{}{}
 }
 
+func HandleWorld(world *World) {
+	ticker := time.NewTicker(config.GetNanosecondPerTick())
+	defer ticker.Stop()
+
+	lastTick := time.Now()
+
+	for {
+		select {
+		case <-world.done:
+			world.EventBus.Close()
+			return
+		case now := <-ticker.C:
+			dt := time.Since(lastTick).Seconds()
+			lastTick = now
+
+			world.Update(float32(dt))
+		}
+	}
+}
 func (w *World) AddSystem(system types.System) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -122,6 +128,24 @@ func (w *World) AddEntity(components ...types.Component) (types.Entity, error) {
 
 	w.entityCount++
 	return entity, nil
+}
+
+func (w *World) AddEntityByID(entity types.Entity, components ...types.Component) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	if _, exists := w.entities[entity]; exists {
+		return errors.New("уже существует entity с таким id")
+	}
+
+	w.entities[entity] = make(map[string]types.Component)
+	for _, comp := range components {
+		if err := w.addComponentToEntity(entity, comp); err != nil {
+			return fmt.Errorf("failed to add component: %w", err)
+		}
+	}
+	w.entityCount++
+	return nil
 }
 
 func (w *World) addComponentToEntity(entity types.Entity, comp types.Component) error {

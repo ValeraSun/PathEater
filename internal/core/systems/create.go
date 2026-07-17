@@ -3,24 +3,27 @@ package systems
 import (
 	"fmt"
 
+	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
 )
 
 type CreateSystem struct {
-	adder       systemAdder
+	adder       entityAdder
 	getter      componentsGetter
 	broadcaster Broadcaster
 	eventQueue  chan *events.CreatePlayerEvent
 }
 
-func NewCreateSystem(adder systemAdder, getter componentsGetter, broadcaster Broadcaster, subscriber subscriber) *CreateSystem {
+func NewCreateSystem(adder entityAdder, getter componentsGetter, broadcaster Broadcaster, subscriber subscriber) *CreateSystem {
 	s := &CreateSystem{
-		adder:      adder,
-		getter:     getter,
-		eventQueue: make(chan *events.CreatePlayerEvent, 100),
+		adder:       adder,
+		getter:      getter,
+		broadcaster: broadcaster,
+		eventQueue:  make(chan *events.CreatePlayerEvent, 100),
 	}
-	subscriber.Subscribe("create", s.OnEvent)
+	subscriber.Subscribe("createPlayer", s.OnEvent)
 	return s
 }
 
@@ -35,7 +38,16 @@ func (s *CreateSystem) drainEvents() {
 		select {
 		case e := <-s.eventQueue:
 			player := entities.NewPlayer(s.adder, e.ID)
-			s.broadcaster.CreateCameraForPlayer(e.ID, player)
+
+			s.broadcaster.SendEntityCreate(
+				ecs.EntityInfo{
+					ID:   player,
+					Type: "player",
+					Data: playerData{
+						Position: geometry.GetZeroVector(),
+						Rotation: geometry.GetZeroVector(),
+					},
+				})
 		default:
 			return
 		}

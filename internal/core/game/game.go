@@ -14,6 +14,7 @@ type subscriber interface {
 type systemAdder interface {
 	AddSystem(types.System)
 	AddEntity(components ...types.Component) (types.Entity, error)
+	AddEntityByID(entity types.Entity, components ...types.Component) error
 }
 
 type componentsGetter interface {
@@ -25,6 +26,12 @@ type componentsGetter interface {
 func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	w := ecs.CreateWorld(broadcaster)
 	initSystems(w, w, w.Broadcaster, w.EventBus)
+<<<<<<< HEAD
+=======
+
+	go w.EventBus.ProcessEvents()
+	go ecs.HandleWorld(w)
+>>>>>>> connection
 	return w
 }
 

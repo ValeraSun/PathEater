@@ -2,7 +2,6 @@ package systems
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -19,7 +18,7 @@ func NewControlSystem(getter componentsGetter, subscriber subscriber) *ControlSy
 		getter:     getter,
 		eventQueue: make(chan *events.SetPlayerStateEvent, 100),
 	}
-	subscriber.Subscribe("control", s.OnEvent)
+	subscriber.Subscribe("setPlayerState", s.OnEvent)
 	return s
 }
 
@@ -35,10 +34,14 @@ func (s *ControlSystem) Update(dt float32) error {
 
 func (s *ControlSystem) resetComponents(comps map[types.Entity]types.Component) {
 	for _, comp := range comps {
+<<<<<<< HEAD
 		c, ok := comp.(*components.ControlComponent)
 		if !ok {
 			log.Printf("по компоненту control вернулся не control а %+v\n", comp)
 		}
+=======
+		c, _ := comp.(*components.ControlComponent)
+>>>>>>> connection
 		c.Reset()
 	}
 }
@@ -47,18 +50,15 @@ func (s *ControlSystem) drainEvents(comps map[types.Entity]types.Component) {
 	for {
 		select {
 		case e := <-s.eventQueue:
-			for _, comp := range comps {
-				c, ok := comp.(*components.ControlComponent)
-
-				if !ok {
-					continue
-				}
-
-				if c.ClientID == string(e.ID) {
-					c.Superimpose(&e.PlayerState)
-				}
+			comp, ok := comps[e.ID]
+			if !ok {
+				continue
 			}
-
+			c, ok := comp.(*components.ControlComponent)
+			if !ok {
+				continue
+			}
+			c.Superimpose(&e.PlayerState)
 		default:
 			return
 		}

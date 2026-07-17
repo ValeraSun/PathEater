@@ -34,12 +34,10 @@ func NewEventBus(bufferSize int) *EventBus {
 		metrics:     &EventMetrics{},
 	}
 
-	go bus.processEvents()
-
 	return bus
 }
 
-func (eb *EventBus) processEvents() {
+func (eb *EventBus) ProcessEvents() {
 	for {
 		select {
 		case event := <-eb.queue:

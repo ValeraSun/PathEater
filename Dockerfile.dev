@@ -1,0 +1,86 @@
+# 1. Используем временный образ Node на Debian Bookworm
+FROM node:20-bookworm AS node-binaries
+
+# 2. Основной рабочий образ на Go (тоже на Debian Bookworm)
+FROM golang:1.26-bookworm
+
+# Устанавливаем системные зависимости и supervisor (в Debian он ставится через apt)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    build-essential \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+# Копируем Node.js, npm и npx из временного образа
+COPY --from=node-binaries /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=node-binaries /usr/local/bin/node /usr/local/bin/node
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
+    ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
+# Устанавливаем Air и Delve в стандартный системный путь
+RUN go install github.com/air-verse/air@latest && \
+    GOBIN=/usr/local/bin go install github.com/go-delve/delve/cmd/dlv@latest
+
+WORKDIR /app
+
+# Копируем зависимости Go
+COPY go.mod go.sum ./
+RUN go mod download
+
+WORKDIR /app/web-src
+
+# Копируем package.json фронтенда и ставим зависимости прямо туда
+COPY web/package*.json ./
+RUN npm install
+
+WORKDIR /app
+
+# Копируем весь остальной код
+COPY . .
+
+# Создаем конфигурационный файл для supervisor
+RUN cat <<'EOF' > /etc/supervisord.conf
+[unix_http_server]
+file=/var/run/supervisor.sock
+chmod=0700
+
+[supervisord]
+nodaemon=true
+user=root
+logfile=/var/log/supervisord.log
+pidfile=/var/run/supervisord.pid
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[supervisorctl]
+serverurl=unix:///var/run/supervisor.sock
+
+[program:frontend-watch]
+# Запускаем сборщик в папке с исходниками
+directory=/app/web-src
+# Собираем файлы и принудительно складываем их в /app/web (где их ждет Go)
+command=/app/web-src/node_modules/.bin/vite build --watch --outDir /app/web
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+[program:backend-air]
+directory=/app
+command=air -c .air.toml
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+EOF
+
+# Открываем порты (8080 для Go/WS, 2345 для Delve)
+EXPOSE 8080 2345
+
+# Запуск менеджера процессов supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

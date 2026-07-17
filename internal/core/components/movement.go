@@ -19,7 +19,9 @@ func NewMovementComponent(speed float64) *MovementComponent {
 
 func (c *MovementComponent) ApplyControl(state *ControlComponent) {
 	forwardVector := state.GetInputVector().Normalize()
-
-	c.Direction = geometry.CombineVectors(c.Direction, forwardVector)
+	direction := state.Direction
+	direction.Y = 0
+	direction = direction.Normalize()
+	c.Direction = geometry.CombineVectors(direction, forwardVector)
 
 }

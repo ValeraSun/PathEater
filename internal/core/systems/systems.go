@@ -6,9 +6,9 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
-type systemAdder interface {
-	AddSystem(types.System)
+type entityAdder interface {
 	AddEntity(components ...types.Component) (types.Entity, error)
+	AddEntityByID(entity types.Entity, components ...types.Component) error
 }
 
 type componentsGetter interface {
@@ -22,12 +22,15 @@ type entitiesRemover interface {
 }
 
 type Broadcaster interface {
-	SendEntityCreate(ecs.EntityCreateInfo) error
-	SendEntityUpdate(ecs.EntityUpdateInfo) error
-	SendEntityDelete(ecs.EntityUpdateInfo) error
-	CreateCameraForPlayer(id string, idEntity types.Entity) error
+	SendEntityCreate(ecs.EntityInfo) error
+	SendEntityUpdate(ecs.EntityInfo) error
+	SendEntityDelete(ecs.EntityInfo) error
 }
 
 type subscriber interface {
+	Subscribe(eventType string, handler events.EventHandler) (func(), error)
+}
+
+type publisher interface {
 	Subscribe(eventType string, handler events.EventHandler) (func(), error)
 }

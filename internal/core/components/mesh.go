@@ -10,4 +10,4 @@ func NewMeshComponent(path string) *MeshComponent {
 	}
 }
 
-func (*MeshComponent) Type() string { return "mesh" }
+func (*MeshComponent) Type() string { return "update" }

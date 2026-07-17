@@ -1,0 +1,23 @@
+services:
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:8080"   # Go API / WebSockets
+      - "2345:2345"   # Порт Delve
+    security_opt:
+      - "seccomp:unconfined"
+    cap_add:
+      - SYS_PTRACE
+    environment:
+      - GO_ENV=development
+    volumes:
+      - .:/app
+      - ./web:/app/web-src
+      - /app/tmp
+      - /app/web
+      # Вот этот спасательный круг:
+      - /app/web-src/node_modules
+    stdin_open: true
+    tty: true

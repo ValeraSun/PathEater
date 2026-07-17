@@ -26,7 +26,7 @@ func (v Vec3) Length() float64      { return math.Sqrt(v.LengthSqr()) }
 func (v Vec3) Normalize() Vec3 {
 	l := v.Length()
 	if l < 1e-9 {
-		return Vec3{0, 1, 0}
+		return Vec3{0, 0, 0}
 	}
 	return Vec3{v.X / l, v.Y / l, v.Z / l}
 }
@@ -35,6 +35,40 @@ func (v Vec3) Cross(u Vec3) Vec3 {
 	return Vec3{v.Y*u.Z - v.Z*u.Y, v.Z*u.X - v.X*u.Z, v.X*u.Y - v.Y*u.X}
 }
 
+<<<<<<< HEAD:internal/core/geometry/vector3.go
+=======
+// func abs(f float64) float64 {
+// 	if f < 0 {
+// 		return -f
+// 	}
+// 	return f
+// }
+
+func min(a, b float64) float64 {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func max(a, b float64) float64 {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func clamp(v, lo, hi float64) float64 {
+	if v < lo {
+		return lo
+	}
+	if v > hi {
+		return hi
+	}
+	return v
+}
+
+>>>>>>> connection:internal/core/geometry/vector.go
 func CombineVectors(direction, controlInput Vec3) Vec3 {
 	if controlInput.X == 0 && controlInput.Y == 0 && controlInput.Z == 0 {
 		return Vec3{}

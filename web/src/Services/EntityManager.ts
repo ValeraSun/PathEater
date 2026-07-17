@@ -19,11 +19,11 @@ interface EntityRecord {
     targetRotationY: number;
 }
 
-interface SnapshotEntity {
-    id: string;
-    type: string;
-    data: EntityTransformData;
-}
+// interface SnapshotEntity {
+//     id: string;
+//     type: string;
+//     data: EntityTransformData;
+// }
 
 const NETWORK_LERP_SPEED = 12;
 
@@ -31,6 +31,10 @@ export class EntityManager {
     private scene: THREE.Scene;
     private entities = new Map<string, EntityRecord>();
     private localPlayerId: string | null = null;
+    private onLocalPlayerUpdate: ((data: EntityTransformData) => void) | null = null;
+    public SetLocalPlayerUpdateHandler(handler: (data: EntityTransformData) => void): void {
+        this.onLocalPlayerUpdate = handler;
+    }
 
     public constructor(scene: THREE.Scene) {
         this.scene = scene;
@@ -41,8 +45,9 @@ export class EntityManager {
         this.DeleteEntity(id);
     }
 
-    public CreateEntity(id: string, type: string, data: EntityTransformData): void {
+    public CreateEntity(id: string, type: string, data: any): void {
         if (id === this.localPlayerId) {
+            this.onLocalPlayerUpdate?.(data);
             return;
         }
  
@@ -72,22 +77,16 @@ export class EntityManager {
         });
     }
 
-    public UpdateEntity(id: string, type: string, data: EntityTransformData): void {
+    public UpdateEntity(id: string, _: string, data: any): void {
         if (id === this.localPlayerId) {
+            this.onLocalPlayerUpdate?.(data);
             return;
         }
  
         const entity = this.entities.get(id);
- 
-        if (!entity) {
-            this.CreateEntity(id, type, data);
-            return;
-        }
- 
-        if (entity.type !== type) {
-            this.DeleteEntity(id);
-            this.CreateEntity(id, type, data);
-            return;
+
+        if (typeof entity === 'undefined') {
+            return 
         }
  
         this.setTarget(entity, data);
@@ -105,25 +104,25 @@ export class EntityManager {
         this.entities.delete(id);
     }
 
-    public ApplySnapshot(entities: SnapshotEntity[]): void {
-        const receivedIds = new Set(
-            entities.map(entity => entity.id)
-        );
+    // public ApplySnapshot(entities: SnapshotEntity[]): void {
+    //     const receivedIds = new Set(
+    //         entities.map(entity => entity.id)
+    //     );
 
-        for (const id of [...this.entities.keys()]) {
-            if (!receivedIds.has(id)) {
-                this.DeleteEntity(id);
-            }
-        }
+    //     for (const id of [...this.entities.keys()]) {
+    //         if (!receivedIds.has(id)) {
+    //             this.DeleteEntity(id);
+    //         }
+    //     }
 
-        for (const entity of entities) {
-            this.CreateEntity(
-                entity.id,
-                entity.type,
-                entity.data
-            );
-        }
-    }
+    //     for (const entity of entities) {
+    //         this.CreateEntity(
+    //             entity.id,
+    //             entity.type,
+    //             entity.data
+    //         );
+    //     }
+    // }
 
     public Clear(): void 
     {

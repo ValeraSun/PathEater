@@ -1,0 +1,17 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -gcflags=\"all=-N -l\" -o ./tmp/main ./cmd/app"
+  bin = "/usr/local/bin/dlv"
+args_bin = ["exec", "./tmp/main", "--headless", "--listen=:2345", "--api-version=2", "--accept-multiclient", "--continue", "--log", "--log-output=rpc,debugger,dap"]
+  delay = 1000
+  exclude_dir = ["tmp", "vendor", "web-src/node_modules", "configs"]
+  include_ext = ["go", "tpl", "tmpl", "html"]
+  exclude_regex = ["_test.go"]
+  stop_on_error = false
+  send_interrupt = false
+
+[log]
+  time = true
+  main_only = false

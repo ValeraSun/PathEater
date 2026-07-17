@@ -1,3 +1,4 @@
 server:
   world:
-    tick_per_second: 12
+    tick_per_second: 30
+walls_path: "web/public/data/ship_wall_colliders_v3.json"
