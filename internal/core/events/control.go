@@ -31,3 +31,21 @@ func NewSetPlayerStateEvent(ps PlayerState, id types.Entity) *SetPlayerStateEven
 		ID:          id,
 	}
 }
+
+type WeaponState struct {
+	TurnClockwise        bool `json:"turn_clockwise"`
+	TurnCounterclockwise bool `json:"turn_counterclockwise"`
+	Shoot                bool `json:"shoot"`
+}
+
+type SetWeaponStateEvent struct {
+	WeaponState WeaponState
+}
+
+func (*SetWeaponStateEvent) Type() string { return "setWeaponState" }
+
+func NewSetWeaponStateEvent(ws WeaponState) *SetWeaponStateEvent {
+	return &SetWeaponStateEvent{
+		WeaponState: ws,
+	}
+}

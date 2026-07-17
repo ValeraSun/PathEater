@@ -34,14 +34,7 @@ func (s *ControlSystem) Update(dt float32) error {
 
 func (s *ControlSystem) resetComponents(comps map[types.Entity]types.Component) {
 	for _, comp := range comps {
-<<<<<<< HEAD
-		c, ok := comp.(*components.ControlComponent)
-		if !ok {
-			log.Printf("по компоненту control вернулся не control а %+v\n", comp)
-		}
-=======
 		c, _ := comp.(*components.ControlComponent)
->>>>>>> connection
 		c.Reset()
 	}
 }

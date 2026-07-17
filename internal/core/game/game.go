@@ -26,12 +26,9 @@ type componentsGetter interface {
 func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	w := ecs.CreateWorld(broadcaster)
 	initSystems(w, w, w.Broadcaster, w.EventBus)
-<<<<<<< HEAD
-=======
 
 	go w.EventBus.ProcessEvents()
 	go ecs.HandleWorld(w)
->>>>>>> connection
 	return w
 }
 

@@ -18,3 +18,8 @@ func CreatePlayer(publisher EventPublisher, id string) error {
 	e := events.NewCreatePlayerEvent(id)
 	return publisher.Publish(e)
 }
+
+func SendWeaponState(publisher EventPublisher, state events.WeaponState) error {
+	e := events.NewSetWeaponStateEvent(state)
+	return publisher.Publish(e)
+}
