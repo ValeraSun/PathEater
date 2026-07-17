@@ -31,10 +31,10 @@ func getWalls(path string) []wall {
 
 	type rootDTO struct {
 		Colliders []struct {
-			shape       string
-			center      geometry.Vec3
-			halfExtents geometry.Vec3
-			Quaternion  geometry.Quaternion
+			Shape       string              `json:"shape"`
+			Center      geometry.Vec3       `json:"center"`
+			HalfExtents geometry.Vec3       `json:"halfExtents"`
+			Quaternion  geometry.Quaternion `json:"rotation"`
 		} `json:"colliders"`
 	}
 
@@ -51,9 +51,9 @@ func getWalls(path string) []wall {
 	for _, col := range collidersDTO {
 		colliders = append(colliders,
 			wall{
-				shape:       col.shape,
-				center:      col.center,
-				halfExtents: col.halfExtents,
+				shape:       col.Shape,
+				center:      col.Center,
+				halfExtents: col.HalfExtents,
 				rotation:    col.Quaternion.ToRotationMatrix(),
 			})
 
@@ -76,9 +76,6 @@ func getWallsConfigPath() string {
 	return path
 }
 
-func NewWall() {
-
-}
 func CreateWalls(adder entityAdder) {
 	path := getWallsConfigPath()
 	walls := getWalls(path)

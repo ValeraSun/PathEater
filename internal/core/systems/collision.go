@@ -74,11 +74,11 @@ func (s *CollisionSystem) Update(dt float32) error {
 
 			case e1.transform != nil:
 				// Двигается только первый
-				e1.transform.Position.Add(mtv)
+				e1.transform.Position = e1.transform.Position.Add(mtv)
 
 			case e2.transform != nil:
 				// Двигается только второй
-				e2.transform.Position.Add(mtv.Scale(-1))
+				e2.transform.Position = e2.transform.Position.Add(mtv.Scale(-1))
 			}
 		}
 	}

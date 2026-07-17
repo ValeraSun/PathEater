@@ -36,7 +36,7 @@ func (s *VelocitySystem) Update(dt float32) error {
 
 			externalV, _ := comp.(*components.ExternalVelocityComponent)
 
-			velocity.External = externalV.Direction.Scale(externalV.Speed * float64(dt))
+			velocity.External = externalV.Direction.Scale(float64(dt))
 		}
 
 	}
