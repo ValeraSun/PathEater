@@ -16,7 +16,11 @@ func NewColliderComponent(collider geometry.Collider) *ColliderComponent {
 	}
 }
 
+<<<<<<< Updated upstream
 func (c *ColliderComponent) Collide(other *ColliderComponent) (geometry.Vec3, bool) {
+=======
+func (c *ColliderComponent) Collide(other *ColliderComponent) (geometry.Vec, bool) {
+>>>>>>> Stashed changes
 	result := c.collider.Collide(other.collider)
 	return result.MTV, result.HasCollision
 }
