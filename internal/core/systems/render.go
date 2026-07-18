@@ -25,10 +25,15 @@ type playerData struct {
 }
 
 type shipData struct {
-	Vertex1 geometry.Vec3 `json:"vertex-1"`
-	Vertex2 geometry.Vec3 `json:"vertex-2"`
-	Vertex3 geometry.Vec3 `json:"vertex-3"`
-	Health  int           `json:"health"`
+	Collider        geometry.Collider `json:"collider"`
+	WeaponDirection geometry.Vec3     `json:"weapon_direction"`
+	Health          int               `json:"health"`
+}
+
+type asteroidData struct {
+	Position  geometry.Vec3 `json:"position"`
+	Radius    float64       `json:"radius"`
+	Destroyed bool          `json:"destroyed"`
 }
 
 func (s *RenderSystem) Update(dt float32) error {
@@ -59,15 +64,40 @@ func (s *RenderSystem) Update(dt float32) error {
 			c, _ = s.getter.GetComponent(id, "collider")
 			col := c.(*components.ColliderComponent)
 
+			c, _ = s.getter.GetComponent(id, "weapon")
+			weap := c.(*components.WeaponComponent)
+
 			s.broadcaster.SendEntityUpdate(ecs.EntityInfo{
 				ID:   id,
 				Type: "ship",
 				Data: shipData{
-					Vertex1: col.Vertex1,
-					Vertex2: col.V2,
-					Vertex3: col.V3,
-					Health:  hp.Health,
+					Collider:        col.Collider,
+					WeaponDirection: weap.Direction,
+					Health:          hp.Health,
 				}})
+		}
+
+		if s.getter.HasComponents(id, "asteroid") {
+
+			c, _ := s.getter.GetComponent(id, "asteroid")
+			aster := c.(*components.AsteroidComponent)
+
+			if aster.Visible {
+				c, _ := s.getter.GetComponent(id, "transform")
+				transform := c.(*components.TransformComponent)
+
+				c, _ = s.getter.GetComponent(id, "collider")
+				collider := c.(*components.ColliderComponent)
+
+				s.broadcaster.SendEntityUpdate(ecs.EntityInfo{
+					ID:   id,
+					Type: "asteroid",
+					Data: asteroidData{
+						Position:  transform.Position,
+						Radius:    collider.Collider.(*geometry.CircleCollider).GetRadius(),
+						Destroyed: aster.Destroyed,
+					}})
+			}
 		}
 	}
 

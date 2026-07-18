@@ -5,6 +5,7 @@ type CreatePlayerEvent struct {
 }
 
 func (*CreatePlayerEvent) Type() string { return "createPlayer" }
+
 func NewCreatePlayerEvent(id string) *CreatePlayerEvent {
 	return &CreatePlayerEvent{
 		ID: id,

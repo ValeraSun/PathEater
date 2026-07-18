@@ -31,6 +31,10 @@ func NewCircleCollider(center Vec3, radius float64) *CircleCollider {
 	}
 }
 
+func (c *CircleCollider) GetRadius() float64 {
+	return c.Radius
+}
+
 func (c *CircleCollider) Collide(other Collider) CollisionResult {
 	switch o := other.(type) {
 	case *TriangleCollider:

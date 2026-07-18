@@ -13,7 +13,7 @@ type WeaponSystem struct {
 	eventQueue chan *events.SetWeaponStateEvent
 }
 
-func NewWeaponSystem(getter componentsGetter) *WeaponSystem {
+func NewWeaponSystem(getter componentsGetter, subscriber subscriber) *WeaponSystem {
 	s := &WeaponSystem{
 		getter:     getter,
 		eventQueue: make(chan *events.SetWeaponStateEvent, 100),
@@ -25,25 +25,33 @@ func NewWeaponSystem(getter componentsGetter) *WeaponSystem {
 func (s *WeaponSystem) Update(dt float32) error {
 	comps := s.getter.GetEntitiesByComponent("weapon")
 
-	s.rotateWeapon(comps)
+	s.handleWeapon(comps)
 
 	return nil
 }
 
-func (s *WeaponSystem) rotateWeapon(comps map[types.Entity]types.Component) {
+func (s *WeaponSystem) handleWeapon(comps map[types.Entity]types.Component) {
 	for {
 		select {
 		case e := <-s.eventQueue:
 			for _, comp := range comps {
 				weap := comp.(*components.WeaponComponent)
-				var angle float64
+				var angle float64 = 0
 				if e.WeaponState.TurnClockwise {
-					angle = weap.Speed
+					angle = angle + weap.Speed
 				}
 				if e.WeaponState.TurnCounterclockwise {
-					angle = -weap.Speed
+					angle = angle - weap.Speed
 				}
 				weap.Direction.Rotate(angle)
+				if e.WeaponState.Shoot {
+					if weap.Ammo > 0 {
+						events.NewShootEvent(weap.Direction, 10)
+						weap.Ammo--
+					} else {
+						//Обработка неудачи выстрела
+					}
+				}
 			}
 		default:
 			return
