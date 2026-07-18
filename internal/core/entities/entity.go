@@ -35,7 +35,7 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 		components.NewVelocityComponent(),
 		components.NewHealthComponent(100),
 		components.NewColliderComponent(geometry.NewCapsuleCollider(
-			geometry.GetZeroVector(),
+			geometry.Vec3{X: 3, Y: 1},
 			geometry.Vec3{Y: 1},
 			1, 0.7)),
 		components.NewMovableComponent(),
@@ -101,7 +101,7 @@ func SendShip(id types.Entity, getter componentsGetter, broadcaster Broadcaster)
 		return errors.New("Не найден необхадимый компнонент")
 	}
 
-	broadcaster.SendEntityUpdate(ecs.EntityInfo{
+	broadcaster.SendEntityCreate(ecs.EntityInfo{
 		ID:   id,
 		Type: "ship",
 		Data: shipData{
