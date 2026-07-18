@@ -69,7 +69,7 @@ func (s *ControlSystem) OnEvent(event events.Event) error {
 	case s.eventQueue <- ps:
 
 	default:
-		fmt.Printf("Преполена очередь %v\n", s)
+		fmt.Printf("Переполена очередь %v\n", s)
 	}
 
 	return nil

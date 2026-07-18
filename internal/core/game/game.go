@@ -11,6 +11,7 @@ import (
 type subscriber interface {
 	Subscribe(eventType string, handler events.EventHandler) (func(), error)
 }
+
 type systemAdder interface {
 	AddSystem(types.System)
 	AddEntity(components ...types.Component) (types.Entity, error)
@@ -25,7 +26,6 @@ type componentsGetter interface {
 
 func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	w := ecs.CreateWorld(broadcaster)
-	//eb := *w.EventBus
 	initSystems(w, w, w.Broadcaster, w.EventBus)
 	config.CreateWalls(w)
 

@@ -54,8 +54,55 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 
 func NewShip(adder entityAdder) types.Entity {
 	e, _ := adder.AddEntity(
-		components.NewShipComponent(),
+		components.NewTransformComponent(
+			geometry.GetZeroVector(),
+			geometry.GetZeroVector(),
+		),
+		components.NewMovementComponent(10),
+		components.NewVelocityComponent(),
 		components.NewHealthComponent(100),
+		components.NewControlComponent(""),
+		components.NewWeaponComponent(geometry.GetZeroVector(), 10, 30),
+		components.NewColliderComponent(geometry.NewTriangleCollider(
+			geometry.Vec3{X: 0, Y: 20, Z: 0},
+			geometry.Vec3{X: 20, Y: -20, Z: 0},
+			geometry.Vec3{X: -20, Y: -20, Z: 0},
+		)),
+	)
+	return e
+}
+
+func NewAsteroid(adder entityAdder) types.Entity {
+	e, _ := adder.AddEntity(
+		components.NewTransformComponent(
+			geometry.GetZeroVector(),
+			geometry.GetZeroVector(),
+		),
+		components.NewMovementComponent(10),
+		components.NewVelocityComponent(),
+		components.NewAsteroidComponent(),
+		components.NewColliderComponent(geometry.NewCircleCollider(
+			geometry.Vec3{X: 0, Y: 20, Z: 0},
+			30,
+		)),
+	)
+	return e
+}
+
+func NewCosmoAlient(adder entityAdder, shipID types.Entity) types.Entity {
+	e, _ := adder.AddEntity(
+		components.NewTransformComponent(
+			geometry.GetZeroVector(),
+			geometry.GetZeroVector(),
+		),
+		components.NewMovementComponent(10),
+		components.NewVelocityComponent(),
+		components.NewStalkerComponent(shipID),
+		components.NewCosmoAlientComponent(),
+		components.NewColliderComponent(geometry.NewCircleCollider(
+			geometry.Vec3{X: 0, Y: 20, Z: 0},
+			30,
+		)),
 	)
 	return e
 }

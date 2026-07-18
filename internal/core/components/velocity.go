@@ -19,8 +19,7 @@ func (c *VelocityComponent) GetTotalVelocity() geometry.Vec3 {
 	return c.External.Add(c.Movement)
 }
 
-type MovableComponent struct {
-}
+type MovableComponent struct{}
 
 func (*MovableComponent) Type() string {
 	return "movable"

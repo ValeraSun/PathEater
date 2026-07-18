@@ -2,9 +2,6 @@ package geometry
 
 import "math"
 
-type Vec interface {
-}
-
 //модуль числа
 func abs(f float64) float64 {
 	if f < 0 {

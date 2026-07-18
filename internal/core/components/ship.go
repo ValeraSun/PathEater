@@ -1,12 +1,11 @@
 package components
 
-type ShipComponent struct {
-	StatusBag int
+type ShipComponent struct{}
+
+func (*ShipComponent) Type() string {
+	return "ship"
 }
 
 func NewShipComponent() *ShipComponent {
-	return &ShipComponent{
-		StatusBag: 100,
-	}
+	return &ShipComponent{}
 }
-func (*ShipComponent) Type() string { return "ship" }
