@@ -37,7 +37,7 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 		components.NewColliderComponent(geometry.NewCapsuleCollider(
 			geometry.Vec3{X: 3, Y: 1},
 			geometry.Vec3{Y: 1},
-			1, 0.7)),
+			0.5, 0.7)),
 		components.NewMovableComponent(),
 		components.NewTransformComponent(
 			geometry.Vec3{
@@ -123,7 +123,7 @@ func SendPlayer(id types.Entity, getter componentsGetter, broadcaster Broadcaste
 	c, _ = getter.GetComponent(id, "health")
 	hp := c.(*components.HealthComponent)
 
-	broadcaster.SendEntityUpdate(ecs.EntityInfo{
+	broadcaster.SendEntityCreate(ecs.EntityInfo{
 		ID:   id,
 		Type: "player",
 		Data: playerData{

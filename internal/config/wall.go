@@ -15,14 +15,14 @@ type entityAdder interface {
 	AddEntity(components ...types.Component) (types.Entity, error)
 }
 
-type wall struct {
-	shape       string
-	center      geometry.Vec3
-	halfExtents geometry.Vec3
-	rotation    [3]geometry.Vec3
+type Wall struct {
+	Shape       string              `json:"shape"`
+	Center      geometry.Vec3       `json:"center"`
+	HalfExtents geometry.Vec3       `json:"halfExtents"`
+	Quaternion  geometry.Quaternion `json:"rotation"`
 }
 
-func getWalls(path string) []wall {
+func getWalls(path string) []Wall {
 	jsonData, err := os.ReadFile(path)
 
 	if err != nil {
@@ -30,12 +30,7 @@ func getWalls(path string) []wall {
 	}
 
 	type rootDTO struct {
-		Colliders []struct {
-			Shape       string              `json:"shape"`
-			Center      geometry.Vec3       `json:"center"`
-			HalfExtents geometry.Vec3       `json:"halfExtents"`
-			Quaternion  geometry.Quaternion `json:"rotation"`
-		} `json:"colliders"`
+		Colliders []Wall `json:"colliders"`
 	}
 
 	var DTO rootDTO
@@ -45,19 +40,8 @@ func getWalls(path string) []wall {
 		log.Fatal("Не распарсились стены")
 	}
 
-	collidersDTO := DTO.Colliders
-	colliders := make([]wall, 0, len(collidersDTO))
+	colliders := DTO.Colliders
 
-	for _, col := range collidersDTO {
-		colliders = append(colliders,
-			wall{
-				shape:       col.Shape,
-				center:      col.Center,
-				halfExtents: col.HalfExtents,
-				rotation:    col.Quaternion.ToRotationMatrix(),
-			})
-
-	}
 	return colliders
 }
 
@@ -82,9 +66,9 @@ func CreateWalls(adder entityAdder) {
 	for _, wall := range walls {
 		adder.AddEntity(
 			components.NewColliderComponent(geometry.NewBoxCollider(
-				wall.center,
-				wall.halfExtents,
-				wall.rotation)),
+				wall.Center,
+				wall.HalfExtents,
+				wall.Quaternion)),
 		)
 	}
 }
