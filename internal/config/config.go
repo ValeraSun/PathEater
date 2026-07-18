@@ -8,6 +8,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const CONFIG_PATH = "/app/internal/config/config.yaml"
+
 type Config struct {
 	Server ServerConfig `yaml:"server" json:"server"`
 }
@@ -21,7 +23,7 @@ type WorldConfig struct {
 }
 
 func getTickPerSecond() int {
-	data, err := os.ReadFile("/app/internal/config/config.yaml")
+	data, err := os.ReadFile(CONFIG_PATH)
 	if err != nil {
 		log.Fatal(err)
 	}

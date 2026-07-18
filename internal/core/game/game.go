@@ -1,6 +1,7 @@
 package game
 
 import (
+	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/systems"
@@ -26,6 +27,7 @@ func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	w := ecs.CreateWorld(broadcaster)
 	//eb := *w.EventBus
 	initSystems(w, w, w.Broadcaster, w.EventBus)
+	config.CreateWalls(w)
 
 	go w.EventBus.ProcessEvents()
 	go ecs.HandleWorld(w)
@@ -40,5 +42,4 @@ func initSystems(adder systemAdder, getter componentsGetter, broadcaster ecs.Bro
 	adder.AddSystem(systems.NewCollisionSystem(getter))
 	adder.AddSystem(systems.NewRenderSystem(getter, broadcaster))
 	adder.AddSystem(systems.NewCreateSystem(adder, getter, broadcaster, subscriber))
-
 }
