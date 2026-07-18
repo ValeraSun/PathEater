@@ -29,6 +29,8 @@ func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	initSystems(w, w, w.Broadcaster, w.EventBus)
 	config.CreateWalls(w)
 
+	createEntities(w)
+
 	go w.EventBus.ProcessEvents()
 	go ecs.HandleWorld(w)
 	return w
@@ -42,4 +44,8 @@ func initSystems(adder systemAdder, getter componentsGetter, broadcaster ecs.Bro
 	adder.AddSystem(systems.NewCollisionSystem(getter))
 	adder.AddSystem(systems.NewRenderSystem(getter, broadcaster))
 	adder.AddSystem(systems.NewCreateSystem(adder, getter, broadcaster, subscriber))
+}
+
+func createEntities(world *ecs.World) {
+	world.EventBus.Publish(events.NewCreateShipEvent())
 }

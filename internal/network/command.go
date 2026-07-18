@@ -155,6 +155,8 @@ func (s Sendler) SendEntityCreate(entityInfo ecs.EntityInfo) error {
 		return err
 	}
 
+	fmt.Printf("Отправлено create в room %v сообщение: %+v\n", s.room.ID, info)
+
 	s.room.SendToAll("CreateEntity", payload)
 
 	return nil

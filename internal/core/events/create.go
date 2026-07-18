@@ -10,3 +10,10 @@ func NewCreatePlayerEvent(id string) *CreatePlayerEvent {
 		ID: id,
 	}
 }
+
+type CreateShipEvent struct{}
+
+func (*CreateShipEvent) Type() string { return "createShip" }
+func NewCreateShipEvent() *CreateShipEvent {
+	return &CreateShipEvent{}
+}
