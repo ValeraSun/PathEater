@@ -22,7 +22,14 @@ func NewAsteroidSystem(getter componentsGetter) *AsteroidSystem {
 	return s
 }
 
-func (*AsteroidSystem) Update(dt float32) error {
+func (s *AsteroidSystem) Update(dt float32) error {
+	select {
+	case e := <-s.eventQueue:
+		e.Active = true
+	default:
+		return
+	}
+	comps := s.getter.GetEntitiesByComponent("asteroid")
 	return nil
 }
 

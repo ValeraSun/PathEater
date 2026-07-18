@@ -25,8 +25,10 @@ type playerData struct {
 }
 
 type shipData struct {
-	BaggageStatus int
-	Health        int
+	Vertex1 geometry.Vec3 `json:"vertex-1"`
+	Vertex2 geometry.Vec3 `json:"vertex-2"`
+	Vertex3 geometry.Vec3 `json:"vertex-3"`
+	Health  int           `json:"health"`
 }
 
 func (s *RenderSystem) Update(dt float32) error {
@@ -37,32 +39,6 @@ func (s *RenderSystem) Update(dt float32) error {
 			c, _ := s.getter.GetComponent(id, "transform")
 			transform := c.(*components.TransformComponent)
 
-<<<<<<< HEAD
-			s.broadcaster.SendEntityUpdate(ecs.EntityUpdateInfo{
-				ID:        id,
-				Mesh:      mesh.Path,
-				Position:  transform.Position,
-				Direction: transform.Direction,
-			})
-		}
-	}	
-	
-	var navShip *components.NavigationShipComponent
-	for id, comp := range compsShip {
-		navShip = comp.(*components.NavigationShipComponent)
-	}
-
-	comps := s.getter.GetEntitiesByComponent("asteroid")
-	for id, comp := range comps {
-		asteroid := comp.(*components.AsteroidComponent)
-		if s.getter.HasComponents(id, "asteroid") && asteroid.Visible(navShip.Position){
-			s.broadcaster.SendEntityUpdate(ecs.EntityUpdateInfo{
-				ID:        id,
-				//Mesh:      mesh.Path,
-				Position:  asteroid.Position.Vec2ToVec3(),
-				Direction: asteroid.Direction.Vec2ToVec3(),
-			})
-=======
 			c, _ = s.getter.GetComponent(id, "health")
 			hp := c.(*components.HealthComponent)
 
@@ -75,22 +51,23 @@ func (s *RenderSystem) Update(dt float32) error {
 					Health:   hp.Health,
 				}})
 		}
-		if s.getter.HasComponents(id, "ship") {
-			c, _ := s.getter.GetComponent(id, "ship")
-			ship := c.(*components.ShipComponent)
 
-			c, _ = s.getter.GetComponent(id, "health")
+		if s.getter.HasComponents(id, "ship") {
+			c, _ := s.getter.GetComponent(id, "health")
 			hp := c.(*components.HealthComponent)
+
+			c, _ = s.getter.GetComponent(id, "collider")
+			col := c.(*components.ColliderComponent)
 
 			s.broadcaster.SendEntityUpdate(ecs.EntityInfo{
 				ID:   id,
 				Type: "ship",
 				Data: shipData{
-					BaggageStatus: ship.StatusBag,
-					Health:        hp.Health,
+					Vertex1: col.Vertex1,
+					Vertex2: col.V2,
+					Vertex3: col.V3,
+					Health:  hp.Health,
 				}})
-
->>>>>>> connection
 		}
 	}
 

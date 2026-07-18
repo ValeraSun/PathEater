@@ -3,7 +3,7 @@ package components
 import "github.com/ValeraSun/PathEater/internal/core/geometry"
 
 type ColliderComponent struct {
-	collider geometry.Collider
+	Collider geometry.Collider
 }
 
 func (*ColliderComponent) Type() string {
@@ -12,11 +12,11 @@ func (*ColliderComponent) Type() string {
 
 func NewColliderComponent(collider geometry.Collider) *ColliderComponent {
 	return &ColliderComponent{
-		collider: collider,
+		Collider: collider,
 	}
 }
 
 func (c *ColliderComponent) Collide(other *ColliderComponent) (geometry.Vec3, bool) {
-	result := c.collider.Collide(other.collider)
+	result := c.Collider.Collide(other.Collider)
 	return result.MTV, result.HasCollision
 }

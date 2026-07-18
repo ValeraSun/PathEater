@@ -78,6 +78,7 @@ func NewAsteroid(adder entityAdder) types.Entity {
 		),
 		components.NewMovementComponent(10),
 		components.NewVelocityComponent(),
+		components.NewAsteroidComponent(),
 		components.NewColliderComponent(geometry.NewCircleCollider(
 			geometry.Vec3{X: 0, Y: 20, Z: 0},
 			30,
@@ -95,6 +96,7 @@ func NewCosmoAlient(adder entityAdder, shipID types.Entity) types.Entity {
 		components.NewMovementComponent(10),
 		components.NewVelocityComponent(),
 		components.NewStalkerComponent(shipID),
+		components.NewCosmoAlientComponent(),
 		components.NewColliderComponent(geometry.NewCircleCollider(
 			geometry.Vec3{X: 0, Y: 20, Z: 0},
 			30,
