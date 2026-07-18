@@ -11,7 +11,7 @@ type CreateSystem struct {
 	adder       entityAdder
 	getter      componentsGetter
 	broadcaster Broadcaster
-	eventQueue  chan *events.CreatePlayerEvent
+	eventQueue  chan events.Event
 }
 
 func NewCreateSystem(adder entityAdder, getter componentsGetter, broadcaster Broadcaster, subscriber subscriber) *CreateSystem {
@@ -19,9 +19,10 @@ func NewCreateSystem(adder entityAdder, getter componentsGetter, broadcaster Bro
 		adder:       adder,
 		getter:      getter,
 		broadcaster: broadcaster,
-		eventQueue:  make(chan *events.CreatePlayerEvent, 100),
+		eventQueue:  make(chan events.Event, 100),
 	}
 	subscriber.Subscribe("createPlayer", s.OnEvent)
+	subscriber.Subscribe("createShip", s.OnEvent)
 	return s
 }
 
@@ -38,7 +39,8 @@ func (s *CreateSystem) drainEvents() error {
 
 			switch {
 			case typ == "createPlayer":
-				player := entities.NewPlayer(s.adder, e.ID)
+				c, _ := e.(*events.CreatePlayerEvent)
+				player := entities.NewPlayer(s.adder, c.ID)
 				err = entities.SendPlayer(player, s.getter, s.broadcaster)
 			case typ == "createShip":
 				ship := entities.NewShip(s.adder)
@@ -55,14 +57,8 @@ func (s *CreateSystem) drainEvents() error {
 }
 
 func (s *CreateSystem) OnEvent(event events.Event) error {
-	ps, ok := event.(*events.CreatePlayerEvent)
-
-	if !ok {
-		return nil
-	}
-
 	select {
-	case s.eventQueue <- ps:
+	case s.eventQueue <- event:
 
 	default:
 		fmt.Printf("Преполена очередь %v\n", s)
