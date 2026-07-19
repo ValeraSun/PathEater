@@ -2,6 +2,7 @@ import { EntityManager } from "./EntityManager";
 import { WebSocketClient } from "./WebSocketClient";
 import type { PlayerStatePayload } from "../Controllers/PlayerController";
 import { EntityParser } from "./EntityParser"
+
 export interface EntityCreateInfo {
     id: string;
     type: string;
@@ -62,14 +63,14 @@ export class GameServerGateway {
     public InitListeners(): void {
         this.wsClient.on("CreateEntity", (payload: EntityCreateInfo) => {
             console.dir(payload)
-            if (!this.isValidEntityCreateInfo(payload)) return;
+            if (!this.isValidEntityInfo(payload)) return;
             const parsed = EntityParser.Parse(payload.type, payload.data)
             this.entityManager.CreateEntity(payload.id, payload.type, parsed);
         });
 
         this.wsClient.on("UpdateEntity", (payload: EntityUpdateInfo) => { 
             console.dir(payload)
-            if (!this.isValidEntityCreateInfo(payload)) return;          
+            if (!this.isValidEntityInfo(payload)) return;          
             this.entityManager.UpdateEntity(payload.id, payload.type, payload.data);
         });
 
@@ -158,22 +159,36 @@ export class GameServerGateway {
         this.entityManager.SetLocalPlayerId(info.playerId);
     }
 
-    private isValidEntityCreateInfo(payload: any): payload is EntityCreateInfo {
-        return payload
-            && typeof payload === "object"
-            && typeof payload.id === "string"
-            && typeof payload.type === "string"
+     private isValidEntityInfo(payload: unknown): payload is EntityCreateInfo
+    {
+        if (!payload || typeof payload !== "object")
+        {
+            return false;
+        }
+
+        const entity = payload as Record<string, unknown>;
+
+        return (
+            typeof entity.id === "string" &&
+            typeof entity.type === "string" &&
+            "data" in entity
+        );
     }
 
-    private isValidDeletePayload(payload: any): payload is DeleteEntityPayload {
-        return payload
-            && typeof payload === "object"
-            && typeof payload.id === "string";
+    private isValidDeletePayload(payload: unknown): payload is DeleteEntityPayload
+    {
+        if (!payload || typeof payload !== "object")
+        {
+            return false;
+        }
+
+        const entity = payload as Record<string,unknown>;
+        return (typeof entity.id === "string" );
     }
+}
 
     // private isValidSnapshotPayload(payload: any): payload is SnapshotPayload {
     //     return payload
     //         && typeof payload === "object"
     //         && Array.isArray(payload.entities);
     // }
-}

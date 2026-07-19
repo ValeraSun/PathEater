@@ -46,6 +46,10 @@ export class Game {
             this.gameView.GetScene()
         );
 
+        this.entityManager.SetShipView(
+            this.gameView.GetShipView()
+        );
+
         this.gameServerGateway = new GameServerGateway(
             this.entityManager
         );
