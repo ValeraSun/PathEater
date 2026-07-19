@@ -149,6 +149,7 @@ type shipData struct {
 	Collider        geometry.Collider `json:"collider"`
 	WeaponDirection geometry.Vec3     `json:"weapon_direction"`
 	ShootSuccess    bool              `json:"shoot_success"`
+	BaggageStatus   int               `json:"baggage_status"`
 	Health          int               `json:"health"`
 }
 
@@ -199,7 +200,14 @@ func IsShip(id types.Entity, getter componentsGetter) bool {
 }
 
 func SendShip(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
-	c, ok := getter.GetComponent(id, "health")
+	c, ok := getter.GetComponent(id, "ship")
+	ship := c.(*components.ShipComponent)
+
+	if !ok {
+		return errors.New("Не найден необходимый компнонент")
+	}
+
+	c, ok = getter.GetComponent(id, "health")
 	hp := c.(*components.HealthComponent)
 
 	if !ok {
@@ -227,6 +235,7 @@ func SendShip(id types.Entity, getter componentsGetter, broadcaster Broadcaster)
 			Collider:        col.Collider,
 			WeaponDirection: weap.Direction,
 			ShootSuccess:    weap.ShootSuccess,
+			BaggageStatus:   ship.BaggageStatus,
 			Health:          hp.Health,
 		}})
 
