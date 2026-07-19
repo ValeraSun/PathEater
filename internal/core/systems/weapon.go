@@ -46,10 +46,11 @@ func (s *WeaponSystem) handleWeapon(comps map[types.Entity]types.Component) {
 				weap.Direction.Rotate(angle)
 				if e.WeaponState.Shoot {
 					if weap.Ammo > 0 {
+						weap.ShootSuccess = true
 						events.NewShootEvent(weap.Direction, 10)
 						weap.Ammo--
 					} else {
-						//Обработка неудачи выстрела
+						weap.ShootSuccess = false
 					}
 				}
 			}

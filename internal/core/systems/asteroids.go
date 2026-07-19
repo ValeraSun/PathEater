@@ -5,7 +5,8 @@ import (
 
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
-	//"github.com/ValeraSun/PathEater/internal/core/types"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
+	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 const displaySize = 200
@@ -31,15 +32,26 @@ func (s *AsteroidSystem) Update(dt float32) error {
 		comps := s.getter.GetEntitiesByComponent("asteroid")
 		for id, comp := range comps {
 			aster := comp.(*components.AsteroidComponent)
+
 			c, _ := s.getter.GetComponent(id, "transform")
 			transform := c.(*components.TransformComponent)
 
-			/*c, _ = s.getter.GetComponent(id, "collider")
-			col := c.(*components.ColliderComponent)	*/
+			c, _ = s.getter.GetComponent(id, "externalVelocity")
+			ext, _ := comp.(*components.ExternalVelocityComponent)
+
+			ships := s.getter.GetEntitiesByComponent("ship")
+			var shipId types.Entity
+			for id, _ := range ships {
+				shipId = id
+			}
+
+			c, _ = s.getter.GetComponent(shipId, "velocity")
+			velShip := c.(*components.VelocityComponent)
+
+			ext.Direction = geometry.GetZeroVector().Sub(velShip.GetTotalVelocity()).Normalize()
 
 			x := transform.Position.X
 			y := transform.Position.Y
-			//rad := col.Collider.(*geometry.CircleCollider).GetRadius()
 			aster.Visible = x >= -displaySize/2 && x <= displaySize/2 && y >= -displaySize/2 && y <= displaySize/2
 		}
 

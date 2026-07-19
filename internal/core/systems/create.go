@@ -45,6 +45,9 @@ func (s *CreateSystem) drainEvents() error {
 			case typ == "createShip":
 				ship := entities.NewShip(s.adder)
 				err = entities.SendShip(ship, s.getter, s.broadcaster)
+			case typ == "shoot":
+				bullet := entities.NewBullet(s.adder)
+				err = entities.SendBullet(bullet, s.getter, s.broadcaster)
 			}
 
 			if err != nil {

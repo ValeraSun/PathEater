@@ -1,8 +1,5 @@
 package events
 
-// локальные event через маленькую
-// глобальные event через большую
-
 type MeteoriteZoneEvent struct {
 	Active bool
 }

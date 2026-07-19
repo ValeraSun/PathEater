@@ -4,6 +4,7 @@ type TriangleCollider struct {
 	Vertex1 Vec3
 	Vertex2 Vec3
 	Vertex3 Vec3
+	Center  Vec3
 }
 
 func NewTriangleCollider(v1, v2, v3 Vec3) *TriangleCollider {
@@ -17,6 +18,22 @@ func (b *TriangleCollider) Collide(other Collider) CollisionResult {
 	default:
 		return CollisionResult{HasCollision: false}
 	}
+}
+
+func (c *TriangleCollider) GetCenter() Vec3 {
+	return Vec3{
+		X: average(c.Vertex1.X, c.Vertex2.X, c.Vertex3.X),
+		Y: average(c.Vertex1.Y, c.Vertex2.Y, c.Vertex3.Y),
+		Z: 0,
+	}
+}
+
+func (c *TriangleCollider) ChangeCenter(center Vec3) {
+	change := c.Center.Sub(center)
+	c.Center = center
+	c.Vertex1.Add(change)
+	c.Vertex2.Add(change)
+	c.Vertex3.Add(change)
 }
 
 type CircleCollider struct {
@@ -48,6 +65,10 @@ func (c *CircleCollider) Collide(other Collider) CollisionResult {
 	default:
 		return CollisionResult{HasCollision: false}
 	}
+}
+
+func (c *CircleCollider) ChangeCenter(center Vec3) {
+	c.Center = center
 }
 
 func triangleCircleCollide(a *TriangleCollider, b *CircleCollider) CollisionResult {

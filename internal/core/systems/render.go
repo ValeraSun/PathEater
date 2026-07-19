@@ -26,6 +26,10 @@ func (s *RenderSystem) Update(dt float32) error {
 			err = entities.SendPlayer(id, s.getter, s.broadcaster)
 		case entities.IsShip(id, s.getter):
 			err = entities.SendShip(id, s.getter, s.broadcaster)
+		case entities.IsAsteroid(id, s.getter):
+			err = entities.SendAsteroid(id, s.getter, s.broadcaster)
+		case entities.IsAlien(id, s.getter):
+			err = entities.SendAlien(id, s.getter, s.broadcaster)
 		}
 
 		if err != nil {

@@ -28,7 +28,7 @@ type entityAdder interface {
 func NewPlayer(adder entityAdder, clientID string) types.Entity {
 	adder.AddEntityByID(
 		types.Entity(clientID),
-		components.NewUpdateComponent(),
+		//components.NewUpdateComponent(),
 		components.NewControlComponent(clientID),
 		components.NewMovementComponent(10),
 		components.NewExternalVelocityComponent(),
@@ -79,6 +79,7 @@ func NewAsteroid(adder entityAdder) types.Entity {
 			geometry.GetZeroVector(),
 		),
 		components.NewMovementComponent(10),
+		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
 		components.NewAsteroidComponent(),
 		components.NewColliderComponent(geometry.NewCircleCollider(
@@ -89,19 +90,38 @@ func NewAsteroid(adder entityAdder) types.Entity {
 	return e
 }
 
-func NewCosmoAlient(adder entityAdder, shipID types.Entity) types.Entity {
+func NewCosmoAlien(adder entityAdder, shipID types.Entity) types.Entity {
 	e, _ := adder.AddEntity(
 		components.NewTransformComponent(
 			geometry.GetZeroVector(),
 			geometry.GetZeroVector(),
 		),
 		components.NewMovementComponent(10),
+		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
 		components.NewStalkerComponent(shipID),
-		components.NewCosmoAlientComponent(),
+		components.NewCosmoAlienComponent(),
 		components.NewColliderComponent(geometry.NewCircleCollider(
 			geometry.Vec3{X: 0, Y: 20, Z: 0},
 			30,
+		)),
+	)
+	return e
+}
+
+func NewBullet(adder entityAdder) types.Entity {
+	e, _ := adder.AddEntity(
+		components.NewTransformComponent(
+			geometry.GetZeroVector(),
+			geometry.GetZeroVector(),
+		),
+		components.NewBulletComponent(),
+		components.NewMovementComponent(10),
+		components.NewExternalVelocityComponent(),
+		components.NewVelocityComponent(),
+		components.NewColliderComponent(geometry.NewCircleCollider(
+			geometry.GetZeroVector(),
+			2,
 		)),
 	)
 	return e
@@ -126,37 +146,27 @@ type playerData struct {
 }
 
 type shipData struct {
-	baggageStatus int
-	health        int
+	Collider        geometry.Collider `json:"collider"`
+	WeaponDirection geometry.Vec3     `json:"weapon_direction"`
+	ShootSuccess    bool              `json:"shoot_success"`
+	Health          int               `json:"health"`
 }
 
-func IsShip(id types.Entity, getter componentsGetter) bool {
-	return getter.HasComponents(id, "ship") && getter.HasComponents(id, "health")
+type asteroidData struct {
+	Position  geometry.Vec3 `json:"position"`
+	Radius    float64       `json:"radius"`
+	Destroyed bool          `json:"destroyed"`
 }
-func SendShip(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
-	c, ok := getter.GetComponent(id, "ship")
-	ship := c.(*components.ShipComponent)
 
-	if !ok {
-		return errors.New("Не найден необхадимый компнонент")
-	}
+type cosmoAlienData struct {
+	Position geometry.Vec3 `json:"position"`
+	Rotation geometry.Vec3 `json:"rotation"`
+	Health   int           `json:"health"`
+}
 
-	c, ok = getter.GetComponent(id, "health")
-	hp := c.(*components.HealthComponent)
-
-	if !ok {
-		return errors.New("Не найден необхадимый компнонент")
-	}
-
-	broadcaster.SendEntityCreate(ecs.EntityInfo{
-		ID:   id,
-		Type: "ship",
-		Data: shipData{
-			baggageStatus: ship.StatusBag,
-			health:        hp.Health,
-		}})
-
-	return nil
+type bulletData struct {
+	Position geometry.Vec3 `json:"position"`
+	Success  bool          `json:"success"`
 }
 
 func IsPlayer(id types.Entity, getter componentsGetter) bool {
@@ -180,6 +190,146 @@ func SendPlayer(id types.Entity, getter componentsGetter, broadcaster Broadcaste
 		},
 	},
 	)
+
+	return nil
+}
+
+func IsShip(id types.Entity, getter componentsGetter) bool {
+	return getter.HasComponents(id, "ship")
+}
+
+func SendShip(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
+	c, ok := getter.GetComponent(id, "health")
+	hp := c.(*components.HealthComponent)
+
+	if !ok {
+		return errors.New("Не найден необходимый компнонент")
+	}
+
+	c, ok = getter.GetComponent(id, "collider")
+	col := c.(*components.ColliderComponent)
+
+	if !ok {
+		return errors.New("Не найден необходимый компнонент")
+	}
+
+	c, ok = getter.GetComponent(id, "weapon")
+	weap := c.(*components.WeaponComponent)
+
+	if !ok {
+		return errors.New("Не найден необходимый компнонент")
+	}
+
+	broadcaster.SendEntityUpdate(ecs.EntityInfo{
+		ID:   id,
+		Type: "ship",
+		Data: shipData{
+			Collider:        col.Collider,
+			WeaponDirection: weap.Direction,
+			ShootSuccess:    weap.ShootSuccess,
+			Health:          hp.Health,
+		}})
+
+	return nil
+}
+
+func IsAsteroid(id types.Entity, getter componentsGetter) bool {
+	return getter.HasComponents(id, "asteroid")
+}
+
+func IsVisible(id types.Entity, getter componentsGetter) bool {
+	c, _ := getter.GetComponent(id, "asteroid")
+	aster := c.(*components.AsteroidComponent)
+	return aster.Visible
+}
+
+func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
+	c, ok := getter.GetComponent(id, "asteroid")
+	aster := c.(*components.AsteroidComponent)
+
+	if !ok {
+		return errors.New("Не найден необходимый компнонент")
+	}
+
+	c, ok = getter.GetComponent(id, "transform")
+	transform := c.(*components.TransformComponent)
+
+	if !ok {
+		return errors.New("Не найден необходимый компнонент")
+	}
+
+	c, ok = getter.GetComponent(id, "collider")
+	col := c.(*components.ColliderComponent)
+
+	if !ok {
+		return errors.New("Не найден необходимый компнонент")
+	}
+
+	broadcaster.SendEntityUpdate(ecs.EntityInfo{
+		ID:   id,
+		Type: "asteroid",
+		Data: asteroidData{
+			Position:  transform.Position,
+			Radius:    col.Collider.(*geometry.CircleCollider).Radius,
+			Destroyed: aster.Destroyed,
+		}})
+
+	return nil
+}
+
+func IsAlien(id types.Entity, getter componentsGetter) bool {
+	return getter.HasComponents(id, "cosmoAlien")
+}
+
+func SendAlien(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
+	c, ok := getter.GetComponent(id, "transform")
+	transform := c.(*components.TransformComponent)
+
+	if !ok {
+		return errors.New("Не найден необходимый компнонент")
+	}
+
+	c, ok = getter.GetComponent(id, "health")
+	hp := c.(*components.HealthComponent)
+
+	if !ok {
+		return errors.New("Не найден необходимый компнонент")
+	}
+
+	broadcaster.SendEntityUpdate(ecs.EntityInfo{
+		ID:   id,
+		Type: "alien",
+		Data: cosmoAlienData{
+			Position: transform.Position,
+			Rotation: transform.Direction,
+			Health:   hp.Health,
+		}})
+
+	return nil
+}
+
+func IsBullet(id types.Entity, getter componentsGetter) bool {
+	return getter.HasComponents(id, "bullet")
+}
+
+func SendBullet(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
+	c, ok := getter.GetComponent(id, "transform")
+	transform := c.(*components.TransformComponent)
+
+	if !ok {
+		return errors.New("Не найден необходимый компнонент")
+	}
+
+	if !ok {
+		return errors.New("Не найден необходимый компнонент")
+	}
+
+	broadcaster.SendEntityUpdate(ecs.EntityInfo{
+		ID:   id,
+		Type: "bullet",
+		Data: bulletData{
+			Position: transform.Position,
+		}})
 
 	return nil
 }

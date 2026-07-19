@@ -1,14 +1,22 @@
 package systems
 
+import (
+	"fmt"
+
+	"github.com/ValeraSun/PathEater/internal/core/components"
+	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
+	"github.com/ValeraSun/PathEater/internal/core/types"
+)
+
 type ShipSystem struct {
-	getter      componentsGetter
-	broadcaster Broadcaster
+	getter     componentsGetter
+	eventQueue chan *events.SetShipStateEvent
 }
 
-func NewShipSystem(getter componentsGetter, broadcaster Broadcaster, subscriber subscriber) *ShipSystem {
-	return &ShipSystem{
-		getter:      getter,
-		broadcaster: broadcaster,
+func NewShipSystem(getter componentsGetter, subscriber subscriber) *ShipSystem {
+	s := &ShipSystem{
+		getter: getter,
 	}
 	subscriber.Subscribe("setShipState", s.OnEvent)
 	return s
@@ -17,7 +25,48 @@ func NewShipSystem(getter componentsGetter, broadcaster Broadcaster, subscriber 
 func (s *ShipSystem) Update(dt float32) error {
 	comps := s.getter.GetEntitiesByComponent("ship")
 
-	s.rotateWeapon(comps)
+	s.moveShip(comps)
+
+	return nil
+}
+
+func (s *ShipSystem) moveShip(comps map[types.Entity]types.Component) {
+	for id := range comps {
+		select {
+		case e := <-s.eventQueue:
+			c, _ := s.getter.GetComponent(id, "movement")
+			mov := c.(*components.MovementComponent)
+
+			mov.Direction = GetMoveVector(e)
+		default:
+			return
+		}
+	}
+}
+
+func GetMoveVector(e *events.SetShipStateEvent) geometry.Vec3 {
+	vec := geometry.GetZeroVector()
+	if e.ShipState.MoveRight {
+		vec.Add(geometry.Vec3{X: 1, Y: 0, Z: 0})
+	}
+	if e.ShipState.MoveLeft {
+		vec.Add(geometry.Vec3{X: -1, Y: 0, Z: 0})
+	}
+	return vec.Normalize()
+}
+
+func (s *ShipSystem) OnEvent(event events.Event) error {
+	ss, ok := event.(*events.SetShipStateEvent)
+
+	if !ok {
+		return nil
+	}
+
+	select {
+	case s.eventQueue <- ss:
+	default:
+		fmt.Printf("Переполена очередь %v\n", s)
+	}
 
 	return nil
 }
