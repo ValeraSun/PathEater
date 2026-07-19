@@ -4,6 +4,7 @@ import (
 	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/systems"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
@@ -37,6 +38,7 @@ func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 }
 
 func initSystems(adder systemAdder, getter componentsGetter, broadcaster ecs.Broadcaster, subscriber subscriber) {
+	adder.AddSystem(systems.NewVisionSystem(getter))
 	adder.AddSystem(systems.NewControlSystem(getter, subscriber))
 	adder.AddSystem(systems.NewMovementSystem(getter))
 	adder.AddSystem(systems.NewVelocitySystem(getter))
@@ -48,4 +50,5 @@ func initSystems(adder systemAdder, getter componentsGetter, broadcaster ecs.Bro
 
 func createEntities(world *ecs.World) {
 	world.EventBus.Publish(events.NewCreateShipEvent())
+	world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 1, Z: -1}))
 }

@@ -23,6 +23,7 @@ func NewCreateSystem(adder entityAdder, getter componentsGetter, broadcaster Bro
 	}
 	subscriber.Subscribe("createPlayer", s.OnEvent)
 	subscriber.Subscribe("createShip", s.OnEvent)
+	subscriber.Subscribe("createAlien", s.OnEvent)
 	return s
 }
 
@@ -46,7 +47,9 @@ func (s *CreateSystem) drainEvents() error {
 				ship := entities.NewShip(s.adder)
 				err = entities.SendShip(ship, s.getter, s.broadcaster.SendEntityCreate)
 			case "createAlien":
-
+				c, _ := e.(*events.CreateAlienEvent)
+				alien := entities.NewAlien(s.adder, c.Position)
+				err = entities.SendAlien(alien, s.getter, s.broadcaster.SendEntityCreate)
 			}
 
 			if err != nil {

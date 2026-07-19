@@ -65,8 +65,8 @@ func (s *CollisionSystem) Update(dt float32) error {
 			}
 
 			mtv.Y = 0
-			movables[i].transform.Position.Add(mtv.Scale(0.5))
-			movables[j].transform.Position.Add(mtv.Scale(-0.5))
+			movables[i].transform.Position = movables[i].transform.Position.Add(mtv.Scale(0.5))
+			movables[j].transform.Position = movables[j].transform.Position.Add(mtv.Scale(-0.5))
 
 		}
 	}

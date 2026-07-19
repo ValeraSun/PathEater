@@ -28,6 +28,7 @@ type entityAdder interface {
 func NewPlayer(adder entityAdder, clientID string) types.Entity {
 	adder.AddEntityByID(
 		types.Entity(clientID),
+		components.NewPlayerComponent(),
 		components.NewUpdateComponent(),
 		components.NewControlComponent(clientID),
 		components.NewMovementComponent(10),
@@ -58,6 +59,14 @@ func NewShip(adder entityAdder) types.Entity {
 		components.NewHealthComponent(100),
 	)
 	return e
+}
+
+func NewAlien(adder entityAdder, position geometry.Vec3) types.Entity {
+	alien, _ := adder.AddEntity(
+		components.NewTransformComponent(position, geometry.Vec3{}),
+		components.NewVisionComponent(),
+	)
+	return alien
 }
 
 type componentsGetter interface {
@@ -132,6 +141,24 @@ func SendPlayer(id types.Entity, getter componentsGetter, broadcaster Sendler) e
 			Position: transform.Position,
 			Rotation: transform.Direction,
 			Health:   hp.Health,
+		},
+	},
+	)
+
+	return nil
+}
+
+func SendAlien(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
+
+	c, _ := getter.GetComponent(id, "transform")
+	transform := c.(*components.TransformComponent)
+
+	broadcaster(ecs.EntityInfo{
+		ID:   id,
+		Type: "alien",
+		Data: playerData{
+			Position: transform.Position,
+			Rotation: transform.Direction,
 		},
 	},
 	)
