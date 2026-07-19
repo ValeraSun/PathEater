@@ -35,9 +35,9 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 		components.NewVelocityComponent(),
 		components.NewHealthComponent(100),
 		components.NewColliderComponent(geometry.NewCapsuleCollider(
-			geometry.Vec3{X: 3, Y: 1},
+			geometry.Vec3{},
 			geometry.Vec3{Y: 1},
-			1, 0.7)),
+			1.0, 1.0)),
 		components.NewMovableComponent(),
 		components.NewTransformComponent(
 			geometry.Vec3{
@@ -83,10 +83,12 @@ type shipData struct {
 	health        int
 }
 
+type Sendler func(ecs.EntityInfo) error
+
 func IsShip(id types.Entity, getter componentsGetter) bool {
 	return getter.HasComponents(id, "ship") && getter.HasComponents(id, "health")
 }
-func SendShip(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
+func SendShip(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
 	c, ok := getter.GetComponent(id, "ship")
 	ship := c.(*components.ShipComponent)
 
@@ -101,7 +103,7 @@ func SendShip(id types.Entity, getter componentsGetter, broadcaster Broadcaster)
 		return errors.New("Не найден необхадимый компнонент")
 	}
 
-	broadcaster.SendEntityCreate(ecs.EntityInfo{
+	broadcaster(ecs.EntityInfo{
 		ID:   id,
 		Type: "ship",
 		Data: shipData{
@@ -116,14 +118,14 @@ func IsPlayer(id types.Entity, getter componentsGetter) bool {
 	return getter.HasComponents(id, "transform") && getter.HasComponents(id, "control") && getter.HasComponents("health")
 }
 
-func SendPlayer(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
+func SendPlayer(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
 	c, _ := getter.GetComponent(id, "transform")
 	transform := c.(*components.TransformComponent)
 
 	c, _ = getter.GetComponent(id, "health")
 	hp := c.(*components.HealthComponent)
 
-	broadcaster.SendEntityUpdate(ecs.EntityInfo{
+	broadcaster(ecs.EntityInfo{
 		ID:   id,
 		Type: "player",
 		Data: playerData{

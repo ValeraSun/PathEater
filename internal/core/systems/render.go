@@ -23,9 +23,9 @@ func (s *RenderSystem) Update(dt float32) error {
 
 		switch {
 		case entities.IsPlayer(id, s.getter):
-			err = entities.SendPlayer(id, s.getter, s.broadcaster)
+			err = entities.SendPlayer(id, s.getter, s.broadcaster.SendEntityUpdate)
 		case entities.IsShip(id, s.getter):
-			err = entities.SendShip(id, s.getter, s.broadcaster)
+			err = entities.SendShip(id, s.getter, s.broadcaster.SendEntityUpdate)
 		}
 
 		if err != nil {

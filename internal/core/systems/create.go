@@ -37,14 +37,16 @@ func (s *CreateSystem) drainEvents() error {
 			typ := e.Type()
 			var err error
 
-			switch {
-			case typ == "createPlayer":
+			switch typ {
+			case "createPlayer":
 				c, _ := e.(*events.CreatePlayerEvent)
 				player := entities.NewPlayer(s.adder, c.ID)
-				err = entities.SendPlayer(player, s.getter, s.broadcaster)
-			case typ == "createShip":
+				err = entities.SendPlayer(player, s.getter, s.broadcaster.SendEntityCreate)
+			case "createShip":
 				ship := entities.NewShip(s.adder)
-				err = entities.SendShip(ship, s.getter, s.broadcaster)
+				err = entities.SendShip(ship, s.getter, s.broadcaster.SendEntityCreate)
+			case "createAlien":
+
 			}
 
 			if err != nil {
