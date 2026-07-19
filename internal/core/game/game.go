@@ -39,6 +39,7 @@ func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 
 func initSystems(adder systemAdder, getter componentsGetter, broadcaster ecs.Broadcaster, subscriber subscriber) {
 	adder.AddSystem(systems.NewVisionSystem(getter))
+	adder.AddSystem(systems.NewAISystem(getter))
 	adder.AddSystem(systems.NewControlSystem(getter, subscriber))
 	adder.AddSystem(systems.NewMovementSystem(getter))
 	adder.AddSystem(systems.NewVelocitySystem(getter))
@@ -50,5 +51,5 @@ func initSystems(adder systemAdder, getter componentsGetter, broadcaster ecs.Bro
 
 func createEntities(world *ecs.World) {
 	world.EventBus.Publish(events.NewCreateShipEvent())
-	world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 1, Z: -1}))
+	world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
 }

@@ -5,9 +5,8 @@ import (
 )
 
 type AIComponent struct {
-	MoveFront   bool
-	Direction   geometry.Vec3
-	WantPostion geometry.Vec3
+	MoveFront bool
+	Direction geometry.Vec3
 }
 
 func (*AIComponent) Type() string {
@@ -16,10 +15,4 @@ func (*AIComponent) Type() string {
 
 func NewAIComponent() *AIComponent {
 	return &AIComponent{}
-}
-
-func (c *AIComponent) GetInputVector() geometry.Vec3 {
-	input := geometry.Vec3{}
-
-	return input.Normalize()
 }

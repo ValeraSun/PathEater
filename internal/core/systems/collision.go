@@ -2,6 +2,7 @@ package systems
 
 import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
@@ -72,16 +73,20 @@ func (s *CollisionSystem) Update(dt float32) error {
 	}
 
 	for _, m := range movables {
+		m.collider.PrivMTV = geometry.Vec3{}
 		for _, c := range colliders {
 
 			mtv, isColliding := m.collider.Collide(c)
 
-			if !isColliding {
+			if !isColliding || mtv.IsZero() {
 				continue
+
 			}
 
-			m.transform.Position = m.transform.Position.Add(mtv)
+			mtv.Y = 0
 
+			m.transform.Position = m.transform.Position.Add(mtv)
+			m.collider.PrivMTV = mtv.Scale(float64(1 / dt))
 		}
 	}
 
