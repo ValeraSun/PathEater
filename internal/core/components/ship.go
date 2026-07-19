@@ -8,8 +8,8 @@ func (*ShipComponent) Type() string {
 	return "ship"
 }
 
-func NewShipComponent() *ShipComponent {
+func NewShipComponent(baggageStatus int) *ShipComponent {
 	return &ShipComponent{
-		BaggageStatus: 10,
+		BaggageStatus: baggageStatus,
 	}
 }

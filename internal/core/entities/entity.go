@@ -49,7 +49,6 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 		),
 	)
 	return types.Entity(clientID)
-
 }
 
 func NewShip(adder entityAdder) types.Entity {
@@ -62,6 +61,7 @@ func NewShip(adder entityAdder) types.Entity {
 		components.NewVelocityComponent(),
 		components.NewHealthComponent(100),
 		components.NewControlComponent(""),
+		components.NewShipComponent(10),
 		components.NewWeaponComponent(geometry.GetZeroVector(), 10, 30),
 		components.NewColliderComponent(geometry.NewTriangleCollider(
 			geometry.Vec3{X: 0, Y: 20, Z: 0},
