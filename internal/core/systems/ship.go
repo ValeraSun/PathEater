@@ -34,10 +34,10 @@ func (s *ShipSystem) moveShip(comps map[types.Entity]types.Component) {
 	for id := range comps {
 		select {
 		case e := <-s.eventQueue:
-			c, _ := s.getter.GetComponent(id, "movement")
-			mov := c.(*components.MovementComponent)
+			c, _ := s.getter.GetComponent(id, "transform")
+			transform := c.(*components.MovementComponent)
 
-			mov.Direction = GetMoveVector(e)
+			transform.Direction = GetMoveVector(e)
 		default:
 			return
 		}

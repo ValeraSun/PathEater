@@ -45,10 +45,13 @@ func (s *AsteroidSystem) Update(dt float32) error {
 				shipId = id
 			}
 
-			c, _ = s.getter.GetComponent(shipId, "velocity")
-			velShip := c.(*components.VelocityComponent)
+			c, _ = s.getter.GetComponent(shipId, "transform")
+			trShip := c.(*components.TransformComponent)
 
-			ext.Direction = geometry.GetZeroVector().Sub(velShip.GetTotalVelocity()).Normalize()
+			c, _ = s.getter.GetComponent(shipId, "ship")
+			ship := c.(*components.ShipComponent)
+
+			ext.Direction = geometry.GetZeroVector().Sub(trShip.Direction.Scale(ship.Speed)).Normalize()
 
 			x := transform.Position.X
 			y := transform.Position.Y

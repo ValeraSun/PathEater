@@ -15,6 +15,15 @@ func NewCreatePlayerEvent(id string) *CreatePlayerEvent {
 type CreateShipEvent struct{}
 
 func (*CreateShipEvent) Type() string { return "createShip" }
+
 func NewCreateShipEvent() *CreateShipEvent {
 	return &CreateShipEvent{}
+}
+
+type CreateBulletEvent struct{}
+
+func (*CreateBulletEvent) Type() string { return "createBullet" }
+
+func NewCreateBulletEvent() *CreateBulletEvent {
+	return &CreateBulletEvent{}
 }
