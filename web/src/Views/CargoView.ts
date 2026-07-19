@@ -8,10 +8,7 @@ export class CargoView
     private cargoModel: THREE.Object3D | null = null;
     private baggageStatus = 0;
 
-    private readonly maxVisibleCargo = 20;
-
-    private readonly columns = 5;
-    private readonly rows = 2;
+    private readonly maxVisibleCargo = 15;
 
     public constructor()
     {
@@ -44,7 +41,7 @@ export class CargoView
             gltf =>
             {
                 this.cargoModel = gltf.scene;
-                this.cargoModel.scale.set(2, 2, 2);
+                this.cargoModel.scale.set(1.5, 1.5, 1.5);
                 this.UpdateCargoObjects();
             },
             undefined,
@@ -60,26 +57,22 @@ export class CargoView
 
     private UpdateCargoObjects(): void
     {
-        if (!this.cargoModel)
-        {
+        if (!this.cargoModel) {
             return;
         }
 
         this.group.clear();
 
-        const visibleCount = this.baggageStatus === 0
-                ? 0
-                : Math.ceil(this.baggageStatus / 100 * this.maxVisibleCargo);
+        const visibleCount = this.baggageStatus === 0 ? 0 : Math.ceil(this.baggageStatus / 100 * this.maxVisibleCargo);
+        const columns = 5;
 
         for (let index = 0; index < visibleCount; index++)
         {
             const cargo = this.cargoModel.clone(true);
-            const column = index % this.columns;
-            const row = Math.floor(index / this.columns) % this.rows;
-
-            const layer = Math.floor(index /(this.columns * this.rows));
-
-            cargo.position.set(column * 2.2, layer * 2.1, row * 2.2 );
+            cargo.rotation.y = Math.PI;
+            const x = index % columns + 1.5;
+            const z = Math.floor(index / columns) - 3;
+            cargo.position.set(x * 1.1,  1.3,  z * 1.1);
 
             this.group.add(cargo);
         }
