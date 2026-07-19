@@ -171,7 +171,7 @@ type bulletData struct {
 }
 
 func IsPlayer(id types.Entity, getter componentsGetter) bool {
-	return getter.HasComponents(id, "transform") && getter.HasComponents(id, "control") && getter.HasComponents("health")
+	return getter.HasComponents(id, "transform") && getter.HasComponents(id, "control") && getter.HasComponents(id, "health")
 }
 
 func SendPlayer(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
