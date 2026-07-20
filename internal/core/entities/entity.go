@@ -30,7 +30,7 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 		types.Entity(clientID),
 		//components.NewUpdateComponent(),
 		components.NewControlComponent(clientID),
-		components.NewMovementComponent(10),
+		components.NewMovementComponent(10, geometry.GetZeroVector()),
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
 		components.NewHealthComponent(100),
@@ -70,55 +70,56 @@ func NewShip(adder entityAdder) types.Entity {
 	return e
 }
 
-func NewAsteroid(adder entityAdder) types.Entity {
+func NewAsteroid(adder entityAdder, pos geometry.Vec3, radius float64, dir geometry.Vec3, speed float64) types.Entity {
 	e, _ := adder.AddEntity(
 		components.NewTransformComponent(
-			geometry.GetZeroVector(),
-			geometry.GetZeroVector(),
+			pos,
+			dir,
 		),
-		components.NewMovementComponent(10),
+		components.NewMovementComponent(speed, dir),
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
 		components.NewAsteroidComponent(),
 		components.NewColliderComponent(geometry.NewCircleCollider(
-			geometry.Vec3{X: 0, Y: 20, Z: 0},
-			30,
+			pos,
+			radius,
 		)),
 	)
 	return e
 }
 
-func NewCosmoAlien(adder entityAdder, shipID types.Entity) types.Entity {
+func NewCosmoAlien(adder entityAdder, pos geometry.Vec3, shipID types.Entity) types.Entity {
 	e, _ := adder.AddEntity(
 		components.NewTransformComponent(
-			geometry.GetZeroVector(),
+			pos,
 			geometry.GetZeroVector(),
 		),
-		components.NewMovementComponent(10),
+		components.NewMovementComponent(10, geometry.GetZeroVector()),
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
 		components.NewStalkerComponent(shipID),
 		components.NewCosmoAlienComponent(),
 		components.NewColliderComponent(geometry.NewCircleCollider(
-			geometry.Vec3{X: 0, Y: 20, Z: 0},
+			pos,
 			30,
 		)),
+		components.NewMovableComponent(),
 	)
 	return e
 }
 
-func NewBullet(adder entityAdder) types.Entity {
+func NewBullet(adder entityAdder, pos, dir geometry.Vec3) types.Entity {
 	e, _ := adder.AddEntity(
 		components.NewTransformComponent(
-			geometry.GetZeroVector(),
-			geometry.GetZeroVector(),
+			pos,
+			dir,
 		),
 		components.NewBulletComponent(),
-		components.NewMovementComponent(10),
+		components.NewMovementComponent(10, dir),
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
 		components.NewColliderComponent(geometry.NewCircleCollider(
-			geometry.GetZeroVector(),
+			pos,
 			2,
 		)),
 	)
@@ -168,18 +169,20 @@ type bulletData struct {
 	Success  bool          `json:"success"`
 }
 
+type Sendler func(ecs.EntityInfo) error
+
 func IsPlayer(id types.Entity, getter componentsGetter) bool {
 	return getter.HasComponents(id, "transform") && getter.HasComponents(id, "control") && getter.HasComponents(id, "health")
 }
 
-func SendPlayer(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
+func SendPlayer(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
 	c, _ := getter.GetComponent(id, "transform")
 	transform := c.(*components.TransformComponent)
 
 	c, _ = getter.GetComponent(id, "health")
 	hp := c.(*components.HealthComponent)
 
-	broadcaster.SendEntityUpdate(ecs.EntityInfo{
+	broadcaster(ecs.EntityInfo{
 		ID:   id,
 		Type: "player",
 		Data: playerData{
@@ -197,7 +200,7 @@ func IsShip(id types.Entity, getter componentsGetter) bool {
 	return getter.HasComponents(id, "ship")
 }
 
-func SendShip(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
+func SendShip(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
 	c, ok := getter.GetComponent(id, "ship")
 	ship := c.(*components.ShipComponent)
 
@@ -226,7 +229,7 @@ func SendShip(id types.Entity, getter componentsGetter, broadcaster Broadcaster)
 		return errors.New("Не найден необходимый компнонент")
 	}
 
-	broadcaster.SendEntityUpdate(ecs.EntityInfo{
+	broadcaster(ecs.EntityInfo{
 		ID:   id,
 		Type: "ship",
 		Data: shipData{
@@ -250,7 +253,7 @@ func IsVisible(id types.Entity, getter componentsGetter) bool {
 	return aster.Visible
 }
 
-func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
+func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
 	c, ok := getter.GetComponent(id, "asteroid")
 	aster := c.(*components.AsteroidComponent)
 
@@ -272,7 +275,7 @@ func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Broadcas
 		return errors.New("Не найден необходимый компнонент")
 	}
 
-	broadcaster.SendEntityUpdate(ecs.EntityInfo{
+	broadcaster(ecs.EntityInfo{
 		ID:   id,
 		Type: "asteroid",
 		Data: asteroidData{
@@ -284,11 +287,11 @@ func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Broadcas
 	return nil
 }
 
-func IsAlien(id types.Entity, getter componentsGetter) bool {
+func IsCosmoAlien(id types.Entity, getter componentsGetter) bool {
 	return getter.HasComponents(id, "cosmoAlien")
 }
 
-func SendAlien(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
+func SendCosmoAlien(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
 	c, ok := getter.GetComponent(id, "transform")
 	transform := c.(*components.TransformComponent)
 
@@ -303,7 +306,7 @@ func SendAlien(id types.Entity, getter componentsGetter, broadcaster Broadcaster
 		return errors.New("Не найден необходимый компнонент")
 	}
 
-	broadcaster.SendEntityUpdate(ecs.EntityInfo{
+	broadcaster(ecs.EntityInfo{
 		ID:   id,
 		Type: "alien",
 		Data: cosmoAlienData{
@@ -319,19 +322,19 @@ func IsBullet(id types.Entity, getter componentsGetter) bool {
 	return getter.HasComponents(id, "bullet")
 }
 
-func SendBullet(id types.Entity, getter componentsGetter, broadcaster Broadcaster) error {
+func SendBullet(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
 	c, ok := getter.GetComponent(id, "transform")
 	transform := c.(*components.TransformComponent)
 
 	if !ok {
-		return errors.New("Не найден необходимый компнонент")
+		return errors.New("Не найден необходимый компонент")
 	}
 
 	if !ok {
-		return errors.New("Не найден необходимый компнонент")
+		return errors.New("Не найден необходимый компонент")
 	}
 
-	broadcaster.SendEntityUpdate(ecs.EntityInfo{
+	broadcaster(ecs.EntityInfo{
 		ID:   id,
 		Type: "bullet",
 		Data: bulletData{

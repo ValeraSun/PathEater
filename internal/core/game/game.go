@@ -5,6 +5,7 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/systems"
+	"github.com/ValeraSun/PathEater/internal/core/transfer"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
@@ -18,6 +19,10 @@ type systemAdder interface {
 	AddEntityByID(entity types.Entity, components ...types.Component) error
 }
 
+type entityRemover interface {
+	RemoveEntity(entity types.Entity)
+}
+
 type componentsGetter interface {
 	GetEntitiesByComponent(componentType string) map[types.Entity]types.Component
 	HasComponents(entity types.Entity, componentTypes ...string) bool
@@ -26,7 +31,7 @@ type componentsGetter interface {
 
 func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	w := ecs.CreateWorld(broadcaster)
-	initSystems(w, w, w.Broadcaster, w.EventBus)
+	initSystems(w, w, w, w.EventBus, w.Broadcaster, w.EventBus)
 	config.CreateWalls(w)
 
 	createEntities(w)
@@ -36,14 +41,20 @@ func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	return w
 }
 
-func initSystems(adder systemAdder, getter componentsGetter, broadcaster ecs.Broadcaster, subscriber subscriber) {
+func initSystems(adder systemAdder, remover entityRemover, getter componentsGetter, publisher transfer.EventPublisher, broadcaster ecs.Broadcaster, subscriber subscriber) {
 	adder.AddSystem(systems.NewControlSystem(getter, subscriber))
 	adder.AddSystem(systems.NewMovementSystem(getter))
 	adder.AddSystem(systems.NewVelocitySystem(getter))
 	adder.AddSystem(systems.NewTransformSystem(getter))
-	adder.AddSystem(systems.NewCollisionSystem(getter))
+	adder.AddSystem(systems.NewCollisionSystem(getter, publisher))
 	adder.AddSystem(systems.NewRenderSystem(getter, broadcaster))
 	adder.AddSystem(systems.NewCreateSystem(adder, getter, broadcaster, subscriber))
+	adder.AddSystem(systems.NewDeleteSystem(getter, broadcaster, remover, subscriber))
+	adder.AddSystem(systems.NewWeaponSystem(getter, publisher, subscriber))
+	adder.AddSystem(systems.NewShootSystem(getter))
+	adder.AddSystem(systems.NewAsteroidSystem(getter, subscriber))
+	adder.AddSystem(systems.NewShipSystem(getter, subscriber))
+	adder.AddSystem(systems.NewStalkerSystem(getter))
 }
 
 func createEntities(world *ecs.World) {

@@ -29,6 +29,18 @@ var active bool
 
 func (s *AsteroidSystem) Update(dt float32) error {
 	if active {
+		ships := s.getter.GetEntitiesByComponent("ship")
+		var shipId types.Entity
+		for id := range ships {
+			shipId = id
+		}
+
+		c, _ := s.getter.GetComponent(shipId, "transform")
+		trShip := c.(*components.TransformComponent)
+
+		c, _ = s.getter.GetComponent(shipId, "ship")
+		ship := c.(*components.ShipComponent)
+
 		comps := s.getter.GetEntitiesByComponent("asteroid")
 		for id, comp := range comps {
 			aster := comp.(*components.AsteroidComponent)
@@ -38,18 +50,6 @@ func (s *AsteroidSystem) Update(dt float32) error {
 
 			c, _ = s.getter.GetComponent(id, "externalVelocity")
 			ext, _ := comp.(*components.ExternalVelocityComponent)
-
-			ships := s.getter.GetEntitiesByComponent("ship")
-			var shipId types.Entity
-			for id, _ := range ships {
-				shipId = id
-			}
-
-			c, _ = s.getter.GetComponent(shipId, "transform")
-			trShip := c.(*components.TransformComponent)
-
-			c, _ = s.getter.GetComponent(shipId, "ship")
-			ship := c.(*components.ShipComponent)
 
 			ext.Direction = geometry.GetZeroVector().Sub(trShip.Direction.Scale(ship.Speed)).Normalize()
 

@@ -5,17 +5,21 @@ import (
 
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
+	"github.com/ValeraSun/PathEater/internal/core/transfer"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 type WeaponSystem struct {
 	getter     componentsGetter
+	publisher  transfer.EventPublisher
 	eventQueue chan *events.SetWeaponStateEvent
 }
 
-func NewWeaponSystem(getter componentsGetter, subscriber subscriber) *WeaponSystem {
+func NewWeaponSystem(getter componentsGetter, publisher transfer.EventPublisher, subscriber subscriber) *WeaponSystem {
 	s := &WeaponSystem{
 		getter:     getter,
+		publisher:  publisher,
 		eventQueue: make(chan *events.SetWeaponStateEvent, 100),
 	}
 	subscriber.Subscribe("setWeaponState", s.OnEvent)
@@ -47,7 +51,8 @@ func (s *WeaponSystem) handleWeapon(comps map[types.Entity]types.Component) {
 				if e.WeaponState.Shoot {
 					if weap.Ammo > 0 {
 						weap.ShootSuccess = true
-						events.NewShootEvent(weap.Direction, 10)
+						event := events.NewCreateBulletEvent(BulletPos(weap.Direction), weap.Direction)
+						s.publisher.Publish(event)
 						weap.Ammo--
 					} else {
 						weap.ShootSuccess = false
@@ -58,6 +63,10 @@ func (s *WeaponSystem) handleWeapon(comps map[types.Entity]types.Component) {
 			return
 		}
 	}
+}
+
+func BulletPos(dir geometry.Vec3) geometry.Vec3 {
+	return dir.Scale(1.5)
 }
 
 func (s *WeaponSystem) OnEvent(event events.Event) error {

@@ -1,6 +1,8 @@
 package components
 
-import "github.com/ValeraSun/PathEater/internal/core/geometry"
+import (
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
+)
 
 type ColliderComponent struct {
 	Collider geometry.Collider
@@ -19,4 +21,14 @@ func NewColliderComponent(collider geometry.Collider) *ColliderComponent {
 func (c *ColliderComponent) Collide(other *ColliderComponent) (geometry.Vec3, bool) {
 	result := c.Collider.Collide(other.Collider)
 	return result.MTV, result.HasCollision
+}
+
+type MovableComponent struct{}
+
+func (*MovableComponent) Type() string {
+	return "movable"
+}
+
+func NewMovableComponent() *MovableComponent {
+	return &MovableComponent{}
 }

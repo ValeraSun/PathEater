@@ -11,9 +11,10 @@ func (*MovementComponent) Type() string {
 	return "movement"
 }
 
-func NewMovementComponent(speed float64) *MovementComponent {
+func NewMovementComponent(speed float64, dir geometry.Vec3) *MovementComponent {
 	return &MovementComponent{
-		Speed: speed,
+		Speed:     speed,
+		Direction: dir,
 	}
 }
 

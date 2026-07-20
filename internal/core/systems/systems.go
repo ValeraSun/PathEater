@@ -32,5 +32,5 @@ type subscriber interface {
 }
 
 type publisher interface {
-	Subscribe(eventType string, handler events.EventHandler) (func(), error)
+	Publish(event events.Event) error
 }
