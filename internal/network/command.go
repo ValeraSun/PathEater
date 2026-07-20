@@ -193,7 +193,7 @@ func (s Sendler) SendEntityUpdate(entityInfo ecs.EntityInfo) error {
 
 	s.room.SendToAll("UpdateEntity", payload)
 
-	fmt.Printf("Отправлено update в room %v сообщение: %+v\n", s.room.ID, info)
+	//fmt.Printf("Отправлено update в room %v сообщение: %+v\n", s.room.ID, info)
 	return nil
 }
 

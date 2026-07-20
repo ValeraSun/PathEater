@@ -33,7 +33,6 @@ func (c *ControlComponent) Reset() {
 	c.MoveBack = false
 	c.Interact = false
 	c.Attack = false
-	c.Direction = geometry.GetZeroVector()
 
 }
 func (c *ControlComponent) Superimpose(state *events.PlayerState) {

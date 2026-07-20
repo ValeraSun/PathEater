@@ -68,7 +68,6 @@ export class GameServerGateway {
         });
 
         this.wsClient.on("UpdateEntity", (payload: EntityUpdateInfo) => { 
-            console.dir(payload)
             if (!this.isValidEntityCreateInfo(payload)) return;          
             this.entityManager.UpdateEntity(payload.id, payload.type, payload.data);
         });

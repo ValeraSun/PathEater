@@ -5,7 +5,7 @@ export class PlayerView
     constructor() 
     {
         this.mesh = new THREE.Mesh(
-            new THREE.CapsuleGeometry(0.7, 1),
+            new THREE.CapsuleGeometry(1, 1),
             new THREE.MeshStandardMaterial({color: 0x00ff00})
         );
     }

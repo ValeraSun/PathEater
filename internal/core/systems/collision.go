@@ -2,8 +2,11 @@ package systems
 
 import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
+
+const maxTransform = 5
 
 type CollisionSystem struct {
 	getter     componentsGetter
@@ -17,63 +20,73 @@ func NewCollisionSystem(getter componentsGetter) *CollisionSystem {
 	}
 }
 func (s *CollisionSystem) Update(dt float32) error {
-	comps := s.getter.GetEntitiesByComponent("collider")
+	collidersRaw := s.getter.GetEntitiesByComponent("collider")
 
-	type entityData struct {
-		id        types.Entity
-		collider  *components.ColliderComponent
+	colliders := make([](*components.ColliderComponent), 0, len(collidersRaw))
+
+	for id, collider := range collidersRaw {
+		if !s.getter.HasComponents(id, "movable") {
+			c, _ := collider.(*components.ColliderComponent)
+
+			colliders = append(colliders, c)
+		}
+
+	}
+
+	type movable struct {
 		transform *components.TransformComponent
+		collider  *components.ColliderComponent
 	}
 
-	entities := make([]entityData, 0, len(comps))
+	movables := make([]movable, 0, maxTransform)
 
-	for id, comp := range comps {
-		collider, ok := comp.(*components.ColliderComponent)
-		if !ok || collider == nil {
-			continue
-		}
-
-		ed := entityData{
-			id:       id,
-			collider: collider,
-		}
-
-		if s.getter.HasComponents(id, "transform") {
+	for id, collider := range collidersRaw {
+		if s.getter.HasComponents(id, "transform", "movable") {
 			c, _ := s.getter.GetComponent(id, "transform")
-			if transform, ok := c.(*components.TransformComponent); ok {
-				ed.transform = transform
+			t, _ := c.(*components.TransformComponent)
 
-				collider.Collider.ChangeCenter(transform.Position)
-			}
+			col, _ := collider.(*components.ColliderComponent)
+
+			col.Collider.ChangeCenter(t.Position) //Сразу меняем центр коллайдера
+
+			movables = append(movables, movable{
+				transform: t,
+				collider:  col,
+			})
 		}
-
-		entities = append(entities, ed)
 	}
 
-	for i := 0; i < len(entities); i++ {
-		for j := i + 1; j < len(entities); j++ {
-			e1, e2 := entities[i], entities[j]
+	for i := 0; i < len(movables); i++ {
+		for j := i + 1; j < len(movables); j++ {
 
-			mtv, isColliding := e1.collider.Collide(e2.collider)
+			mtv, isColliding := movables[i].collider.Collide(movables[j].collider)
+
 			if !isColliding {
 				continue
 			}
 
 			mtv.Y = 0
-			switch {
-			case e1.transform != nil && e2.transform != nil:
+			movables[i].transform.Position = movables[i].transform.Position.Add(mtv.Scale(0.5))
+			movables[j].transform.Position = movables[j].transform.Position.Add(mtv.Scale(-0.5))
 
-				e1.transform.Position = e1.transform.Position.Add(mtv.Scale(0.5))
-				e2.transform.Position = e2.transform.Position.Add(mtv.Scale(-0.5))
+		}
+	}
 
-			case e1.transform != nil:
+	for _, m := range movables {
+		m.collider.PrivMTV = geometry.Vec3{}
+		for _, c := range colliders {
 
-				e1.transform.Position = e1.transform.Position.Add(mtv)
+			mtv, isColliding := m.collider.Collide(c)
 
-			case e2.transform != nil:
+			if !isColliding || mtv.IsZero() {
+				continue
 
-				e2.transform.Position = e2.transform.Position.Add(mtv.Scale(-1))
 			}
+
+			mtv.Y = 0
+
+			m.transform.Position = m.transform.Position.Add(mtv)
+			m.collider.PrivMTV = mtv.Scale(float64(1 / dt))
 		}
 	}
 

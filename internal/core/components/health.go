@@ -7,6 +7,7 @@ type HealthComponent struct {
 
 func NewHealthComponent(maxHealth int) *HealthComponent {
 	return &HealthComponent{
+		Health:    maxHealth,
 		MaxHealth: maxHealth,
 	}
 }

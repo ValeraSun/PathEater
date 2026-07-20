@@ -8,6 +8,9 @@ type Vec3 struct {
 	Z float64 `json:"z"`
 }
 
+func (v *Vec3) IsZero() bool {
+	return v.X == 0 && v.Y == 0 && v.Z == 0
+}
 func GetZeroVector() Vec3 {
 	return Vec3{
 		X: 0,
@@ -35,13 +38,6 @@ func (v Vec3) Cross(u Vec3) Vec3 {
 	return Vec3{v.Y*u.Z - v.Z*u.Y, v.Z*u.X - v.X*u.Z, v.X*u.Y - v.Y*u.X}
 }
 
-// func abs(f float64) float64 {
-// 	if f < 0 {
-// 		return -f
-// 	}
-// 	return f
-// }
-
 func CombineVectors(direction, controlInput Vec3) Vec3 {
 	if controlInput.X == 0 && controlInput.Y == 0 && controlInput.Z == 0 {
 		return Vec3{}
@@ -49,23 +45,37 @@ func CombineVectors(direction, controlInput Vec3) Vec3 {
 
 	forward := direction
 
-	// right — перпендикуляр к forward в плоскости forward-worldUp
 	worldUp := Vec3{0, 1, 0}
 	right := worldUp.Cross(forward).Normalize()
 
-	// Если forward параллелен worldUp (корабль смотрит строго вверх/вниз)
 	if right.X == 0 && right.Y == 0 && right.Z == 0 {
-		worldUp = Vec3{0, 0, 1} // берём другую ось как up
+		worldUp = Vec3{0, 0, 1}
 		right = worldUp.Cross(forward).Normalize()
 	}
 
-	// up — перпендикуляр к forward и right
 	up := forward.Cross(right)
 
-	// Глобальный вектор = right*X + up*Y + forward*Z
 	return Vec3{
 		right.X*controlInput.X + up.X*controlInput.Y + forward.X*controlInput.Z,
 		right.Y*controlInput.X + up.Y*controlInput.Y + forward.Y*controlInput.Z,
 		right.Z*controlInput.X + up.Z*controlInput.Y + forward.Z*controlInput.Z,
 	}
+}
+
+func AngleBetween(a, b Vec3) float64 {
+	dot := a.Dot(b)
+	lenA := a.Length()
+	lenB := b.Length()
+
+	if lenA == 0 || lenB == 0 {
+		return 0
+	}
+
+	cosTheta := dot / (lenA * lenB)
+
+	return math.Acos(cosTheta)
+}
+
+func AngleBetweenDegrees(a, b Vec3) float64 {
+	return AngleBetween(a, b) * 180 / math.Pi
 }

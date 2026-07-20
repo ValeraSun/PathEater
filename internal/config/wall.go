@@ -68,7 +68,7 @@ func CreateWalls(adder entityAdder) {
 			components.NewColliderComponent(geometry.NewBoxCollider(
 				wall.Center,
 				wall.HalfExtents,
-				wall.Quaternion)),
+				wall.Quaternion.ToRotationMatrix())),
 		)
 	}
 }

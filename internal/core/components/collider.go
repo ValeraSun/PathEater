@@ -4,6 +4,7 @@ import "github.com/ValeraSun/PathEater/internal/core/geometry"
 
 type ColliderComponent struct {
 	Collider geometry.Collider
+	PrivMTV  geometry.Vec3
 }
 
 func (*ColliderComponent) Type() string {
