@@ -98,8 +98,8 @@ type playerData struct {
 }
 
 type shipData struct {
-    BaggageStatus int `json:"baggageStatus"`
-    Health        int `json:"health"`
+	BaggageStatus int `json:"baggageStatus"`
+	Health        int `json:"health"`
 }
 
 type alienData struct {
@@ -181,7 +181,7 @@ func SendAlien(id types.Entity, getter componentsGetter, broadcaster Sendler) er
 
 	broadcaster(ecs.EntityInfo{
 		ID:   id,
-		Type: "alien",
+		Type: "player",
 		Data: alienData{
 			Position: transform.Position,
 			Rotation: ai.Direction,
