@@ -4,24 +4,43 @@ import { SpaceView } from "./SpaceView";
 import { WindowResize } from "../Utils/WindowResize";
 import { PlayerView } from "./PlayerView";
 import { ComputerView } from "./ComputerView";
+import { HealthbarView } from "./HealthbarView";
 
-export class GameView 
+export class GameView
 {
-    public Render(): void 
+    private scene: THREE.Scene;
+    private camera: THREE.PerspectiveCamera;
+    private renderer: THREE.WebGLRenderer;
+    private healthView = new HealthbarView();
+
+    private shipView: ShipView;
+    private spaceView: SpaceView;
+    private computerView: ComputerView;
+
+    public constructor()
     {
-        this.renderer.render(this.scene, this.camera);
+        this.scene = new THREE.Scene();
+
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        this.renderer = new THREE.WebGLRenderer({antialias: true});
+
+        this.shipView = new ShipView();
+        this.spaceView = new SpaceView();
+        this.computerView = new ComputerView();
     }
 
-    public Init(): void 
+    public Init(): void
     {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+
         const container = document.getElementById("app");
+
         container?.appendChild(this.renderer.domElement);
 
         this.camera.position.set(0, 5, 12);
         this.camera.lookAt(0, 0, 1);
-
-        this.addLights();
+        this.AddLights();
 
         this.scene.add(this.spaceView.GetObject());
         this.scene.add(this.shipView.GetObject());
@@ -30,49 +49,57 @@ export class GameView
         WindowResize.Handle(this.camera, this.renderer);
     }
 
-    public AttachPlayerView(playerView: PlayerView): void {
+    public Render(): void
+    {
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    public AttachPlayerView(playerView: PlayerView): void
+    {
         this.scene.add(playerView.mesh);
     }
 
-    public GetCamera(): THREE.PerspectiveCamera 
+    public GetCamera(): THREE.PerspectiveCamera
     {
         return this.camera;
     }
 
-    public GetScene(): THREE.Scene 
+    public GetScene(): THREE.Scene
     {
         return this.scene;
     }
 
-    public GetRendererDomElement(): HTMLCanvasElement 
+    public GetRendererDomElement(): HTMLCanvasElement
     {
         return this.renderer.domElement;
     }
 
-    public GetComputerView(): ComputerView 
+    public GetComputerView(): ComputerView
     {
         return this.computerView;
     }
 
-    private scene: THREE.Scene;
-    private camera: THREE.PerspectiveCamera;
-    private renderer: THREE.WebGLRenderer;
-
-    private shipView: ShipView;
-    private spaceView: SpaceView;
-    private computerView: ComputerView;
-
-    constructor() 
+    public GetShipView(): ShipView
     {
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.renderer = new THREE.WebGLRenderer({antialias: true,});
-        this.shipView = new ShipView();
-        this.spaceView = new SpaceView();
-        this.computerView = new ComputerView();
+        return this.shipView;
     }
 
-    private addLights(): void 
+    public SetPlayerHealth(health: number): void
+    {
+        this.healthView.SetHealth(health);
+    }
+
+    public ShowPlayerHealth(): void
+    {
+        this.healthView.Show();
+    }
+
+    public HidePlayerHealth(): void
+    {
+        this.healthView.Hide();
+    }
+
+    private AddLights(): void
     {
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         this.scene.add(ambientLight);
@@ -84,5 +111,5 @@ export class GameView
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
         directionalLight.position.set(10, 10, 10);
         this.scene.add(directionalLight);
-    }  
+    }
 }

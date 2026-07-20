@@ -98,8 +98,8 @@ type playerData struct {
 }
 
 type shipData struct {
-	baggageStatus int
-	health        int
+    BaggageStatus int `json:"baggageStatus"`
+    Health        int `json:"health"`
 }
 
 type alienData struct {
@@ -133,15 +133,15 @@ func SendShip(id types.Entity, getter componentsGetter, broadcaster Sendler) err
 		ID:   id,
 		Type: "ship",
 		Data: shipData{
-			baggageStatus: ship.StatusBag,
-			health:        hp.Health,
+			BaggageStatus: ship.StatusBag,
+			Health:        hp.Health,
 		}})
 
 	return nil
 }
 
 func IsPlayer(id types.Entity, getter componentsGetter) bool {
-	return getter.HasComponents(id, "transform") && getter.HasComponents(id, "control") && getter.HasComponents("health")
+	return getter.HasComponents(id, "transform") && getter.HasComponents(id, "control") && getter.HasComponents(id, "health")
 }
 
 func SendPlayer(id types.Entity, getter componentsGetter, broadcaster Sendler) error {

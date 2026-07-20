@@ -46,6 +46,8 @@ export class PlayerController {
 
     public Update(dt: number): void {
         this.syncViewWithModel();
+        this.updateAnimation();
+        this.playerView.AdvanceAnimation(dt);
         this.updateNetwork(dt);
     }
 
@@ -62,6 +64,17 @@ export class PlayerController {
         if (this.networkAccumulator < this.networkInterval) return;
         this.networkAccumulator %= this.networkInterval;
         this.sendPlayerState();
+    }
+
+    private updateAnimation(): void {
+        const isMoving = !this.inputLocked && (
+            this.input.IsKeyDown("KeyW") ||
+            this.input.IsKeyDown("KeyA") ||
+            this.input.IsKeyDown("KeyS") ||
+            this.input.IsKeyDown("KeyD")
+        );
+
+        this.playerView.SetMoving(isMoving);
     }
 
     private sendPlayerState(): void {

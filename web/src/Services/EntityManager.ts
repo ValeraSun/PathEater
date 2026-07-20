@@ -1,5 +1,9 @@
 import * as THREE from "three";
 import { PlayerView } from "../Views/PlayerView";
+import {
+    ShipView,
+    type ShipStateData
+} from "../Views/ShipView";
 
 export interface EntityTransformData {
     position?: {
@@ -8,7 +12,13 @@ export interface EntityTransformData {
         z: number;
     };
 
-    rotationY?: number;
+    rotation?: {
+        x: number;
+        y: number;
+        z: number;
+    };
+
+    health: number;
 }
 
 interface EntityRecord {
@@ -19,55 +29,76 @@ interface EntityRecord {
     targetRotationY: number;
 }
 
-// interface SnapshotEntity {
-//     id: string;
-//     type: string;
-//     data: EntityTransformData;
-// }
-
 const NETWORK_LERP_SPEED = 12;
 
-export class EntityManager {
-    private scene: THREE.Scene;
-    private entities = new Map<string, EntityRecord>();
-    private localPlayerId: string | null = null;
-    private onLocalPlayerUpdate: ((data: EntityTransformData) => void) | null = null;
-    public SetLocalPlayerUpdateHandler(handler: (data: EntityTransformData) => void): void {
-        this.onLocalPlayerUpdate = handler;
-    }
+export class EntityManager
+{
+    private readonly scene: THREE.Scene;
+    private readonly entities = new Map<string, EntityRecord>();
 
-    public constructor(scene: THREE.Scene) {
+    private localPlayerId: string | null = null;
+    private shipView: ShipView | null = null;
+    private onLocalPlayerUpdate: ((data: EntityTransformData) => void) | null = null;
+
+    public constructor(scene: THREE.Scene)
+    {
         this.scene = scene;
     }
 
-    public SetLocalPlayerId(id: string): void {
+    public SetLocalPlayerUpdateHandler(handler: (data: EntityTransformData) => void): void
+    {
+        this.onLocalPlayerUpdate = handler;
+    }
+
+    public SetShipView(shipView: ShipView): void
+    {
+        this.shipView = shipView;
+    }
+
+    public SetLocalPlayerId(id: string): void
+    {
         this.localPlayerId = id;
         this.DeleteEntity(id);
     }
 
-    public CreateEntity(id: string, type: string, data: any): void {
-        if (id === this.localPlayerId) {
-            this.onLocalPlayerUpdate?.(data);
+    public CreateEntity(id: string, type: string, data: unknown): void
+    {
+        if (type === "ship")
+        {
+            this.UpdateShip(data);
             return;
         }
- 
+
+        if (id === this.localPlayerId)
+        {
+            this.onLocalPlayerUpdate?.(data as EntityTransformData);
+
+            return;
+        }
+
         const existing = this.entities.get(id);
- 
-        if (existing) {
+
+        if (existing)
+        {
             this.UpdateEntity(id, type, data);
+
             return;
         }
- 
-        const object = this.createObject(type);
- 
-        if (!object) {
+
+        const object = this.CreateObject(type);
+
+        if (!object)
+        {
             console.warn(`Невозможно создать сущность неизвестного типа: ${type}`);
+
             return;
         }
- 
-        this.applyTransform(object, data);
+
+        const transformData = data as EntityTransformData;
+
+        this.ApplyTransform(object, transformData);
+
         this.scene.add(object);
- 
         this.entities.set(id, {
             id,
             type,
@@ -77,150 +108,259 @@ export class EntityManager {
         });
     }
 
-    public UpdateEntity(id: string, _: string, data: any): void {
-        if (id === this.localPlayerId) {
-            this.onLocalPlayerUpdate?.(data);
+    public UpdateEntity(id: string, type: string, data: unknown): void
+    {
+        if (type === "ship")
+        {
+            this.UpdateShip(data);
             return;
         }
- 
+
+        if (id === this.localPlayerId)
+        {
+            this.onLocalPlayerUpdate?.(data as EntityTransformData);
+
+            return;
+        }
+
         const entity = this.entities.get(id);
 
-        if (typeof entity === 'undefined') {
-            return 
+        if (!entity)
+        {
+            this.CreateEntity(id, type, data);
+
+            return;
         }
- 
-        this.setTarget(entity, data);
+
+        this.SetTarget(entity, data as EntityTransformData);
     }
 
-    public DeleteEntity(id: string): void {
+    public DeleteEntity(id: string): void
+    {
         const entity = this.entities.get(id);
- 
-        if (!entity) {
+
+        if (!entity)
+        {
             return;
         }
- 
+
         this.scene.remove(entity.object);
-        this.disposeObject(entity.object);
+        this.DisposeObject(entity.object);
         this.entities.delete(id);
     }
 
-    // public ApplySnapshot(entities: SnapshotEntity[]): void {
-    //     const receivedIds = new Set(
-    //         entities.map(entity => entity.id)
-    //     );
-
-    //     for (const id of [...this.entities.keys()]) {
-    //         if (!receivedIds.has(id)) {
-    //             this.DeleteEntity(id);
-    //         }
-    //     }
-
-    //     for (const entity of entities) {
-    //         this.CreateEntity(
-    //             entity.id,
-    //             entity.type,
-    //             entity.data
-    //         );
-    //     }
-    // }
-
-    public Clear(): void 
+    public Clear(): void
     {
-        for (const id of [...this.entities.keys()]) {
+        for (const id of this.entities.keys())
+        {
             this.DeleteEntity(id);
         }
     }
 
-    public Update(dt: number): void {
-        const t = 1 - Math.exp(-NETWORK_LERP_SPEED * dt);
- 
-        for (const entity of this.entities.values()) {
-            entity.object.position.lerp(entity.targetPosition, t);
- 
-            entity.object.rotation.y = this.lerpAngle(
+    public Update(dt: number): void
+    {
+        const interpolation =
+            1 -
+            Math.exp(
+                -NETWORK_LERP_SPEED * dt
+            );
+
+        for (
+            const entity of
+            this.entities.values()
+        )
+        {
+            entity.object.position.lerp(
+                entity.targetPosition,
+                interpolation
+            );
+
+            entity.object.rotation.y = this.LerpAngle(
                 entity.object.rotation.y,
                 entity.targetRotationY,
-                t
+                interpolation
             );
         }
     }
 
-    public GetEntity(id: string): THREE.Object3D | null {
-        return this.entities.get(id)?.object ?? null;
+    public GetEntity(
+        id: string
+    ): THREE.Object3D | null
+    {
+        return (
+            this.entities.get(id)?.object ??
+            null
+        );
     }
 
-    private setTarget(entity: EntityRecord, data: EntityTransformData): void {
-        if (data.position) {
+    private UpdateShip(data: unknown): void
+    {
+        if (!this.shipView)
+        {
+            console.warn(
+                "ShipView не установлен в EntityManager"
+            );
+
+            return;
+        }
+
+        if (!this.IsShipStateData(data))
+        {
+            console.warn(
+                "Получено некорректное состояние корабля",
+                data
+            );
+
+            return;
+        }
+
+        this.shipView.UpdateState(data);
+    }
+
+    private IsShipStateData(
+        data: unknown
+    ): data is ShipStateData
+    {
+        if (
+            !data ||
+            typeof data !== "object"
+        )
+        {
+            return false;
+        }
+
+        const state =
+            data as Record<string, unknown>;
+
+        const baggageIsValid =
+            state.baggageStatus === undefined ||
+            typeof state.baggageStatus ===
+                "number";
+
+        const healthIsValid =
+            state.health === undefined ||
+            typeof state.health === "number";
+
+        return baggageIsValid && healthIsValid;
+    }
+
+    private SetTarget(entity: EntityRecord, data: EntityTransformData): void
+    {
+        if (data.position)
+        {
             entity.targetPosition.set(
                 data.position.x,
                 data.position.y,
                 data.position.z
             );
         }
- 
-        if (typeof data.rotationY === "number") {
-            entity.targetRotationY = data.rotationY;
+
+        if (data.rotation)
+        {
+            entity.targetRotationY = this.DirectionToYaw(data.rotation);
         }
     }
- 
-    private createObject(type: string): THREE.Object3D | null {
-        switch (type) {
-            case "player": {
-                const playerView = new PlayerView();
+
+    private CreateObject(
+        type: string
+    ): THREE.Object3D | null
+    {
+        switch (type)
+        {
+            case "player":
+            {
+                const playerView =
+                    new PlayerView();
+
                 return playerView.mesh;
             }
+
             case "monster":
-                return this.CreateBox(0xff0000);
+                return this.CreateBox(
+                    0xff0000
+                );
+
             case "door":
-                return this.CreateBox(0x4444ff);
+                return this.CreateBox(
+                    0x4444ff
+                );
+
             case "cargo":
-                return this.CreateBox(0xffaa00);
+                return this.CreateBox(
+                    0xffaa00
+                );
+
             default:
                 return null;
         }
     }
 
-    private applyTransform(
-        object: THREE.Object3D,
-        data: EntityTransformData
-    ): void {
-        if (data.position) {
-            object.position.set(
-                data.position.x,
-                data.position.y,
-                data.position.z
-            );
+    private ApplyTransform(object: THREE.Object3D, data: EntityTransformData): void
+    {
+        if (data.position)
+        {
+            object.position.set(data.position.x, data.position.y, data.position.z);
         }
-        if (typeof data.rotationY === "number") {
-            object.rotation.y = data.rotationY;
+
+        if (data.rotation)
+        {
+            object.rotation.y = this.DirectionToYaw(data.rotation);
         }
     }
 
-    private lerpAngle(a: number, b: number, t: number): number {
-        const delta = Math.atan2(Math.sin(b - a), Math.cos(b - a));
-        return a + delta * t;
+    private DirectionToYaw(dir: { x: number; y: number; z: number }): number
+    {
+        return Math.atan2(dir.x, dir.z);
     }
- 
-    private disposeObject(object: THREE.Object3D): void {
-        object.traverse(child => {
-            if (!(child instanceof THREE.Mesh)) {
+
+    private LerpAngle(current: number, target: number, t: number): number {
+        const delta = Math.atan2(Math.sin(target - current), Math.cos(target - current));
+        return current + delta * t;
+    }
+
+    private DisposeObject(
+        object: THREE.Object3D
+    ): void
+    {
+        object.traverse(child =>
+        {
+            if (!(child instanceof THREE.Mesh))
+            {
                 return;
             }
+
             child.geometry.dispose();
-            if (Array.isArray(child.material)) {
-                for (const material of child.material) {
+
+            if (Array.isArray(child.material))
+            {
+                for (
+                    const material of
+                    child.material
+                )
+                {
                     material.dispose();
                 }
-            } else {
+            }
+            else
+            {
                 child.material.dispose();
             }
         });
     }
 
-    private CreateBox(color: number): THREE.Mesh {
+    private CreateBox(
+        color: number
+    ): THREE.Mesh
+    {
         return new THREE.Mesh(
-            new THREE.BoxGeometry(1, 1, 1),
-            new THREE.MeshStandardMaterial({ color })
+            new THREE.BoxGeometry(
+                1,
+                1,
+                1
+            ),
+            new THREE.MeshStandardMaterial({
+                color
+            })
         );
     }
 }

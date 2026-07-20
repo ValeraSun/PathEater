@@ -6,7 +6,10 @@ type DamageAreaComponent struct {
 }
 
 func NewDamageAreaComponent(maxHealth int) *DamageAreaComponent {
-	return &DamageAreaComponent{}
+	return &DamageAreaComponent{
+		Health:    maxHealth,
+		MaxHealth: maxHealth,
+	}
 }
 
 func (*DamageAreaComponent) Type() string { return "damageArea" }
