@@ -1,6 +1,6 @@
 export class HealthbarView
 {
-    private readonly image: HTMLImageElement;
+    private image: HTMLImageElement;
 
     public constructor()
     {
@@ -33,8 +33,7 @@ export class HealthbarView
         else if (health >= 20)
             state = 20;
 
-        this.image.src =
-            `/images/health_${state}.png`;
+        this.image.src = `/images/health_${state}.png`;
     }
 
     public Show(): void
