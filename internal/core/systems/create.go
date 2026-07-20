@@ -49,7 +49,7 @@ func (s *CreateSystem) drainEvents() error {
 			case "createAlien":
 				c, _ := e.(*events.CreateAlienEvent)
 				alien := entities.NewAlien(s.adder, c.Position)
-				err = entities.SendPlayer(alien, s.getter, s.broadcaster.SendEntityCreate)
+				err = entities.SendAlien(alien, s.getter, s.broadcaster.SendEntityCreate)
 			}
 
 			if err != nil {

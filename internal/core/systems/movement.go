@@ -19,6 +19,7 @@ func (s *MovementSystem) Update(dt float32) error {
 
 	for id, comp := range comps {
 		movement, _ := comp.(*components.MovementComponent)
+
 		if s.getter.HasComponents(id, "control") && !s.getter.HasComponents(id, "ai") {
 			c, _ := s.getter.GetComponent(id, "control")
 			control, _ := c.(*components.ControlComponent)

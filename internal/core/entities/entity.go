@@ -102,6 +102,13 @@ type shipData struct {
 	health        int
 }
 
+type alienData struct {
+	Position geometry.Vec3 `json:"position"`
+	Rotation geometry.Vec3 `json:"rotation"`
+	Health   int           `json:"health"`
+	Dead     bool          `json:"dead"`
+}
+
 type Sendler func(ecs.EntityInfo) error
 
 func IsShip(id types.Entity, getter componentsGetter) bool {
@@ -141,6 +148,9 @@ func SendPlayer(id types.Entity, getter componentsGetter, broadcaster Sendler) e
 	c, _ := getter.GetComponent(id, "transform")
 	transform := c.(*components.TransformComponent)
 
+	c, _ = getter.GetComponent(id, "control")
+	control := c.(*components.ControlComponent)
+
 	c, _ = getter.GetComponent(id, "health")
 	hp := c.(*components.HealthComponent)
 
@@ -149,7 +159,7 @@ func SendPlayer(id types.Entity, getter componentsGetter, broadcaster Sendler) e
 		Type: "player",
 		Data: playerData{
 			Position: transform.Position,
-			Rotation: transform.Direction,
+			Rotation: control.Direction,
 			Health:   hp.Health,
 		},
 	},
@@ -163,12 +173,20 @@ func SendAlien(id types.Entity, getter componentsGetter, broadcaster Sendler) er
 	c, _ := getter.GetComponent(id, "transform")
 	transform := c.(*components.TransformComponent)
 
+	c, _ = getter.GetComponent(id, "ai")
+	ai := c.(*components.AIComponent)
+
+	c, _ = getter.GetComponent(id, "health")
+	hp := c.(*components.HealthComponent)
+
 	broadcaster(ecs.EntityInfo{
 		ID:   id,
 		Type: "alien",
-		Data: playerData{
+		Data: alienData{
 			Position: transform.Position,
-			Rotation: transform.Direction,
+			Rotation: ai.Direction,
+			Health:   hp.Health,
+			Dead:     hp.Health == 0,
 		},
 	},
 	)

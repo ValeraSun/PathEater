@@ -27,7 +27,7 @@ func (s *RenderSystem) Update(dt float32) error {
 		case entities.IsShip(id, s.getter):
 			err = entities.SendShip(id, s.getter, s.broadcaster.SendEntityUpdate)
 		case s.getter.HasComponents(id, "ai"):
-			err = entities.SendPlayer(id, s.getter, s.broadcaster.SendEntityUpdate)
+			err = entities.SendAlien(id, s.getter, s.broadcaster.SendEntityUpdate)
 		}
 
 		if err != nil {
