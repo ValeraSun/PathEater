@@ -22,6 +22,12 @@ func (s *TransformSystem) Update(dt float32) error {
 			velocity, _ := c.(*components.VelocityComponent)
 			transform.Position = transform.Position.Add(velocity.GetTotalVelocity())
 		}
+
+		if s.getter.HasComponents(id, "control") {
+			c, _ := s.getter.GetComponent(id, "control")
+			control, _ := c.(*components.ControlComponent)
+			transform.Direction = control.Direction
+		}
 	}
 
 	return nil

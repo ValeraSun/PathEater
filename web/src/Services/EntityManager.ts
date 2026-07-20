@@ -12,7 +12,12 @@ export interface EntityTransformData {
         z: number;
     };
 
-    rotationY?: number;
+    rotation?: {
+        x: number;
+        y: number;
+        z: number;
+    };
+
     health: number;
 }
 
@@ -170,12 +175,11 @@ export class EntityManager
                 interpolation
             );
 
-            entity.object.rotation.y =
-                this.LerpAngle(
-                    entity.object.rotation.y,
-                    entity.targetRotationY,
-                    interpolation
-                );
+            entity.object.rotation.y = this.LerpAngle(
+                entity.object.rotation.y,
+                entity.targetRotationY,
+                interpolation
+            );
         }
     }
 
@@ -240,10 +244,7 @@ export class EntityManager
         return baggageIsValid && healthIsValid;
     }
 
-    private SetTarget(
-        entity: EntityRecord,
-        data: EntityTransformData
-    ): void
+    private SetTarget(entity: EntityRecord, data: EntityTransformData): void
     {
         if (data.position)
         {
@@ -254,13 +255,9 @@ export class EntityManager
             );
         }
 
-        if (
-            typeof data.rotationY ===
-            "number"
-        )
+        if (data.rotation)
         {
-            entity.targetRotationY =
-                data.rotationY;
+            entity.targetRotationY = this.DirectionToYaw(data.rotation);
         }
     }
 
@@ -298,45 +295,27 @@ export class EntityManager
         }
     }
 
-    private ApplyTransform(
-        object: THREE.Object3D,
-        data: EntityTransformData
-    ): void
+    private ApplyTransform(object: THREE.Object3D, data: EntityTransformData): void
     {
         if (data.position)
         {
-            object.position.set(
-                data.position.x,
-                data.position.y,
-                data.position.z
-            );
+            object.position.set(data.position.x, data.position.y, data.position.z);
         }
 
-        if (
-            typeof data.rotationY ===
-            "number"
-        )
+        if (data.rotation)
         {
-            object.rotation.y =
-                data.rotationY;
+            object.rotation.y = this.DirectionToYaw(data.rotation);
         }
     }
 
-    private LerpAngle(
-        current: number,
-        target: number,
-        interpolation: number
-    ): number
+    private DirectionToYaw(dir: { x: number; y: number; z: number }): number
     {
-        const delta = Math.atan2(
-            Math.sin(target - current),
-            Math.cos(target - current)
-        );
+        return Math.atan2(dir.x, dir.z);
+    }
 
-        return (
-            current +
-            delta * interpolation
-        );
+    private LerpAngle(current: number, target: number, t: number): number {
+        const delta = Math.atan2(Math.sin(target - current), Math.cos(target - current));
+        return current + delta * t;
     }
 
     private DisposeObject(
