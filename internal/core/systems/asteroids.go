@@ -13,12 +13,14 @@ const displaySize = 200
 
 type AsteroidSystem struct {
 	getter     componentsGetter
+	publisher  publisher
 	eventQueue chan *events.MeteoriteZoneEvent
 }
 
-func NewAsteroidSystem(getter componentsGetter, subscriber subscriber) *AsteroidSystem {
+func NewAsteroidSystem(getter componentsGetter, publisher publisher, subscriber subscriber) *AsteroidSystem {
 	s := &AsteroidSystem{
 		getter:     getter,
+		publisher:  publisher,
 		eventQueue: make(chan *events.MeteoriteZoneEvent, 100),
 	}
 	subscriber.Subscribe("meteoriteZone", s.OnEvent)
@@ -56,6 +58,12 @@ func (s *AsteroidSystem) Update(dt float32) error {
 			x := transform.Position.X
 			y := transform.Position.Y
 			aster.Visible = x >= -displaySize/2 && x <= displaySize/2 && y >= -displaySize/2 && y <= displaySize/2
+			aster.OnField = x >= -(displaySize + 100)/2 && x <= (displaySize + 100)/2 && y >= -(displaySize + 100)/2 && y <= (displaySize + 100)/2
+
+			if !aster.OnField {
+				e := events.NewDeleteAsteroidEvent(id)
+				s.publisher.Publish(e)
+			}
 		}
 
 		//спавн астероидов

@@ -2,6 +2,7 @@ package components
 
 type BulletComponent struct {
 	Visible bool
+	OnField bool
 }
 
 func (*BulletComponent) Type() string {
@@ -11,5 +12,6 @@ func (*BulletComponent) Type() string {
 func NewBulletComponent() *BulletComponent {
 	return &BulletComponent{
 		Visible: true,
+		OnField: true,
 	}
 }

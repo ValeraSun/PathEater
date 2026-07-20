@@ -1,11 +1,15 @@
 package components
 
-type CosmoAlienComponent struct{}
+type CosmoAlienComponent struct{
+	died bool
+}
 
 func (*CosmoAlienComponent) Type() string {
 	return "cosmoAlien"
 }
 
 func NewCosmoAlienComponent() *CosmoAlienComponent {
-	return &CosmoAlienComponent{}
+	return &CosmoAlienComponent{
+		died: false,
+	}
 }

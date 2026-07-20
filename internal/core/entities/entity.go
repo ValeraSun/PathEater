@@ -162,6 +162,7 @@ type cosmoAlienData struct {
 	Position geometry.Vec3 `json:"position"`
 	Rotation geometry.Vec3 `json:"rotation"`
 	Health   int           `json:"health"`
+	Died     bool          `json:"died"`
 }
 
 type bulletData struct {
@@ -292,18 +293,25 @@ func IsCosmoAlien(id types.Entity, getter componentsGetter) bool {
 }
 
 func SendCosmoAlien(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
-	c, ok := getter.GetComponent(id, "transform")
+	c, ok := getter.GetComponent(id, "cosmoAlien")
+	alien := c.(*components.CosmoAlienComponent)
+
+	if !ok {
+		return errors.New("Не найден необходимый компонент")
+	}
+
+	c, ok = getter.GetComponent(id, "transform")
 	transform := c.(*components.TransformComponent)
 
 	if !ok {
-		return errors.New("Не найден необходимый компнонент")
+		return errors.New("Не найден необходимый компонент")
 	}
 
 	c, ok = getter.GetComponent(id, "health")
 	hp := c.(*components.HealthComponent)
 
 	if !ok {
-		return errors.New("Не найден необходимый компнонент")
+		return errors.New("Не найден необходимый компонент")
 	}
 
 	broadcaster(ecs.EntityInfo{
@@ -313,6 +321,7 @@ func SendCosmoAlien(id types.Entity, getter componentsGetter, broadcaster Sendle
 			Position: transform.Position,
 			Rotation: transform.Direction,
 			Health:   hp.Health,
+			Died:     alien.Died
 		}})
 
 	return nil
