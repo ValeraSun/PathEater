@@ -13,6 +13,7 @@ export interface EntityTransformData {
     };
 
     rotationY?: number;
+    health: number;
 }
 
 interface EntityRecord {

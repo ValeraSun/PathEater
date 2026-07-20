@@ -4,12 +4,14 @@ import { SpaceView } from "./SpaceView";
 import { WindowResize } from "../Utils/WindowResize";
 import { PlayerView } from "./PlayerView";
 import { ComputerView } from "./ComputerView";
+import { HealthbarView } from "./HealthbarView";
 
 export class GameView
 {
     private scene: THREE.Scene;
     private camera: THREE.PerspectiveCamera;
     private renderer: THREE.WebGLRenderer;
+    private healthView = new HealthbarView();
 
     private shipView: ShipView;
     private spaceView: SpaceView;
@@ -80,6 +82,21 @@ export class GameView
     public GetShipView(): ShipView
     {
         return this.shipView;
+    }
+
+    public SetPlayerHealth(health: number): void
+    {
+        this.healthView.SetHealth(health);
+    }
+
+    public ShowPlayerHealth(): void
+    {
+        this.healthView.Show();
+    }
+
+    public HidePlayerHealth(): void
+    {
+        this.healthView.Hide();
     }
 
     private AddLights(): void

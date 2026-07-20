@@ -97,6 +97,10 @@ export class Game {
             if (typeof data.rotationY === "number") {
                 this.playerView!.mesh.rotation.y = data.rotationY;
             }
+            if (typeof data.health === "number")
+            {
+                this.gameView.SetPlayerHealth(data.health);
+            }
         });
 
         this.cameraController = new CameraController(
@@ -136,6 +140,7 @@ export class Game {
         );
 
         this.gameView.Init();
+        this.gameView.ShowPlayerHealth();
 
         this.isRunning = true;
         this.lastTime = performance.now();
