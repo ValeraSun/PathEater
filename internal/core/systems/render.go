@@ -28,6 +28,12 @@ func (s *RenderSystem) Update(dt float32) error {
 			err = entities.SendShip(id, s.getter, s.broadcaster.SendEntityUpdate)
 		case s.getter.HasComponents(id, "ai"):
 			err = entities.SendAlien(id, s.getter, s.broadcaster.SendEntityUpdate)
+		case entities.IsAsteroid(id, s.getter):
+			err = entities.SendAsteroid(id, s.getter, s.broadcaster.SendEntityUpdate)
+		case entities.IsCosmoAlien(id, s.getter):
+			err = entities.SendCosmoAlien(id, s.getter, s.broadcaster.SendEntityUpdate)
+		case entities.IsBullet(id, s.getter):
+			err = entities.SendBullet(id, s.getter, s.broadcaster.SendEntityUpdate)
 		}
 
 		if err != nil {

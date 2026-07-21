@@ -3,6 +3,7 @@ package systems
 import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
+	"github.com/ValeraSun/PathEater/internal/core/transfer"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
@@ -10,12 +11,14 @@ const maxTransform = 5
 
 type CollisionSystem struct {
 	getter     componentsGetter
+	publisher  transfer.EventPublisher
 	entitiesID []types.Entity
 }
 
-func NewCollisionSystem(getter componentsGetter) *CollisionSystem {
+func NewCollisionSystem(getter componentsGetter, publisher transfer.EventPublisher) *CollisionSystem {
 	return &CollisionSystem{
 		getter:     getter,
+		publisher:  publisher,
 		entitiesID: make([]types.Entity, 0, 128),
 	}
 }
@@ -89,6 +92,5 @@ func (s *CollisionSystem) Update(dt float32) error {
 			m.collider.PrivMTV = mtv.Scale(float64(1 / dt))
 		}
 	}
-
 	return nil
 }

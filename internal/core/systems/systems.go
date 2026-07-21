@@ -16,6 +16,11 @@ type componentsGetter interface {
 	HasComponents(entity types.Entity, componentTypes ...string) bool
 	GetComponent(entity types.Entity, componentType string) (types.Component, bool)
 }
+
+type entitiesRemover interface {
+	RemoveEntity(entity types.Entity)
+}
+
 type Broadcaster interface {
 	SendEntityCreate(ecs.EntityInfo) error
 	SendEntityUpdate(ecs.EntityInfo) error
@@ -27,5 +32,5 @@ type subscriber interface {
 }
 
 type publisher interface {
-	Subscribe(eventType string, handler events.EventHandler) (func(), error)
+	Publish(event events.Event) error
 }

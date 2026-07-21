@@ -38,7 +38,6 @@ func (s *VelocitySystem) Update(dt float32) error {
 
 			velocity.External = externalV.Direction.Scale(float64(dt))
 		}
-
 	}
 
 	return nil

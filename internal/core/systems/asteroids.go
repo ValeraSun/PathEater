@@ -1,0 +1,90 @@
+package systems
+
+import (
+	"fmt"
+
+	"github.com/ValeraSun/PathEater/internal/core/components"
+	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
+	"github.com/ValeraSun/PathEater/internal/core/types"
+)
+
+const displaySize = 200
+
+type AsteroidSystem struct {
+	getter     componentsGetter
+	publisher  publisher
+	eventQueue chan *events.MeteoriteZoneEvent
+}
+
+func NewAsteroidSystem(getter componentsGetter, publisher publisher, subscriber subscriber) *AsteroidSystem {
+	s := &AsteroidSystem{
+		getter:     getter,
+		publisher:  publisher,
+		eventQueue: make(chan *events.MeteoriteZoneEvent, 100),
+	}
+	subscriber.Subscribe("meteoriteZone", s.OnEvent)
+	return s
+}
+
+var active bool
+
+func (s *AsteroidSystem) Update(dt float32) error {
+	if active {
+		ships := s.getter.GetEntitiesByComponent("ship")
+		var shipId types.Entity
+		for id := range ships {
+			shipId = id
+		}
+
+		c, _ := s.getter.GetComponent(shipId, "transform")
+		trShip := c.(*components.TransformComponent)
+
+		c, _ = s.getter.GetComponent(shipId, "ship")
+		ship := c.(*components.ShipComponent)
+
+		comps := s.getter.GetEntitiesByComponent("asteroid")
+		for id, comp := range comps {
+			aster := comp.(*components.AsteroidComponent)
+
+			c, _ := s.getter.GetComponent(id, "transform")
+			transform := c.(*components.TransformComponent)
+
+			c, _ = s.getter.GetComponent(id, "externalVelocity")
+			ext, _ := comp.(*components.ExternalVelocityComponent)
+
+			ext.Direction = geometry.GetZeroVector().Sub(trShip.Direction.Scale(ship.Speed)).Normalize()
+
+			x := transform.Position.X
+			y := transform.Position.Y
+			aster.Visible = x >= -displaySize/2 && x <= displaySize/2 && y >= -displaySize/2 && y <= displaySize/2
+			aster.OnField = x >= -(displaySize + 100)/2 && x <= (displaySize + 100)/2 && y >= -(displaySize + 100)/2 && y <= (displaySize + 100)/2
+
+			if !aster.OnField {
+				e := events.NewDeleteAsteroidEvent(id)
+				s.publisher.Publish(e)
+			}
+		}
+
+		//спавн астероидов
+	}
+	return nil
+}
+
+func (s *AsteroidSystem) OnEvent(event events.Event) error {
+	mz, ok := event.(*events.MeteoriteZoneEvent)
+
+	if !ok {
+		return nil
+	}
+
+	select {
+	case s.eventQueue <- mz:
+		e := <-s.eventQueue
+		active = !e.Active
+	default:
+		fmt.Printf("Переполена очередь %v\n", s)
+	}
+
+	return nil
+}
