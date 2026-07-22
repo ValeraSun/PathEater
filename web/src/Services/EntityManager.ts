@@ -39,6 +39,28 @@ export class EntityManager
     private localPlayerId: string | null = null;
     private shipView: ShipView | null = null;
     private onLocalPlayerUpdate: ((data: EntityTransformData) => void) | null = null;
+    private onPlayersChanged: ((playerIds: string[]) => void) | null = null;
+
+    public SetPlayersChangedHandler(handler: (playerIds: string[]) => void): void {
+        this.onPlayersChanged = handler;
+        this.EmitPlayersChanged();
+    }
+
+    private EmitPlayersChanged(): void {
+        const playerIds: string[] = [];
+
+        if (this.localPlayerId) {
+            playerIds.push(this.localPlayerId);
+        }
+
+        for (const entity of this.entities.values()) {
+            if (entity.type === "player") {
+                playerIds.push(entity.id);
+            }
+        }
+
+        this.onPlayersChanged?.(playerIds);
+    }
 
     public constructor(scene: THREE.Scene)
     {
@@ -59,6 +81,7 @@ export class EntityManager
     {
         this.localPlayerId = id;
         this.DeleteEntity(id);
+        this.EmitPlayersChanged();
     }
 
     public CreateEntity(id: string, type: string, data: unknown): void
@@ -106,6 +129,10 @@ export class EntityManager
             targetPosition: object.position.clone(),
             targetRotationY: object.rotation.y
         });
+
+        if (type === "player") {
+            this.EmitPlayersChanged();
+        }
     }
 
     public UpdateEntity(id: string, type: string, data: unknown): void
@@ -144,9 +171,15 @@ export class EntityManager
             return;
         }
 
+        const wasPlayer = entity.type === "player";
+
         this.scene.remove(entity.object);
         this.DisposeObject(entity.object);
         this.entities.delete(id);
+
+        if (wasPlayer) {
+            this.EmitPlayersChanged();
+        }
     }
 
     public Clear(): void
@@ -155,6 +188,8 @@ export class EntityManager
         {
             this.DeleteEntity(id);
         }
+
+        this.EmitPlayersChanged();
     }
 
     public Update(dt: number): void

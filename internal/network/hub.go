@@ -107,11 +107,13 @@ func (h *Hub) unregisterClient(client *Client) {
 		}
 		room.Mutex.Lock()
 		delete(room.Clients, client.ID)
-		if len(room.Clients) == 0 {
-			room.Mutex.Unlock()
+		isEmpty := len(room.Clients) == 0
+		room.Mutex.Unlock()
+
+		if isEmpty {
 			room.Close()
 		} else {
-			room.Mutex.Unlock()
+			broadcastRoomPlayers(room)
 		}
 	}
 }
