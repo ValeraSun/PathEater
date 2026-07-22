@@ -131,7 +131,7 @@ func NewAlien(adder entityAdder, position geometry.Vec3) types.Entity {
 	alien, _ := adder.AddEntity(
 		components.NewTransformComponent(position, geometry.Vec3{}),
 		components.NewVisionComponent(),
-		components.NewMovementComponent(2),
+		components.NewMovementComponent(2, geometry.GetZeroVector()),
 		components.NewMovableComponent(),
 		components.NewVelocityComponent(),
 		components.NewUpdateComponent(),
@@ -177,8 +177,6 @@ type alienData struct {
 	Health   int           `json:"health"`
 	Dead     bool          `json:"dead"`
 }
-
-type Sendler func(ecs.EntityInfo) error
 
 type asteroidData struct {
 	Position  geometry.Vec3 `json:"position"`
@@ -250,6 +248,7 @@ func SendAlien(id types.Entity, getter componentsGetter, broadcaster Sendler) er
 		},
 	},
 	)
+	return nil
 }
 
 func IsShip(id types.Entity, getter componentsGetter) bool {

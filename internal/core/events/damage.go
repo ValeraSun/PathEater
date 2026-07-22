@@ -1,13 +1,15 @@
 package events
 
+import "github.com/ValeraSun/PathEater/internal/core/types"
+
 type DamageShipEvent struct {
-	ID     string
+	ID     types.Entity
 	Damage int
 }
 
 func (*DamageShipEvent) Type() string { return "damageShip" }
 
-func NewDamageShipEvent(id string, damage int) *DamageShipEvent {
+func NewDamageShipEvent(id types.Entity, damage int) *DamageShipEvent {
 	return &DamageShipEvent{
 		ID:     id,
 		Damage: damage,

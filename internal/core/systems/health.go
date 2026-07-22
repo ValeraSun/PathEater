@@ -1,13 +1,19 @@
 package systems
 
+import (
+	"fmt"
+
+	"github.com/ValeraSun/PathEater/internal/core/events"
+)
+
 type HealthSystem struct {
 	getter     componentsGetter
-	eventQueue  chan events.Event
+	eventQueue chan events.Event
 }
 
 func NewHealthSystem(getter componentsGetter, subscriber subscriber) *HealthSystem {
 	s := &HealthSystem{
-		getter: getter,
+		getter:     getter,
 		eventQueue: make(chan events.Event, 100),
 	}
 	subscriber.Subscribe("damageShip", s.OnEvent)
@@ -15,8 +21,8 @@ func NewHealthSystem(getter componentsGetter, subscriber subscriber) *HealthSyst
 	return s
 }
 
-func (*HealthSystem) Update(dt float32) error {
-	comps := s.getter.GetEntitiesByComponent("health")
+func (s *HealthSystem) Update(dt float32) error {
+	//comps := s.getter.GetEntitiesByComponent("health")
 	for {
 		var err error
 		select {
@@ -54,8 +60,8 @@ func (*HealthSystem) Update(dt float32) error {
 func (s *HealthSystem) OnEvent(event events.Event) error {
 	select {
 	case s.eventQueue <- event:
-		e := <- s.eventQueue
-		ev := e.()
+		e := <-s.eventQueue
+		ev := e
 	default:
 		fmt.Printf("Преполена очередь %v\n", s)
 	}
