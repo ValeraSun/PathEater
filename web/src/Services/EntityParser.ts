@@ -15,13 +15,21 @@ export interface PlayerData
     health: number;
 }
 
-export interface MonsterData
-{
+export interface AlienData {
     position: {
         x: number;
         y: number;
         z: number;
     };
+
+    rotation: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    health: number;
+    died: boolean;
+    attacking: boolean;
 }
 
 export interface ShipData
@@ -38,8 +46,8 @@ export class EntityParser
         {
             case "player":
                 return data as PlayerData;
-            case "monster":
-                return data as MonsterData;
+            case "alien":
+                return data as AlienData;
             case "ship":
                 return data as ShipData;
             default:

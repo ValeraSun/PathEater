@@ -1,9 +1,7 @@
 import * as THREE from "three";
 import { PlayerView } from "../Views/PlayerView";
-import {
-    ShipView,
-    type ShipStateData
-} from "../Views/ShipView";
+import {ShipView, type ShipStateData } from "../Views/ShipView";
+import { AlienView } from "../Views/AlienView";
 
 export interface EntityTransformData {
     position?: {
@@ -21,12 +19,28 @@ export interface EntityTransformData {
     health: number;
 }
 
+export interface AlienStateData extends EntityTransformData {
+    died?: boolean;
+    attacking?: boolean;
+}
+
+interface AnimatedEntityView {
+    mesh: THREE.Object3D;
+    AdvanceAnimation(dt: number): void;
+}
+
 interface EntityRecord {
     id: string;
     type: string;
     object: THREE.Object3D;
+    animatedView: AnimatedEntityView | null;
     targetPosition: THREE.Vector3;
     targetRotationY: number;
+}
+
+interface CreatedEntityObject {
+    object: THREE.Object3D;
+    animatedView: AnimatedEntityView | null;
 }
 
 const NETWORK_LERP_SPEED = 12;
@@ -84,50 +98,64 @@ export class EntityManager
         this.EmitPlayersChanged();
     }
 
-    public CreateEntity(id: string, type: string, data: unknown): void
-    {
-        if (type === "ship")
-        {
+    public CreateEntity(
+        id: string,
+        type: string,
+        data: unknown
+    ): void {
+        if (type === "ship") {
             this.UpdateShip(data);
             return;
         }
 
-        if (id === this.localPlayerId)
-        {
-            this.onLocalPlayerUpdate?.(data as EntityTransformData);
-
+        if (id === this.localPlayerId) {
+            this.onLocalPlayerUpdate?.(
+                data as EntityTransformData
+            );
             return;
         }
 
         const existing = this.entities.get(id);
 
-        if (existing)
-        {
+        if (existing) {
             this.UpdateEntity(id, type, data);
-
             return;
         }
 
-        const object = this.CreateObject(type);
+        const created = this.CreateObject(type);
 
-        if (!object)
-        {
-            console.warn(`Невозможно создать сущность неизвестного типа: ${type}`);
-
+        if (!created) {
+            console.warn(
+                `Невозможно создать сущность неизвестного типа: ${type}`
+            );
             return;
         }
 
-        const transformData = data as EntityTransformData;
+        const transformData =
+            data as EntityTransformData;
 
-        this.ApplyTransform(object, transformData);
+        this.ApplyTransform(
+            created.object,
+            transformData
+        );
 
-        this.scene.add(object);
+        this.ApplyEntityState(
+            type,
+            created.animatedView,
+            data
+        );
+
+        this.scene.add(created.object);
+
         this.entities.set(id, {
             id,
             type,
-            object,
-            targetPosition: object.position.clone(),
-            targetRotationY: object.rotation.y
+            object: created.object,
+            animatedView: created.animatedView,
+            targetPosition:
+                created.object.position.clone(),
+            targetRotationY:
+                created.object.rotation.y
         });
 
         if (type === "player") {
@@ -135,31 +163,26 @@ export class EntityManager
         }
     }
 
-    public UpdateEntity(id: string, type: string, data: unknown): void
-    {
-        if (type === "ship")
-        {
+    public UpdateEntity(id: string, type: string, data: unknown): void {
+        if (type === "ship") {
             this.UpdateShip(data);
             return;
         }
 
-        if (id === this.localPlayerId)
-        {
+        if (id === this.localPlayerId) {
             this.onLocalPlayerUpdate?.(data as EntityTransformData);
-
             return;
         }
 
         const entity = this.entities.get(id);
 
-        if (!entity)
-        {
+        if (!entity) {
             this.CreateEntity(id, type, data);
-
             return;
         }
 
         this.SetTarget(entity, data as EntityTransformData);
+        this.ApplyEntityState(entity.type, entity.animatedView, data);
     }
 
     public DeleteEntity(id: string): void
@@ -194,17 +217,12 @@ export class EntityManager
 
     public Update(dt: number): void
     {
-        const interpolation =
-            1 -
-            Math.exp(
-                -NETWORK_LERP_SPEED * dt
-            );
+        const interpolation = 1 - Math.exp( -NETWORK_LERP_SPEED * dt);
 
-        for (
-            const entity of
-            this.entities.values()
-        )
+        for (const entity of this.entities.values())
         {
+            entity.animatedView?.AdvanceAnimation(dt);
+
             entity.object.position.lerp(
                 entity.targetPosition,
                 interpolation
@@ -218,13 +236,10 @@ export class EntityManager
         }
     }
 
-    public GetEntity(
-        id: string
-    ): THREE.Object3D | null
+    public GetEntity( id: string): THREE.Object3D | null
     {
         return (
-            this.entities.get(id)?.object ??
-            null
+            this.entities.get(id)?.object ?? null
         );
     }
 
@@ -232,57 +247,77 @@ export class EntityManager
     {
         if (!this.shipView)
         {
-            console.warn(
-                "ShipView не установлен в EntityManager"
-            );
-
+            console.warn("ShipView не установлен в EntityManager");
             return;
         }
 
         if (!this.IsShipStateData(data))
         {
-            console.warn(
-                "Получено некорректное состояние корабля",
-                data
-            );
-
+            console.warn("Получено некорректное состояние корабля",data);
             return;
         }
 
         this.shipView.UpdateState(data);
     }
 
-    private IsShipStateData(
-        data: unknown
-    ): data is ShipStateData
+    private ApplyEntityState(type: string, animatedView: AnimatedEntityView | null, data: unknown): void {
+        if (type !== "alien" && type !== "monster") {
+            return;
+        }
+
+        if (!(animatedView instanceof AlienView)) {
+            return;
+        }
+
+        if (!this.IsAlienStateData(data)) {
+            console.warn("Получено некорректное состояние пришельца:", data);
+            return;
+        }
+
+        const died = data.died ?? false;
+        const attacking = data.attacking ?? false;
+        animatedView.mesh.visible = !died;
+
+        if (died) {
+            return;
+        }
+
+        animatedView.SetAttacking(attacking);
+    }
+
+    private IsShipStateData(data: unknown): data is ShipStateData
     {
-        if (
-            !data ||
-            typeof data !== "object"
-        )
+        if (!data || typeof data !== "object")
         {
             return false;
         }
 
-        const state =
-            data as Record<string, unknown>;
+        const state = data as Record<string, unknown>;
 
-        const baggageIsValid =
-            state.baggageStatus === undefined ||
-            typeof state.baggageStatus ===
-                "number";
-
-        const healthIsValid =
-            state.health === undefined ||
-            typeof state.health === "number";
+        const baggageIsValid = state.baggageStatus === undefined || typeof state.baggageStatus === "number";
+        const healthIsValid = state.health === undefined || typeof state.health === "number";
 
         return baggageIsValid && healthIsValid;
     }
 
-    private SetTarget(entity: EntityRecord, data: EntityTransformData): void
-    {
-        if (data.position)
-        {
+    private IsAlienStateData(data: unknown): data is AlienStateData {
+        if (!data || typeof data !== "object") {
+            return false;
+        }
+
+        const state = data as Record<string, unknown>;
+
+        const attackingIsValid = state.attacking === undefined || typeof state.attacking === "boolean";
+        const diedIsValid = state.died === undefined || typeof state.died === "boolean";
+        const healthIsValid = state.health === undefined || typeof state.health === "number";
+
+        return (
+            attackingIsValid && diedIsValid && healthIsValid
+        );
+    }
+
+    private SetTarget(entity: EntityRecord, data: EntityTransformData): void {
+        if (data.position) {
             entity.targetPosition.set(
                 data.position.x,
                 data.position.y,
@@ -290,55 +325,57 @@ export class EntityManager
             );
         }
 
-        if (data.rotation)
-        {
-            entity.targetRotationY = this.DirectionToYaw(data.rotation);
+        if (data.rotation) {
+            entity.targetRotationY =this.DirectionToYaw(data.rotation);
         }
     }
 
-    private CreateObject(
-        type: string
-    ): THREE.Object3D | null
-    {
-        switch (type)
-        {
-            case "player":
-            {
-                const playerView =
-                    new PlayerView();
-
-                return playerView.mesh;
+    private CreateObject(type: string): CreatedEntityObject | null {
+        switch (type) {
+            case "player": {
+                const playerView = new PlayerView();
+                return {
+                    object: playerView.mesh,
+                    animatedView: playerView
+                };
             }
-
-            case "monster":
-                return this.CreateBox(
-                    0xff0000
-                );
-
-            case "door":
-                return this.CreateBox(
-                    0x4444ff
-                );
-
-            case "cargo":
-                return this.CreateBox(
-                    0xffaa00
-                );
-
+            case "alien":
+            case "monster": {
+                const alienView = new AlienView();
+                return {
+                    object: alienView.mesh,
+                    animatedView: alienView
+                };
+            }
+            case "door": {
+                const object = this.CreateBox(0x4444ff);
+                return {
+                    object,
+                    animatedView: null
+                };
+            }
+            case "cargo": {
+                const object = this.CreateBox(0xffaa00);
+                return {
+                    object,
+                    animatedView: null
+                };
+            }
             default:
                 return null;
         }
     }
 
-    private ApplyTransform(object: THREE.Object3D, data: EntityTransformData): void
-    {
-        if (data.position)
-        {
-            object.position.set(data.position.x, data.position.y, data.position.z);
+    private ApplyTransform(object: THREE.Object3D, data: EntityTransformData): void {
+        if (data.position) {
+            object.position.set(
+                data.position.x,
+                data.position.y,
+                data.position.z
+            );
         }
 
-        if (data.rotation)
-        {
+        if (data.rotation) {
             object.rotation.y = this.DirectionToYaw(data.rotation);
         }
     }
@@ -353,9 +390,7 @@ export class EntityManager
         return current + delta * t;
     }
 
-    private DisposeObject(
-        object: THREE.Object3D
-    ): void
+    private DisposeObject(object: THREE.Object3D): void
     {
         object.traverse(child =>
         {
@@ -368,10 +403,7 @@ export class EntityManager
 
             if (Array.isArray(child.material))
             {
-                for (
-                    const material of
-                    child.material
-                )
+                for (const material of child.material)
                 {
                     material.dispose();
                 }
@@ -383,19 +415,11 @@ export class EntityManager
         });
     }
 
-    private CreateBox(
-        color: number
-    ): THREE.Mesh
+    private CreateBox( color: number): THREE.Mesh
     {
         return new THREE.Mesh(
-            new THREE.BoxGeometry(
-                1,
-                1,
-                1
-            ),
-            new THREE.MeshStandardMaterial({
-                color
-            })
+            new THREE.BoxGeometry(1, 1, 1),
+            new THREE.MeshStandardMaterial({ color})
         );
     }
 }

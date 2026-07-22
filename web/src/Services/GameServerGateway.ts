@@ -76,11 +76,13 @@ export class GameServerGateway {
             this.entityManager.CreateEntity(payload.id, payload.type, parsed);
         });
 
-        this.wsClient.on("UpdateEntity", (payload: EntityUpdateInfo) => { 
-            console.dir(payload)
-            if (!this.isValidEntityInfo(payload)) return;          
-            this.entityManager.UpdateEntity(payload.id, payload.type, payload.data);
-        });
+        this.wsClient.on("UpdateEntity", (payload: EntityUpdateInfo) => {
+                console.dir(payload);
+                if (!this.isValidEntityInfo(payload))  return;
+                const parsed = EntityParser.Parse(payload.type, payload.data);
+                this.entityManager.UpdateEntity(payload.id, payload.type, parsed );
+            }
+        );
 
         this.wsClient.on("DeleteEntity", (payload: DeleteEntityPayload) => {
             if (!this.isValidDeletePayload(payload)) return;
