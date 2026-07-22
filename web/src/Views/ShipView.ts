@@ -1,34 +1,66 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { CargoView } from "./CargoView";
 
-export class ShipView 
+export interface ShipStateData
 {
+    baggageStatus?: number;
+    health?: number;
+}
 
-    private group: THREE.Group;
+export class ShipView
+{
+    private readonly group = new THREE.Group();
+    private readonly cargoView = new CargoView();
 
-    constructor() 
+    private health = 100;
+
+    public constructor()
     {
-        this.group = new THREE.Group();
         this.LoadModel();
+        const cargoObject = this.cargoView.GetObject();
+        cargoObject.position.set(0, 0, 0);
+        this.group.add(cargoObject);
     }
 
-    private LoadModel(): void 
+    public UpdateState(data: ShipStateData): void
     {
+        if (typeof data.baggageStatus === "number")
+        {
+            this.cargoView.SetBaggageStatus( data.baggageStatus);
+        }
 
-        const loader = new GLTFLoader();
-
-        loader.load("/models/ship_hull_detailed_v8.glb", (gltf) => {
-
-            gltf.scene.scale.set(1, 1, 1);
-
-            this.group.add(gltf.scene);
-
-        });
-
+        if (typeof data.health === "number")
+        {
+            this.health = data.health;
+        }
     }
 
-    public GetObject(): THREE.Group 
+    public GetHealth(): number
+    {
+        return this.health;
+    }
+
+    public GetObject(): THREE.Group
     {
         return this.group;
+    }
+
+    private LoadModel(): void
+    {
+        const loader = new GLTFLoader();
+
+        loader.load("/models/ship_hull_detailed_v8.glb",
+            gltf =>
+            {
+                gltf.scene.scale.set(1, 1, 1);
+                this.group.add(gltf.scene);
+            },
+            undefined,
+            error =>
+            {
+                console.error("Ошибка загрузки ship_hull_detailed_v8.glb:", error);
+            }
+        );
     }
 }

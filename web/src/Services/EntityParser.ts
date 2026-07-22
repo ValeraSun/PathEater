@@ -1,26 +1,49 @@
+export interface PlayerData
+{
+    position: {
+        x: number;
+        y: number;
+        z: number;
+    };
 
-import * as THREE from "three"
-export interface PlayerData {
-    position: THREE.Vector3;
-    rotation: THREE.Vector3;
+    rotation: {
+        x: number;
+        y: number;
+        z: number;
+    };
+
     health: number;
 }
 
-export interface MonsterData {
-    position: THREE.Vector3;
+export interface MonsterData
+{
+    position: {
+        x: number;
+        y: number;
+        z: number;
+    };
 }
 
+export interface ShipData
+{
+    baggageStatus: number;
+    health: number;
+}
 
-
-export class EntityParser {
-    public static Parse(type: string, data: unknown): any {
-        switch (type) {
+export class EntityParser
+{
+    public static Parse(type: string, data: unknown): unknown
+    {
+        switch (type)
+        {
             case "player":
-                return data as PlayerData; 
+                return data as PlayerData;
             case "monster":
                 return data as MonsterData;
+            case "ship":
+                return data as ShipData;
             default:
-                throw new Error(`Неизвестный тип сущности: ${type}`);
+                return data;
         }
     }
 }

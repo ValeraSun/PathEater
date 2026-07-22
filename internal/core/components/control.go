@@ -33,7 +33,6 @@ func (c *ControlComponent) Reset() {
 	c.MoveBack = false
 	c.Interact = false
 	c.Attack = false
-
 }
 func (c *ControlComponent) Superimpose(state *events.PlayerState) {
 	c.MoveFront = state.MoveFront

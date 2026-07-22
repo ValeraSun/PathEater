@@ -12,6 +12,14 @@ import { InteractionController } from "../Controllers/InteractionController";
 import { ComputerController } from "../Controllers/ComputerController";
 import { GameServerGateway, type GameStartedPayload } from "../Services/GameServerGateway";
 
+const POSITION_LERP_SPEED = 12;
+const ROTATION_LERP_SPEED = 12;
+
+function lerpAngle(current: number, target: number, t: number): number {
+    const delta = Math.atan2(Math.sin(target - current), Math.cos(target - current));
+    return current + delta * t;
+}
+
 export class Game {
     private static instance: Game;
 
@@ -27,6 +35,9 @@ export class Game {
     private cameraController: CameraController | null = null;
     private interactionController: InteractionController | null = null;
     private computerController: ComputerController | null = null;
+
+    private readonly targetPosition = new THREE.Vector3();
+    private targetRotationY = 0;
 
     private lastTime = performance.now();
     private isRunning = false;
@@ -44,6 +55,10 @@ export class Game {
 
         this.entityManager = new EntityManager(
             this.gameView.GetScene()
+        );
+
+        this.entityManager.SetShipView(
+            this.gameView.GetShipView()
         );
 
         this.gameServerGateway = new GameServerGateway(
@@ -80,18 +95,29 @@ export class Game {
         this.playerModel = new PlayerModel(spawn);
         this.playerView = new PlayerView();
 
+        this.targetPosition.copy(spawn);
+        this.targetRotationY = 0;
+
         this.gameView.AttachPlayerView(this.playerView);
 
         this.entityManager.SetLocalPlayerUpdateHandler(data => {
             if (data.position) {
-                this.playerModel!.position.set(
+                this.targetPosition.set(
                     data.position.x,
                     data.position.y,
                     data.position.z
                 );
             }
-            if (typeof data.rotationY === "number") {
-                this.playerView!.mesh.rotation.y = data.rotationY;
+
+            if (data.rotation) {
+                this.targetRotationY = Math.atan2(
+                    data.rotation.x,
+                    data.rotation.z
+                );
+            }
+
+            if (typeof data.health === "number") {
+                this.gameView.SetPlayerHealth(data.health);
             }
         });
 
@@ -132,6 +158,7 @@ export class Game {
         );
 
         this.gameView.Init();
+        this.gameView.ShowPlayerHealth();
 
         this.isRunning = true;
         this.lastTime = performance.now();
@@ -154,11 +181,25 @@ export class Game {
 
         this.lastTime = now;
 
+        if (this.playerModel) {
+            const posT = 1 - Math.exp(-POSITION_LERP_SPEED * dt);
+            this.playerModel.position.lerp(this.targetPosition, posT);
+        }
+
         this.playerController?.Update(dt);
         this.cameraController?.Update();
         this.interactionController?.Update();
         this.computerController?.Update();
         this.entityManager.Update(dt);
+
+        if (this.playerView) {
+            const rotT = 1 - Math.exp(-ROTATION_LERP_SPEED * dt);
+            this.playerView.mesh.rotation.y = lerpAngle(
+                this.playerView.mesh.rotation.y,
+                this.targetRotationY,
+                rotT
+            );
+        }
 
         this.gameView.Render();
     };
