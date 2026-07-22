@@ -259,7 +259,7 @@ func (c *playerStateCommand) Execute(client *Client, payload json.RawMessage) er
 		return client.SendError(err)
 	}
 
-	transfer.SendPlayerState(client.room.World.EventBus, state, types.Entity(client.ID))
+	transfer.SendPlayerState(client.room.World.EventBus, state, client.ID)
 
 	return nil
 }

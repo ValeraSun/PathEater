@@ -3,6 +3,7 @@ package systems
 import (
 	"fmt"
 
+	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 )
 
@@ -24,7 +25,6 @@ func NewHealthSystem(getter componentsGetter, subscriber subscriber) *HealthSyst
 func (s *HealthSystem) Update(dt float32) error {
 	//comps := s.getter.GetEntitiesByComponent("health")
 	for {
-		var err error
 		select {
 		case e := <-s.eventQueue:
 			typ := e.Type()
@@ -33,7 +33,7 @@ func (s *HealthSystem) Update(dt float32) error {
 			case typ == "damageShip":
 				ev, _ := e.(*events.DamageShipEvent)
 				c, _ := s.getter.GetComponent(ev.ID, "health")
-				hp := c.(*HealthComponent)
+				hp := c.(*components.HealthComponent)
 				isDead := hp.Damage(ev.Damage)
 				if isDead {
 					//обработка проигрыша
@@ -41,7 +41,7 @@ func (s *HealthSystem) Update(dt float32) error {
 			case typ == "damageCosmoAlien":
 				ev, _ := e.(*events.DamageCosmoAlienEvent)
 				c, _ := s.getter.GetComponent(ev.ID, "health")
-				hp := c.(*HealthComponent)
+				hp := c.(*components.HealthComponent)
 				isDead := hp.Damage(ev.Damage)
 				if isDead {
 					//обработка смерти пришельца
@@ -50,18 +50,12 @@ func (s *HealthSystem) Update(dt float32) error {
 		default:
 			return nil
 		}
-
-		if err != nil {
-			return err
-		}
 	}
 }
 
 func (s *HealthSystem) OnEvent(event events.Event) error {
 	select {
 	case s.eventQueue <- event:
-		e := <-s.eventQueue
-		ev := e
 	default:
 		fmt.Printf("Преполена очередь %v\n", s)
 	}

@@ -57,7 +57,7 @@ func initSystems(adder systemAdder, remover entityRemover, getter componentsGett
 	adder.AddSystem(systems.NewShootSystem(getter))
 	adder.AddSystem(systems.NewAsteroidSystem(getter, publisher, subscriber))
 	adder.AddSystem(systems.NewShipSystem(getter, subscriber))
-	adder.AddSystem(systems.NewStalkerSystem(getter))
+	adder.AddSystem(systems.NewCosmoAlienSystem(getter, publisher))
 }
 
 func createEntities(world *ecs.World) {

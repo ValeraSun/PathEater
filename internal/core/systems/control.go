@@ -43,7 +43,7 @@ func (s *ControlSystem) drainEvents(comps map[types.Entity]types.Component) {
 	for {
 		select {
 		case e := <-s.eventQueue:
-			comp, ok := comps[e.ID]
+			comp, ok := comps[types.Entity(e.ID)]
 			if !ok {
 				continue
 			}

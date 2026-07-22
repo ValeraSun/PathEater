@@ -2,7 +2,6 @@ package events
 
 import (
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
-	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 // локальные event через маленькую
@@ -20,12 +19,12 @@ type PlayerState struct {
 
 type SetPlayerStateEvent struct {
 	PlayerState PlayerState
-	ID          types.Entity
+	ID          string
 }
 
 func (*SetPlayerStateEvent) Type() string { return "setPlayerState" }
 
-func NewSetPlayerStateEvent(ps PlayerState, id types.Entity) *SetPlayerStateEvent {
+func NewSetPlayerStateEvent(ps PlayerState, id string) *SetPlayerStateEvent {
 	return &SetPlayerStateEvent{
 		PlayerState: ps,
 		ID:          id,
