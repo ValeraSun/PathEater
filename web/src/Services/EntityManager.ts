@@ -21,7 +21,7 @@ export interface EntityTransformData {
 }
 
 export interface AlienStateData extends EntityTransformData {
-    died?: boolean;
+    dead?: boolean;
     attacking?: boolean;
 }
 
@@ -133,7 +133,7 @@ export class EntityManager
             return;
         }
 
-        if (type === "alien")
+        if (type === "cosmoAlien")
         {
             this.UpdateMonster(id, data);
             return;
@@ -197,7 +197,7 @@ export class EntityManager
             return;
         }
 
-        if (type === "alien")
+        if (type === "cosmoAlien")
         {
             this.UpdateMonster(id, data);
             return;
@@ -422,7 +422,7 @@ export class EntityManager
             return;
         }
 
-        const died = data.died ?? false;
+        const died = data.dead ?? false;
         const attacking = data.attacking ?? false;
 
         animatedView.mesh.visible = !died;
@@ -490,7 +490,7 @@ export class EntityManager
         const state = data as Record<string, unknown>;
 
         const attackingIsValid = state.attacking === undefined || typeof state.attacking === "boolean";
-        const diedIsValid = state.died === undefined || typeof state.died === "boolean";
+        const diedIsValid = state.dead === undefined || typeof state.dead === "boolean";
         const healthIsValid = state.health === undefined || typeof state.health === "number";
 
         return attackingIsValid && diedIsValid && healthIsValid;
