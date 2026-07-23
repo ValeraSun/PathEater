@@ -258,6 +258,20 @@ func (s Sendler) SendGameOverState(gameOverInfo ecs.GameOverInfo) error {
 	return nil
 }
 
+func (s Sendler) SendTime(timeInfo ecs.TimeInfo) error {
+	var info struct {
+		Data any `json:"data"`
+	}
+	info.Data = timeInfo.Data
+	payload, err := json.Marshal(info)
+	if err != nil {
+		return err
+	}
+
+	s.room.SendToAll("Time", payload)
+	return nil
+}
+
 // начало игры
 type createGameSessionCommand struct{}
 

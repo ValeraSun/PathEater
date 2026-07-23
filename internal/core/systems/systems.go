@@ -1,6 +1,8 @@
 package systems
 
 import (
+	"time"
+
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/types"
@@ -13,6 +15,10 @@ type entityAdder interface {
 
 type closer interface {
 	Close()
+}
+
+type timer interface {
+	GetRemainingTime() time.Duration
 }
 
 type componentsGetter interface {
@@ -30,6 +36,7 @@ type Broadcaster interface {
 	SendEntityUpdate(ecs.EntityInfo) error
 	SendEntityDelete(ecs.EntityInfo) error
 	SendGameOverState(ecs.GameOverInfo) error
+	SendTime(ecs.TimeInfo) error
 }
 
 type subscriber interface {

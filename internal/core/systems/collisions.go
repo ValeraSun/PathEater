@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/ValeraSun/PathEater/internal/core/events"
-	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/transfer"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
@@ -122,7 +121,7 @@ func asteroidAsteroidCollision(asteroid1ID, asteroid2ID types.Entity) (e1 *event
 }
 
 func asteroidCosmoAlienCollision(asteroidID, alienID types.Entity) (e1 *events.DeleteAsteroidEvent, e2 *events.DamageDealEvent) {
-	return events.NewDeleteAsteroidEvent(asteroidID), events.NewDamageDealEvent(alienID, 50)
+	return events.NewDeleteAsteroidEvent(asteroidID), events.NewDamageDealEvent(alienID, 5)
 }
 
 func asteroidBulletCollision(asteroidID, bulletID types.Entity) (e1 *events.DeleteAsteroidEvent, e2 *events.DeleteBulletEvent) {
@@ -130,9 +129,5 @@ func asteroidBulletCollision(asteroidID, bulletID types.Entity) (e1 *events.Dele
 }
 
 func cosmoAlienBulletCollision(alienID, bulletID types.Entity) (e1 *events.DamageDealEvent, e2 *events.DeleteBulletEvent) {
-	return events.NewDamageDealEvent(alienID, 50), events.NewDeleteBulletEvent(bulletID)
-}
-
-func randomPosition() geometry.Vec3 {
-	return geometry.Vec3{X: 3, Y: 2, Z: -1}
+	return events.NewDamageDealEvent(alienID, 5), events.NewDeleteBulletEvent(bulletID)
 }

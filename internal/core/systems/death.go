@@ -48,7 +48,7 @@ func (s *DeathSystem) OnEvent(event events.Event) error {
 			}
 		}
 		if everyoneDied {
-			e := events.NewGameOverEvent(0)
+			e := events.NewGameOverEvent(false)
 			s.publisher.Publish(e)
 		}
 	}

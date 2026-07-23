@@ -63,12 +63,11 @@ func NewShip(adder entityAdder) types.Entity {
 			geometry.GetZeroVector(),
 		),
 		components.NewHealthComponent(100),
-		components.NewControlComponent(""),
 		components.NewShipComponent(10, 5),
 		components.NewWeaponComponent(geometry.GetZeroVector(), 10, 30),
 		components.NewColliderComponent(geometry.NewTriangleCollider(
-			geometry.Vec3{X: 0, Y: 20, Z: 0},
-			geometry.Vec3{X: 20, Y: -20, Z: 0},
+			geometry.Vec3{X: 20, Y: 0, Z: 0},
+			geometry.Vec3{X: -20, Y: 20, Z: 0},
 			geometry.Vec3{X: -20, Y: -20, Z: 0},
 		)),
 	)
@@ -104,7 +103,7 @@ func NewCosmoAlien(adder entityAdder, pos geometry.Vec3, shipID types.Entity) ty
 		components.NewVelocityComponent(),
 		components.NewStalkerComponent(shipID),
 		components.NewCosmoAlienComponent(),
-		components.NewHealthComponent(100),
+		components.NewHealthComponent(10),
 		components.NewColliderComponent(geometry.NewCircleCollider(
 			pos,
 			30,

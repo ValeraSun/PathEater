@@ -1,11 +1,14 @@
 package game
 
 import (
+	"time"
+
 	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/systems"
+	"github.com/ValeraSun/PathEater/internal/core/transfer"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
@@ -17,7 +20,11 @@ type closer interface {
 	Close()
 }
 
-type systemworld interface {
+type timer interface {
+	GetRemainingTime() time.Duration
+}
+
+type systemAdder interface {
 	AddSystem(types.System)
 	AddEntity(components ...types.Component) (types.Entity, error)
 	AddEntityByID(entity types.Entity, components ...types.Component) error
@@ -42,6 +49,7 @@ func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 
 	go w.EventBus.ProcessEvents()
 	go ecs.HandleWorld(w)
+	w.Timer.StartTimer(99999*time.Second, func() { timerIsOver(w.EventBus) })
 	return w
 }
 
@@ -67,9 +75,14 @@ func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewGameOverSystem(world, world.EventBus, world.Broadcaster, world))
 	world.AddSystem(systems.NewDeathSystem(world, world.EventBus, world.EventBus))
 	world.AddSystem(systems.NewDeadSystem(world, world, world.EventBus))
+	world.AddSystem(systems.NewTimerSystem(world, world.Broadcaster, &world.Timer))
 }
 
 func createEntities(world *ecs.World) {
 	world.EventBus.Publish(events.NewCreateShipEvent())
 	world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
+}
+
+func timerIsOver(publisher transfer.EventPublisher) {
+	publisher.Publish(events.NewGameOverEvent(true))
 }

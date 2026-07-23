@@ -45,7 +45,7 @@ func (s *ShootSystem) Update(dt float32) error {
 
 		x := transform.Position.X
 		y := transform.Position.Y
-		bul.Visible = x >= -displaySize/2 && x <= displaySize/2 && y >= -displaySize/2 && y <= displaySize/2
+		bul.Visible = x >= -displayWidth/2 && x <= displayWidth/2 && y >= -displayHeight/2 && y <= displayHeight/2
 	}
 	return nil
 }

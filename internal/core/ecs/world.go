@@ -12,6 +12,19 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
+type Timer struct {
+	mu         sync.RWMutex
+	duration   time.Duration
+	startTime  time.Time
+	isActive   bool
+	isFinished bool
+	onFinish   func()
+}
+
+func newTimer() Timer {
+	return Timer{}
+}
+
 type World struct {
 	entities map[types.Entity]map[string]types.Component
 
@@ -28,7 +41,50 @@ type World struct {
 
 	Broadcaster Broadcaster
 
+	Timer Timer
+
 	done chan struct{}
+}
+
+func (t *Timer) StartTimer(duration time.Duration, onFinish func()) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	t.duration = duration
+	t.startTime = time.Now()
+	t.isActive = true
+	t.isFinished = false
+	t.onFinish = onFinish
+
+	go func() {
+		<-time.After(duration)
+		t.mu.Lock()
+		defer t.mu.Unlock()
+
+		if t.isActive && !t.isFinished {
+			t.isFinished = true
+			t.isActive = false
+			if t.onFinish != nil {
+				t.onFinish()
+			}
+		}
+	}()
+}
+
+func (t *Timer) GetRemainingTime() time.Duration {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	if !t.isActive {
+		return 0
+	}
+
+	elapsed := time.Since(t.startTime)
+	remaining := t.duration - elapsed
+	if remaining < 0 {
+		return 0
+	}
+	return remaining
 }
 
 type Broadcaster interface {
@@ -36,7 +92,8 @@ type Broadcaster interface {
 	SendEntityUpdate(EntityInfo) error
 	SendEntityDelete(EntityInfo) error
 	SendGameOverState(GameOverInfo) error
-	//SendSnapshotToAll([]EntityInfo) error
+	SendTime(TimeInfo) error
+	SendSnapshotToAll([]EntityInfo) error
 }
 
 type EntityInfo struct {
@@ -50,6 +107,11 @@ type GameOverInfo struct {
 	Data any
 }
 
+type TimeInfo struct {
+	Type string
+	Data any
+}
+
 func newWorld(eventBus *events.EventBus, room Broadcaster) *World {
 	return &World{
 		entities:       make(map[types.Entity]map[string]types.Component),
@@ -58,6 +120,8 @@ func newWorld(eventBus *events.EventBus, room Broadcaster) *World {
 		EventBus:       eventBus,
 		systemTimers:   make(map[string]time.Duration),
 		Broadcaster:    room,
+		Timer:          newTimer(),
+		done:           make(chan struct{}),
 	}
 }
 

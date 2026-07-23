@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	cosmoDisplaySize      = 200
 	cosmoSpawnZoneSize    = 100
 	cosmoMaxSpawnAttempts = 50
 	maxCosmoAliens        = 5
@@ -22,7 +21,6 @@ type CosmoAlienSystem struct {
 	getter    componentsGetter
 	publisher publisher
 	rng       *rand.Rand
-	active    bool
 	shipID    types.Entity
 }
 
@@ -31,7 +29,6 @@ func NewCosmoAlienSystem(getter componentsGetter, publisher publisher) *CosmoAli
 		getter:    getter,
 		publisher: publisher,
 		rng:       rand.New(rand.NewSource(time.Now().UnixNano())),
-		active:    false,
 	}
 	s.findShipID()
 	return s
@@ -80,21 +77,22 @@ func (s *CosmoAlienSystem) generateCosmoAlien() geometry.Vec3 {
 
 	var spawnPos geometry.Vec3
 
-	halfSpawn := float64(cosmoDisplaySize+cosmoSpawnZoneSize) / 2
+	halfSpawnWidth := float64(displayWidth+cosmoSpawnZoneSize) / 2
+	halfSpawnHeight := float64(displayHeight+cosmoSpawnZoneSize) / 2
 
 	switch side {
 	case 0:
-		spawnPos.X = s.rng.Float64()*(halfSpawn*2) - halfSpawn
-		spawnPos.Y = halfSpawn
+		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
+		spawnPos.Y = halfSpawnHeight
 	case 1:
-		spawnPos.X = s.rng.Float64()*(halfSpawn*2) - halfSpawn
-		spawnPos.Y = -halfSpawn
+		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
+		spawnPos.Y = -halfSpawnHeight
 	case 2:
-		spawnPos.X = -halfSpawn
-		spawnPos.Y = s.rng.Float64()*(halfSpawn*2) - halfSpawn
+		spawnPos.X = -halfSpawnWidth
+		spawnPos.Y = s.rng.Float64()*(halfSpawnHeight*2) - halfSpawnHeight
 	case 3:
-		spawnPos.X = halfSpawn
-		spawnPos.Y = s.rng.Float64()*(halfSpawn*2) - halfSpawn
+		spawnPos.X = halfSpawnWidth
+		spawnPos.Y = s.rng.Float64()*(halfSpawnHeight*2) - halfSpawnHeight
 	}
 
 	return spawnPos
@@ -206,7 +204,7 @@ func (s *CosmoAlienSystem) Update(dt float32) error {
 
 		x := transform.Position.X
 		y := transform.Position.Y
-		alien.Visible = x >= -cosmoDisplaySize/2 && x <= cosmoDisplaySize/2 && y >= -cosmoDisplaySize/2 && y <= cosmoDisplaySize/2
+		alien.Visible = x >= -displayWidth/2 && x <= displayWidth/2 && y >= -displayHeight/2 && y <= displayHeight/2
 	}
 
 	s.spawnCosmoAliens()
