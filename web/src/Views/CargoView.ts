@@ -6,7 +6,7 @@ export class CargoView
     private group = new THREE.Group();
     private cargoModel: THREE.Object3D | null = null;
     private baggageStatus = 0;
-    private maxVisibleCargo = 15;
+    private maxVisibleCargo = 100;
 
     public constructor()
     {
