@@ -31,16 +31,26 @@ func NewAttackSystem(getter componentsGetter, subscriber subscriber, publisher p
 }
 
 func (s *AttackSystem) Update(dt float32) error {
-	comps := s.getter.GetEntitiesByComponent("hitbox")
+	hitboxRaw := s.getter.GetEntitiesByComponent("hitbox")
 
-	hitboxes := make([]*entitiesHitbox, 0, len(comps))
+	hitboxes := make([]*entitiesHitbox, 0, len(hitboxRaw))
 
-	for id, c := range comps {
-		h := c.(*components.HitboxComponent)
-		hitboxes = append(hitboxes, &entitiesHitbox{
-			hitbox: h,
-			id:     id,
-		})
+	for id, c := range hitboxRaw {
+
+		if s.getter.HasComponents(id, "transform") {
+			h := c.(*components.HitboxComponent)
+
+			c, _ = s.getter.GetComponent(id, "transform")
+			t := c.(*components.TransformComponent)
+
+			h.Collider.ChangeCenter(t.Position)
+
+			hitboxes = append(hitboxes, &entitiesHitbox{
+				hitbox: h,
+				id:     id,
+			})
+		}
+
 	}
 
 	s.drainEvents(hitboxes)
