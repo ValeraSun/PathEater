@@ -1,13 +1,13 @@
 package events
 
 type GameOverEvent struct {
-	Result int
+	Win bool
 }
 
 func (*GameOverEvent) Type() string { return "gameOver" }
 
-func NewGameOverEvent(res int) *GameOverEvent {
+func NewGameOverEvent(win bool) *GameOverEvent {
 	return &GameOverEvent{
-		Result: res,
+		Win: win,
 	}
 }

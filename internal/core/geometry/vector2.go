@@ -27,7 +27,7 @@ func (v *Vec3) RotateBySinCos(sin, cos float64) {
 	v.Y = y*cos + x*sin
 }
 
-func (v Vec3) Rotate(angle float64) {
+func (v *Vec3) Rotate(angle float64) {
 	sin, cos := math.Sincos(angle)
 	v.RotateBySinCos(sin, cos)
 }

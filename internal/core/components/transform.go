@@ -22,5 +22,5 @@ func NewTransformComponent(position, direction geometry.Vec3) *TransformComponen
 
 func (trC *TransformComponent) Visible() bool {
 	pos := trC.Position
-	return pos.X >= -displaySize/2 && pos.X <= displaySize/2 && pos.Y >= -displaySize/2 && pos.Y >= displaySize/2
+	return pos.X >= -displaySize/2 && pos.X <= displaySize/2 && pos.Y >= -displaySize/2 && pos.Y <= displaySize/2
 }

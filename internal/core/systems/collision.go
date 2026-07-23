@@ -46,7 +46,7 @@ func (s *CollisionSystem) Update(dt float32) error {
 	movables := make([]movable, 0, maxTransform)
 
 	for id, collider := range collidersRaw {
-		if s.getter.HasComponents(id, "transform", "transform") {
+		if s.getter.HasComponents(id, "transform") {
 			c, _ := s.getter.GetComponent(id, "transform")
 			t, _ := c.(*components.TransformComponent)
 

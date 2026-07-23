@@ -22,7 +22,6 @@ type CosmoAlienSystem struct {
 	getter    componentsGetter
 	publisher publisher
 	rng       *rand.Rand
-	active    bool
 }
 
 var shipID types.Entity
@@ -32,7 +31,6 @@ func NewCosmoAlienSystem(getter componentsGetter, publisher publisher) *CosmoAli
 		getter:    getter,
 		publisher: publisher,
 		rng:       rand.New(rand.NewSource(time.Now().UnixNano())),
-		active:    false,
 	}
 	ships := s.getter.GetEntitiesByComponent("ship")
 	for id := range ships {

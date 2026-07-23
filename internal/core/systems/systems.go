@@ -15,6 +15,10 @@ type closer interface {
 	Close()
 }
 
+type timer interface {
+	GetRemainingTime()
+}
+
 type componentsGetter interface {
 	GetEntitiesByComponent(componentType string) map[types.Entity]types.Component
 	HasComponents(entity types.Entity, componentTypes ...string) bool

@@ -36,17 +36,18 @@ type componentsGetter interface {
 
 func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	w := ecs.CreateWorld(broadcaster)
-	initSystems(w, w, w, w.EventBus, w.Broadcaster, w.EventBus, w)
+	initSystems(w, w, w, w.EventBus, w.Broadcaster, w.EventBus, w, &w.Timer)
 	config.CreateWalls(w)
 
 	createEntities(w)
 
 	go w.EventBus.ProcessEvents()
 	go ecs.HandleWorld(w)
+	w.Timer.StartTimer(1, timerIsOver(w, w.EventBus))
 	return w
 }
 
-func initSystems(adder systemAdder, remover entityRemover, getter componentsGetter, publisher transfer.EventPublisher, broadcaster ecs.Broadcaster, subscriber subscriber, closer closer) {
+func initSystems(adder systemAdder, remover entityRemover, getter componentsGetter, publisher transfer.EventPublisher, broadcaster ecs.Broadcaster, subscriber subscriber, closer closer, timer timer) {
 	adder.AddSystem(systems.NewVisionSystem(getter))
 	adder.AddSystem(systems.NewAISystem(getter))
 	adder.AddSystem(systems.NewControlSystem(getter, subscriber))
@@ -66,9 +67,14 @@ func initSystems(adder systemAdder, remover entityRemover, getter componentsGett
 	adder.AddSystem(systems.NewCosmoAlienSystem(getter, publisher))
 	adder.AddSystem(systems.NewGameOverSystem(getter, subscriber, broadcaster, closer))
 	adder.AddSystem(systems.NewDeathSystem(getter, publisher, subscriber))
+	adder.AddSystem(systems.NewTimerSystem(getter, broadcaster, timer))
 }
 
 func createEntities(world *ecs.World) {
 	world.EventBus.Publish(events.NewCreateShipEvent())
 	world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
+}
+
+func timerIsOver(publisher transfer.EventPublisher){
+	publisher.Publish(events.NewGameOverEvent(true))
 }

@@ -121,7 +121,7 @@ func asteroidAsteroidCollision(asteroid1ID, asteroid2ID types.Entity) (e1 *event
 }
 
 func asteroidCosmoAlienCollision(asteroidID, alienID types.Entity) (e1 *events.DeleteAsteroidEvent, e2 *events.DamageCosmoAlienEvent) {
-	return events.NewDeleteAsteroidEvent(asteroidID), events.NewDamageCosmoAlienEvent(alienID, 50)
+	return events.NewDeleteAsteroidEvent(asteroidID), events.NewDamageCosmoAlienEvent(alienID, 5)
 }
 
 func asteroidBulletCollision(asteroidID, bulletID types.Entity) (e1 *events.DeleteAsteroidEvent, e2 *events.DeleteBulletEvent) {
@@ -129,5 +129,5 @@ func asteroidBulletCollision(asteroidID, bulletID types.Entity) (e1 *events.Dele
 }
 
 func cosmoAlienBulletCollision(alienID, bulletID types.Entity) (e1 *events.DamageCosmoAlienEvent, e2 *events.DeleteBulletEvent) {
-	return events.NewDamageCosmoAlienEvent(alienID, 50), events.NewDeleteBulletEvent(bulletID)
+	return events.NewDamageCosmoAlienEvent(alienID, 5), events.NewDeleteBulletEvent(bulletID)
 }
