@@ -100,6 +100,7 @@ func NewCosmoAlien(adder entityAdder, pos geometry.Vec3, shipID types.Entity) ty
 		components.NewVelocityComponent(),
 		components.NewStalkerComponent(shipID),
 		components.NewCosmoAlienComponent(),
+		components.NewHealthComponent(100),
 		components.NewColliderComponent(geometry.NewCircleCollider(
 			pos,
 			30,
@@ -354,22 +355,28 @@ func isVisibleCosmoAlien(id types.Entity, getter componentsGetter) bool {
 
 func SendCosmoAlien(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
 	c, ok := getter.GetComponent(id, "cosmoAlien")
-	alien := c.(*components.CosmoAlienComponent)
-
+	if !ok {
+		return errors.New("Не найден необходимый компонент")
+	}
+	alien, ok := c.(*components.CosmoAlienComponent)
 	if !ok {
 		return errors.New("Не найден необходимый компонент")
 	}
 
 	c, ok = getter.GetComponent(id, "transform")
-	transform := c.(*components.TransformComponent)
-
+	if !ok {
+		return errors.New("Не найден необходимый компонент")
+	}
+	transform, ok := c.(*components.TransformComponent)
 	if !ok {
 		return errors.New("Не найден необходимый компонент")
 	}
 
 	c, ok = getter.GetComponent(id, "health")
-	hp := c.(*components.HealthComponent)
-
+	if !ok {
+		return errors.New("Не найден необходимый компонент")
+	}
+	hp, ok := c.(*components.HealthComponent)
 	if !ok {
 		return errors.New("Не найден необходимый компонент")
 	}

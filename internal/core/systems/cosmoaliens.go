@@ -23,9 +23,8 @@ type CosmoAlienSystem struct {
 	publisher publisher
 	rng       *rand.Rand
 	active    bool
+	shipID    types.Entity
 }
-
-var shipID types.Entity
 
 func NewCosmoAlienSystem(getter componentsGetter, publisher publisher) *CosmoAlienSystem {
 	s := &CosmoAlienSystem{
@@ -34,11 +33,22 @@ func NewCosmoAlienSystem(getter componentsGetter, publisher publisher) *CosmoAli
 		rng:       rand.New(rand.NewSource(time.Now().UnixNano())),
 		active:    false,
 	}
+	s.findShipID()
+	return s
+}
+
+func (s *CosmoAlienSystem) findShipID() bool {
+	if s.shipID != "" {
+		return true
+	}
+
 	ships := s.getter.GetEntitiesByComponent("ship")
 	for id := range ships {
-		shipID = id
+		s.shipID = id
+		return true
 	}
-	return s
+
+	return false
 }
 
 func (s *CosmoAlienSystem) spawnCosmoAliens() {
@@ -59,7 +69,7 @@ func (s *CosmoAlienSystem) spawnCosmoAlien() {
 		pos := s.generateCosmoAlien()
 
 		if !s.isPositionOccupied(pos) {
-			s.createCosmoAlien(pos, shipID)
+			s.createCosmoAlien(pos, s.shipID)
 			return
 		}
 	}
@@ -95,11 +105,14 @@ func (s *CosmoAlienSystem) isPositionOccupied(pos geometry.Vec3) bool {
 	asteroids := s.getter.GetEntitiesByComponent("asteroid")
 
 	for id := range aliens {
-		c, exists := s.getter.GetComponent(id, "transform")
-		if !exists {
+		c, ok := s.getter.GetComponent(id, "transform")
+		if !ok {
 			continue
 		}
-		transform := c.(*components.TransformComponent)
+		transform, ok := c.(*components.TransformComponent)
+		if !ok {
+			continue
+		}
 
 		distance := pos.Sub(transform.Position).Length()
 		if distance < minCosmoAlienDistance {
@@ -107,11 +120,14 @@ func (s *CosmoAlienSystem) isPositionOccupied(pos geometry.Vec3) bool {
 		}
 	}
 	for id := range asteroids {
-		c, exists := s.getter.GetComponent(id, "transform")
-		if !exists {
+		c, ok := s.getter.GetComponent(id, "transform")
+		if !ok {
 			continue
 		}
-		transform := c.(*components.TransformComponent)
+		transform, ok := c.(*components.TransformComponent)
+		if !ok {
+			continue
+		}
 
 		distance := pos.Sub(transform.Position).Length()
 		if distance < minCosmoAlienDistance {
@@ -128,24 +144,61 @@ func (s *CosmoAlienSystem) createCosmoAlien(position geometry.Vec3, shipID types
 }
 
 func (s *CosmoAlienSystem) Update(dt float32) error {
-	c, _ := s.getter.GetComponent(shipID, "transform")
-	trShip := c.(*components.TransformComponent)
+	if !s.findShipID() {
+		return nil
+	}
 
-	c, _ = s.getter.GetComponent(shipID, "ship")
-	ship := c.(*components.ShipComponent)
+	c, ok := s.getter.GetComponent(s.shipID, "transform")
+	if !ok {
+		return nil
+	}
+	trShip, ok := c.(*components.TransformComponent)
+	if !ok {
+		return nil
+	}
+
+	c, ok = s.getter.GetComponent(s.shipID, "ship")
+	if !ok {
+		return nil
+	}
+	ship, ok := c.(*components.ShipComponent)
+	if !ok {
+		return nil
+	}
 
 	comps := s.getter.GetEntitiesByComponent("cosmoAlien")
 	for id, comp := range comps {
-		alien := comp.(*components.CosmoAlienComponent)
+		alien, ok := comp.(*components.CosmoAlienComponent)
+		if !ok {
+			continue
+		}
 
-		c, _ := s.getter.GetComponent(id, "transform")
-		transform := c.(*components.TransformComponent)
+		c, ok := s.getter.GetComponent(id, "transform")
+		if !ok {
+			continue
+		}
+		transform, ok := c.(*components.TransformComponent)
+		if !ok {
+			continue
+		}
 
-		c, _ = s.getter.GetComponent(id, "movement")
-		mov := c.(*components.MovementComponent)
+		c, ok = s.getter.GetComponent(id, "movement")
+		if !ok {
+			continue
+		}
+		mov, ok := c.(*components.MovementComponent)
+		if !ok {
+			continue
+		}
 
-		c, _ = s.getter.GetComponent(id, "externalVelocity")
-		ext, _ := comp.(*components.ExternalVelocityComponent)
+		c, ok = s.getter.GetComponent(id, "externalVelocity")
+		if !ok {
+			continue
+		}
+		ext, ok := c.(*components.ExternalVelocityComponent)
+		if !ok {
+			continue
+		}
 
 		ext.Direction = geometry.GetZeroVector().Sub(trShip.Direction.Scale(ship.Speed)).Normalize()
 
@@ -153,7 +206,7 @@ func (s *CosmoAlienSystem) Update(dt float32) error {
 
 		x := transform.Position.X
 		y := transform.Position.Y
-		alien.Visible = x >= -displaySize/2 && x <= displaySize/2 && y >= -displaySize/2 && y <= displaySize/2
+		alien.Visible = x >= -cosmoDisplaySize/2 && x <= cosmoDisplaySize/2 && y >= -cosmoDisplaySize/2 && y <= cosmoDisplaySize/2
 	}
 
 	s.spawnCosmoAliens()

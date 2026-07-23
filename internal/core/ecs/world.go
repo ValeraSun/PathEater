@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 	"time"
+	"log"
 
 	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -85,8 +86,9 @@ func HandleWorld(world *World) {
 		case now := <-ticker.C:
 			dt := time.Since(lastTick).Seconds()
 			lastTick = now
-
-			world.Update(float32(dt))
+			if err := world.Update(float32(dt)); err != nil {
+				log.Printf("Ошибка обновления мира: %v", err)
+			}
 		}
 	}
 }
