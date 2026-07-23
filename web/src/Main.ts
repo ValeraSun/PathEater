@@ -25,6 +25,15 @@ const gameContainer = getElement("game-container");
 
 const game = Game.GetInstance();
 const gateway = game.GetGateway();
+const musicManager = game.GetMusicManager();
+
+document.addEventListener(
+    "click",
+    () => {
+        void musicManager.PlayMusic("menu");
+    },
+    { once: true }
+);
 
 let connected = false;
 let isHost = false;
@@ -191,6 +200,7 @@ joinRoomButton.addEventListener("click", async () => {
 });
 
 roomBackButton.addEventListener("click", () => {
+    void musicManager.PlayMusic("menu");
     showScreen("menu");
 });
 
@@ -207,6 +217,7 @@ leaveLobbyButton.addEventListener("click", () => {
     startGameButton.disabled = false;
 
     setRoomButtonsDisabled(false);
+    void musicManager.PlayMusic("menu");
 
     showScreen("room");
 });
@@ -223,6 +234,7 @@ startGameButton.addEventListener("click", () => {
 });
 
 gateway.onGameStarted = async payload => {
+    await musicManager.PlayMusic("game");
     await game.StartMatch(payload);
 
     showScreen("game");
