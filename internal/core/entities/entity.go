@@ -239,7 +239,7 @@ func SendAlien(id types.Entity, getter componentsGetter, broadcaster Sendler) er
 
 	broadcaster(ecs.EntityInfo{
 		ID:   id,
-		Type: "player",
+		Type: "alien",
 		Data: alienData{
 			Position: transform.Position,
 			Rotation: ai.Direction,

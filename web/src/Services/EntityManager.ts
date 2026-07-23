@@ -1,9 +1,7 @@
 import * as THREE from "three";
 import { PlayerView } from "../Views/PlayerView";
-import {
-    ShipView,
-    type ShipStateData
-} from "../Views/ShipView";
+import { ShipView, type ShipStateData } from "../Views/ShipView";
+import { type NavigationDisplayState } from "../Views/ComputerView";
 
 export interface EntityTransformData {
     position?: {
@@ -19,6 +17,29 @@ export interface EntityTransformData {
     };
 
     health: number;
+}
+
+interface Vec2 {
+    x: number;
+    z: number;
+}
+
+interface ShipRadarData {
+    weapon_direction?: { x: number; y: number; z: number };
+    health?: number;
+}
+
+interface AsteroidData {
+    position?: { x: number; y: number; z: number };
+    radius?: number;
+    destroyed?: boolean;
+}
+
+interface CosmoAlienData {
+    position?: { x: number; y: number; z: number };
+    rotation?: { x: number; y: number; z: number };
+    health?: number;
+    died?: boolean;
 }
 
 interface EntityRecord {
@@ -39,6 +60,33 @@ export class EntityManager
     private localPlayerId: string | null = null;
     private shipView: ShipView | null = null;
     private onLocalPlayerUpdate: ((data: EntityTransformData) => void) | null = null;
+    private shipHp = 100;
+    private shipWeaponDirection: Vec2 = { x: 0, z: -1 };
+    private asteroids = new Map<string, Vec2>();
+    private monsters = new Map<string, Vec2>();
+    private onRadarChanged: ((state: NavigationDisplayState) => void) | null = null;
+
+    public SetRadarChangedHandler(handler: (state: NavigationDisplayState) => void): void
+    {
+        this.onRadarChanged = handler;
+        this.EmitRadarChanged();
+    }
+
+    private EmitRadarChanged(): void
+    {
+        if (!this.onRadarChanged) return;
+
+        const rotationY = Math.atan2(
+            this.shipWeaponDirection.x,
+            this.shipWeaponDirection.z
+        );
+
+        this.onRadarChanged({
+            ship: { x: 0, z: 0, rotationY, hp: this.shipHp },
+            asteroids: Array.from(this.asteroids, ([id, pos]) => ({ id, x: pos.x, z: pos.z })),
+            monsters: Array.from(this.monsters, ([id, pos]) => ({ id, x: pos.x, z: pos.z }))
+        });
+    }
 
     public constructor(scene: THREE.Scene)
     {
@@ -66,6 +114,24 @@ export class EntityManager
         if (type === "ship")
         {
             this.UpdateShip(data);
+            return;
+        }
+
+        if (type === "ship")
+        {
+            this.UpdateShip(data);
+            return;
+        }
+
+        if (type === "asteroid")
+        {
+            this.UpdateAsteroid(id, data);
+            return;
+        }
+
+        if (type === "alien")
+        {
+            this.UpdateMonster(id, data);
             return;
         }
 
@@ -110,9 +176,21 @@ export class EntityManager
 
     public UpdateEntity(id: string, type: string, data: unknown): void
     {
-        if (type === "ship")
+         if (type === "ship")
         {
             this.UpdateShip(data);
+            return;
+        }
+
+        if (type === "asteroid")
+        {
+            this.UpdateAsteroid(id, data);
+            return;
+        }
+
+        if (type === "alien")
+        {
+            this.UpdateMonster(id, data);
             return;
         }
 
@@ -141,6 +219,18 @@ export class EntityManager
 
         if (!entity)
         {
+            return;
+        }
+
+        if (this.asteroids.delete(id))
+        {
+            this.EmitRadarChanged();
+            return;
+        }
+
+        if (this.monsters.delete(id))
+        {
+            this.EmitRadarChanged();
             return;
         }
 
@@ -197,51 +287,118 @@ export class EntityManager
     {
         if (!this.shipView)
         {
-            console.warn(
-                "ShipView не установлен в EntityManager"
-            );
-
+            console.warn("ShipView не установлен в EntityManager");
             return;
         }
 
         if (!this.IsShipStateData(data))
         {
-            console.warn(
-                "Получено некорректное состояние корабля",
-                data
-            );
-
+            console.warn("Получено некорректное состояние корабля", data);
             return;
         }
 
         this.shipView.UpdateState(data);
+
+        const shipData = data as ShipRadarData;
+
+        if (typeof shipData.health === "number")
+        {
+            this.shipHp = shipData.health;
+        }
+
+        if (shipData.weapon_direction)
+        {
+            this.shipWeaponDirection = {
+                x: shipData.weapon_direction.x,
+                z: shipData.weapon_direction.z
+            };
+        }
+
+        this.EmitRadarChanged();
     }
 
-    private IsShipStateData(
-        data: unknown
-    ): data is ShipStateData
+    private IsShipStateData(data: unknown): data is ShipStateData
     {
-        if (
-            !data ||
-            typeof data !== "object"
-        )
+        if (!data || typeof data !== "object")
         {
             return false;
         }
 
-        const state =
-            data as Record<string, unknown>;
+        const state = data as Record<string, unknown>;
 
         const baggageIsValid =
-            state.baggageStatus === undefined ||
-            typeof state.baggageStatus ===
-                "number";
+            state.baggage_status === undefined ||
+            typeof state.baggage_status === "number";
 
         const healthIsValid =
             state.health === undefined ||
             typeof state.health === "number";
 
         return baggageIsValid && healthIsValid;
+    }
+
+    private UpdateAsteroid(id: string, data: unknown): void
+    {
+        if (!this.IsAsteroidData(data))
+        {
+            console.warn("Получены некорректные данные астероида", data);
+            return;
+        }
+
+        if (data.destroyed)
+        {
+            this.asteroids.delete(id);
+            this.EmitRadarChanged();
+            return;
+        }
+
+        if (data.position)
+        {
+            this.asteroids.set(id, { x: data.position.x, z: data.position.z });
+            this.EmitRadarChanged();
+        }
+    }
+
+    private UpdateMonster(id: string, data: unknown): void
+    {
+        if (!this.IsCosmoAlienData(data))
+        {
+            console.warn("Получены некорректные данные пришельца", data);
+            return;
+        }
+
+        if (data.died)
+        {
+            this.monsters.delete(id);
+            this.EmitRadarChanged();
+            return;
+        }
+
+        if (data.position)
+        {
+            this.monsters.set(id, { x: data.position.x, z: data.position.z });
+            this.EmitRadarChanged();
+        }
+    }
+
+    private IsAsteroidData(data: unknown): data is AsteroidData
+    {
+        if (!data || typeof data !== "object") return false;
+        const d = data as Record<string, unknown>;
+        return (
+            (d.position === undefined || typeof d.position === "object") &&
+            (d.destroyed === undefined || typeof d.destroyed === "boolean")
+        );
+    }
+
+    private IsCosmoAlienData(data: unknown): data is CosmoAlienData
+    {
+        if (!data || typeof data !== "object") return false;
+        const d = data as Record<string, unknown>;
+        return (
+            (d.position === undefined || typeof d.position === "object") &&
+            (d.died === undefined || typeof d.died === "boolean")
+        );
     }
 
     private SetTarget(entity: EntityRecord, data: EntityTransformData): void

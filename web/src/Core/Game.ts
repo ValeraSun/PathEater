@@ -36,7 +36,7 @@ export class Game {
     private interactionController: InteractionController | null = null;
     private computerController: ComputerController | null = null;
 
-    private readonly targetPosition = new THREE.Vector3();
+    private targetPosition = new THREE.Vector3();
     private targetRotationY = 0;
 
     private lastTime = performance.now();
@@ -136,6 +136,9 @@ export class Game {
         );
 
         const computerView = this.gameView.GetComputerView();
+        this.entityManager.SetRadarChangedHandler(state => {
+            computerView.UpdateDisplay(state);
+        });
 
         this.computerController = new ComputerController(
             this.input,

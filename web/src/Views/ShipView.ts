@@ -4,7 +4,7 @@ import { CargoView } from "./CargoView";
 
 export interface ShipStateData
 {
-    baggageStatus?: number;
+    baggage_status?: number;
     health?: number;
 }
 
@@ -25,9 +25,9 @@ export class ShipView
 
     public UpdateState(data: ShipStateData): void
     {
-        if (typeof data.baggageStatus === "number")
+        if (typeof data.baggage_status === "number")
         {
-            this.cargoView.SetBaggageStatus( data.baggageStatus);
+            this.cargoView.SetBaggageStatus(data.baggage_status);
         }
 
         if (typeof data.health === "number")
