@@ -2,18 +2,17 @@ export class HealthbarView
 {
     private image: HTMLImageElement;
 
-    public constructor()
-    {
+    public constructor(parent: HTMLElement) {
         this.image = document.createElement("img");
-        this.image.style.position = "fixed";
-        this.image.style.left = "10px";
-        this.image.style.top = "40px";
+
         this.image.style.width = "550px";
         this.image.style.zIndex = "1000";
         this.image.style.display = "none";
         this.image.style.opacity = "0.7";
+        this.image.style.top = "50px";
+        this.image.style.left = "50px"
 
-        document.body.appendChild(this.image);
+        parent.appendChild(this.image);
 
         this.SetHealth(100);
     }

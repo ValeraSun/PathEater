@@ -105,7 +105,7 @@
         <section class="screen" id="lobby-screen">
             <header class="screen-header lobby-header">
                 <span>ЛОББИ</span>
-                <span class="players-count">1/4</span>
+                <span class="players-count" id="players-count">1/4</span>
             </header>
 
             <div class="lobby-layout">
@@ -173,6 +173,11 @@
 
         <section class="screen" id="game-screen">
             <div id="game-container"></div>
+
+                <div id="game-hud" class="game-hud">
+                    <img class="game-hud_frame" src="/images/camera.png">
+                    <div id="healthbar-container" class="healthbar-container"></div>
+                </div>
 
             <div class="hud">
                 БОРТ

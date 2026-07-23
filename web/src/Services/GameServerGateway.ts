@@ -33,6 +33,10 @@ export interface GameStartedPayload {
     spawn: { x: number; y: number; z: number };
 }
 
+export interface RoomPlayersPayload {
+    playerIds: string[];
+}
+
 const REQUEST_TIMEOUT_MS = 5000;
 
 function timeout(ms: number): Promise<never> {
@@ -47,6 +51,10 @@ export class GameServerGateway {
 
     public localPlayerId: string | null = null;
     public onGameStarted: ((payload: GameStartedPayload) => void) | null = null;
+    public onRoomPlayersChanged: ((playerIds: string[]) => void) | null = null;
+    public SetRoomPlayersHandler(handler: (playerIds: string[]) => void): void {
+        this.onRoomPlayersChanged = handler;
+    }
 
     constructor(entityManager: EntityManager) {
         this.wsClient = new WebSocketClient();
@@ -68,15 +76,22 @@ export class GameServerGateway {
             this.entityManager.CreateEntity(payload.id, payload.type, parsed);
         });
 
-        this.wsClient.on("UpdateEntity", (payload: EntityUpdateInfo) => { 
-            console.dir(payload)
-            if (!this.isValidEntityInfo(payload)) return;          
-            this.entityManager.UpdateEntity(payload.id, payload.type, payload.data);
-        });
+        this.wsClient.on("UpdateEntity", (payload: EntityUpdateInfo) => {
+                console.dir(payload);
+                if (!this.isValidEntityInfo(payload))  return;
+                const parsed = EntityParser.Parse(payload.type, payload.data);
+                this.entityManager.UpdateEntity(payload.id, payload.type, parsed );
+            }
+        );
 
         this.wsClient.on("DeleteEntity", (payload: DeleteEntityPayload) => {
             if (!this.isValidDeletePayload(payload)) return;
             this.entityManager.DeleteEntity(payload.id);
+        });
+
+        this.wsClient.on("RoomPlayers", (payload: RoomPlayersPayload) => {
+            if (!this.isValidRoomPlayersPayload(payload)) return;
+            this.onRoomPlayersChanged?.(payload.playerIds);
         });
 
         // this.wsClient.on("Snapshot", (payload: unknown) => {
@@ -175,6 +190,14 @@ export class GameServerGateway {
         );
     }
 
+    private isValidRoomPlayersPayload(payload: unknown): payload is RoomPlayersPayload {
+        return (
+            !!payload &&
+            typeof payload === "object" &&
+            Array.isArray((payload as Record<string, unknown>).playerIds)
+        );
+    }
+
     private isValidDeletePayload(payload: unknown): payload is DeleteEntityPayload
     {
         if (!payload || typeof payload !== "object")
@@ -184,6 +207,10 @@ export class GameServerGateway {
 
         const entity = payload as Record<string,unknown>;
         return (typeof entity.id === "string" );
+    }
+
+    public SetPlayersChangedHandler( handler: (playerIds: string[]) => void): void {
+        this.entityManager.SetPlayersChangedHandler(handler);
     }
 }
 
