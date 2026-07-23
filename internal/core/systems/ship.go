@@ -11,7 +11,7 @@ import (
 
 type ShipSystem struct {
 	getter     componentsGetter
-	eventQueue chan *events.SetShipStateEvent
+	eventQueue chan *events.SetPlayerStateEvent
 }
 
 func NewShipSystem(getter componentsGetter, subscriber subscriber) *ShipSystem {
@@ -46,26 +46,26 @@ func (s *ShipSystem) moveShip(comps map[types.Entity]types.Component) {
 	}
 }
 
-func GetMoveVector(e *events.SetShipStateEvent) geometry.Vec3 {
+func GetMoveVector(e *events.SetPlayerStateEvent) geometry.Vec3 {
 	vec := geometry.GetZeroVector()
-	if e.ShipState.MoveRight {
+	if e.PlayerState.MoveFront {
 		vec.Add(geometry.Vec3{X: 1, Y: 1, Z: 0})
 	}
-	if e.ShipState.MoveLeft {
+	if e.PlayerState.MoveBack {
 		vec.Add(geometry.Vec3{X: 1, Y: -1, Z: 0})
 	}
 	return vec.Normalize()
 }
 
 func (s *ShipSystem) OnEvent(event events.Event) error {
-	ss, ok := event.(*events.SetShipStateEvent)
+	ps, ok := event.(*events.SetPlayerStateEvent)
 
 	if !ok {
 		return nil
 	}
 
 	select {
-	case s.eventQueue <- ss:
+	case s.eventQueue <- ps:
 	default:
 		fmt.Printf("Переполена очередь %v\n", s)
 	}

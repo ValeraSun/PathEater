@@ -292,38 +292,6 @@ func (c *playerStateCommand) Execute(client *Client, payload json.RawMessage) er
 	return nil
 }
 
-type weaponStateCommand struct{}
-
-func (c *weaponStateCommand) Name() string { return "weaponState" }
-
-func (c *weaponStateCommand) Execute(client *Client, payload json.RawMessage) error {
-	var state events.WeaponState
-
-	if err := json.Unmarshal(payload, &state); err != nil {
-		return client.SendError(err)
-	}
-
-	transfer.SendWeaponState(client.room.World.EventBus, state)
-
-	return nil
-}
-
-type shipStateCommand struct{}
-
-func (c *shipStateCommand) Name() string { return "shipState" }
-
-func (c *shipStateCommand) Execute(client *Client, payload json.RawMessage) error {
-	var state events.ShipState
-
-	if err := json.Unmarshal(payload, &state); err != nil {
-		return client.SendError(err)
-	}
-
-	transfer.SendShipState(client.room.World.EventBus, state)
-
-	return nil
-}
-
 type exitGameCommand struct{}
 
 func (c *exitGameCommand) Name() string { return "exitGame" }

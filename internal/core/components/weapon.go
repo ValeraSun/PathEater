@@ -3,6 +3,7 @@ package components
 import "github.com/ValeraSun/PathEater/internal/core/geometry"
 
 type WeaponComponent struct {
+	AvailableID  string
 	Direction    geometry.Vec3
 	Speed        float64
 	Ammo         int
@@ -15,8 +16,9 @@ func (*WeaponComponent) Type() string {
 
 func NewWeaponComponent(direction geometry.Vec3, speed float64, ammo int) *WeaponComponent {
 	return &WeaponComponent{
-		Direction: direction,
-		Speed:     speed,
-		Ammo:      ammo,
+		AvailableID: "",
+		Direction:   direction,
+		Speed:       speed,
+		Ammo:        ammo,
 	}
 }
