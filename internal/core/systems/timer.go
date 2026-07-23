@@ -31,7 +31,7 @@ func (s *TimerSystem) Update(dt float32) error {
 		Type: "time",
 		Data: timeData{
 			Time: time,
-		}
+		},
 	})
 	return nil
 }

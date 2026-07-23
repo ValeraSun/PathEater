@@ -45,9 +45,8 @@ func (s *GameOverSystem) OnEvent(event events.Event) error {
 		Data: gameOverData {
 			Win:    ev.Win,
 			Status: status,
-		}
-	},
-	)
+		},
+	})
 	s.closer.Close()
 	return nil
 }
