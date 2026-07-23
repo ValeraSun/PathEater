@@ -38,13 +38,11 @@ document.addEventListener(
 let connected = false;
 let isHost = false;
 let roomId: string | null = null;
-const playersCount = getElement("players-count");
 const playerList = getElement("player-list");
 
 const MAX_PLAYERS = 4;
 
 gateway.SetRoomPlayersHandler(playerIds => {
-    playersCount.textContent = `${playerIds.length}/${MAX_PLAYERS}`;
     renderPlayers(playerIds);
 });
 
