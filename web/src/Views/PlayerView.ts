@@ -63,20 +63,13 @@ export class PlayerView
     private playAnimation(name: string, speed = 1): void {
         const next = this.actions[name];
 
-        if (!next) {
-            return;
-        }
+        if (!next) return;
 
         next.timeScale = speed;
 
-        if (next === this.currentAction) {
-            return;
-        }
+        if (next === this.currentAction) return;
 
-        next
-            .reset()
-            .fadeIn(FADE_DURATION)
-            .play();
+        next.reset().fadeIn(FADE_DURATION).play();
 
         this.currentAction?.fadeOut(FADE_DURATION);
         this.currentAction = next;

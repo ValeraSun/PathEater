@@ -10,9 +10,8 @@ export interface ShipStateData
 
 export class ShipView
 {
-    private readonly group = new THREE.Group();
-    private readonly cargoView = new CargoView();
-
+    private group = new THREE.Group();
+    private cargoView = new CargoView();
     private health = 100;
 
     public constructor()

@@ -135,19 +135,10 @@ export class ComputerView
         this.context.strokeRect(12, 12, width - 24, height - 24);
         this.context.fillStyle = "#00e5ff";
         this.context.font = "bold 36px monospace";
-        this.context.fillText(
-            "SHIP RADAR",
-            45,
-            60
-        );
-
+        this.context.fillText("SHIP RADAR", 45, 60);
         this.context.fillStyle = "#ffffff";
         this.context.font = "26px monospace";
-        this.context.fillText(
-            `SHIP HP: ${Math.round(state.ship.hp)}`,
-            45,
-            105
-        );
+        this.context.fillText(`SHIP HP: ${Math.round(state.ship.hp)}`, 45, 105);
 
         const centerX = width / 2;
         const centerY = height / 2 + 25;
@@ -174,32 +165,11 @@ export class ComputerView
         this.context.font = "22px monospace";
 
         this.context.fillStyle = "#ffad33";
-        this.context.fillText(
-            `ASTEROIDS: ${state.asteroids.length}`,
-            45,
-            height - 45
-        );
-
+        this.context.fillText(`ASTEROIDS: ${state.asteroids.length}`, 45, height - 45);
         this.context.fillStyle = "#ff4055";
-        this.context.fillText(
-            `MONSTERS: ${state.monsters.length}`,
-            330,
-            height - 45
-        );
-
-        this.context.fillStyle =
-            this.lockedBy === null
-                ? "#45ff88"
-                : "#ff4055";
-
-        this.context.fillText(
-            this.lockedBy === null
-                ? "CONTROL: AVAILABLE"
-                : "CONTROL: OCCUPIED",
-            675,
-            height - 45
-        );
-
+        this.context.fillText(`MONSTERS: ${state.monsters.length}`, 330, height - 45);
+        this.context.fillStyle = this.lockedBy === null ? "#45ff88" : "#ff4055";
+        this.context.fillText(this.lockedBy === null ? "CONTROL: AVAILABLE" : "CONTROL: OCCUPIED", 675, height - 45);
         this.texture.needsUpdate = true;
     }
 
@@ -246,13 +216,9 @@ export class ComputerView
 
     private DrawMonster(x: number, y: number): void 
     {
-        if (!this.IsInsideScreen(x, y)) 
-            {
-            return;
-        }
+        if (!this.IsInsideScreen(x, y)) return;
 
         this.context.fillStyle = "#ff4055";
-
         this.context.fillRect(x - 9, y - 9, 18, 18);
     }
 

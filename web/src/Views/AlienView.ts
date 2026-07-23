@@ -111,10 +111,7 @@ export class AlienView {
             next.clampWhenFinished = false;
         }
 
-        next
-            .fadeIn(FADE_DURATION)
-            .play();
-
+        next.fadeIn(FADE_DURATION).play();
         this.currentAction?.fadeOut(FADE_DURATION);
         this.currentAction = next;
     }

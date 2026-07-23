@@ -11,9 +11,8 @@ export class CameraController
     private controls: PointerLockControls;
     private camera: THREE.PerspectiveCamera;
     private playerModel: PlayerModel;
-
-    private readonly forward = new THREE.Vector3();
-    private readonly desiredPosition = new THREE.Vector3();
+    private forward = new THREE.Vector3();
+    private desiredPosition = new THREE.Vector3();
 
     constructor(camera: THREE.PerspectiveCamera, playerModel: PlayerModel, domElement: HTMLElement)
     {

@@ -79,13 +79,11 @@ export class WebSocketClient extends EventEmitter {
                     if (this.isCorrectJSON(message)) {
                         let processedData = message.data;
 
-                        // Если данные пришли в виде Base64-строки, декодируем их
                         if (typeof message.data === "string") {
                             try {
-                                const decoded = atob(message.data); // Декодируем Base64
-                                processedData = JSON.parse(decoded); // Парсим в JSON-объект
+                                const decoded = atob(message.data);
+                                processedData = JSON.parse(decoded); 
                             } catch (e) {
-                                // Если это была обычная строка, а не Base64 JSON, оставляем как есть
                             }
                         }
 
