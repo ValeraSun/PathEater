@@ -49,7 +49,7 @@ func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 func initSystems(adder systemAdder, remover entityRemover, getter componentsGetter, publisher transfer.EventPublisher, broadcaster ecs.Broadcaster, subscriber subscriber, closer closer) {
 	adder.AddSystem(systems.NewVisionSystem(getter))
 	adder.AddSystem(systems.NewAISystem(getter, publisher))
-	adder.AddSystem(systems.NewAttackSystem(getter, subscriber))
+	adder.AddSystem(systems.NewAttackSystem(getter, subscriber, publisher))
 	adder.AddSystem(systems.NewControlSystem(getter, subscriber))
 	adder.AddSystem(systems.NewMovementSystem(getter))
 	adder.AddSystem(systems.NewVelocitySystem(getter))
