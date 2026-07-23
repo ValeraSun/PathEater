@@ -24,17 +24,21 @@ func NewHealthSystem(getter componentsGetter, publisher publisher, subscriber su
 }
 
 func (s *HealthSystem) Update(dt float32) error {
-	for e := range s.eventQueue {
-		ev, _ := e.(*events.DamageDealEvent)
-		c, _ := s.getter.GetComponent(ev.ID, "health")
-		hp := c.(*components.HealthComponent)
-		isDead := hp.Damage(ev.Damage)
-		if isDead {
-			e := events.NewGameOverEvent(0)
-			s.publisher.Publish(e)
+	for {
+		select {
+		case e := <-s.eventQueue:
+			ev, _ := e.(*events.DamageDealEvent)
+			c, _ := s.getter.GetComponent(ev.ID, "health")
+			hp := c.(*components.HealthComponent)
+			isDead := hp.Damage(ev.Damage)
+			if isDead {
+				e := events.NewGameOverEvent(0)
+				s.publisher.Publish(e)
+			}
+		default:
+			return nil
 		}
 	}
-	return nil
 }
 
 func (s *HealthSystem) OnEvent(event events.Event) error {

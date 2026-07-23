@@ -383,7 +383,7 @@ func SendCosmoAlien(id types.Entity, getter componentsGetter, broadcaster Sendle
 
 	broadcaster(ecs.EntityInfo{
 		ID:   id,
-		Type: "alien",
+		Type: "cosmoAlien",
 		Data: cosmoAlienData{
 			Position: transform.Position,
 			Rotation: transform.Direction,

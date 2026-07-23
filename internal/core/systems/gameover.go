@@ -1,7 +1,6 @@
 package systems
 
 import (
-	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 )
 
@@ -27,12 +26,12 @@ func (s *GameOverSystem) Update(dt float32) error {
 }
 
 func (s *GameOverSystem) OnEvent(event events.Event) error {
-	ev := event.(*events.GameOverEvent)
-	s.broadcaster.SendGameOverState(ecs.GameOverInfo{
-		Type: "gameOver",
-		Data: ev,
-	},
-	)
-	s.closer.Close()
+	// ev := event.(*events.GameOverEvent)
+	// s.broadcaster.SendGameOverState(ecs.GameOverInfo{
+	// 	Type: "gameOver",
+	// 	Data: ev,
+	// },
+	// )
+	// s.closer.Close()
 	return nil
 }

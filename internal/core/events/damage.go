@@ -7,9 +7,12 @@ type DamageDealEvent struct {
 	Damage int
 }
 
-func (*DamageDealEvent) Type() string { return "createPlayer" }
+func (*DamageDealEvent) Type() string { return "damageDeal" }
 
 func NewDamageDealEvent(id types.Entity, damage int) *DamageDealEvent {
-	return &DamageDealEvent{}
+	return &DamageDealEvent{
+		ID:     id,
+		Damage: damage,
+	}
 
 }
