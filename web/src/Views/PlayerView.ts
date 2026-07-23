@@ -34,7 +34,8 @@ export class PlayerView
         loadModel()
             .then(({ scene, animations }) => {
                 const model = cloneSkeleton(scene) as THREE.Group;
-                model.scale.setScalar(0.8);
+                model.position.y = -0.7;
+
                 this.mesh.add(model);
 
                 this.mixer = new THREE.AnimationMixer(model);
@@ -52,6 +53,10 @@ export class PlayerView
 
     public AdvanceAnimation(dt: number): void {
         this.mixer?.update(dt);
+    }
+
+    public SetVisible(visible: boolean): void {
+        this.mesh.visible = visible;
     }
 
     public SetMoving(isMoving: boolean): void {

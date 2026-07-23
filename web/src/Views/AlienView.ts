@@ -36,6 +36,8 @@ export class AlienView {
         loadModel()
             .then(({ scene, animations }) => {
                 const model = cloneSkeleton(scene) as THREE.Group;
+                model.scale.setScalar(1.8);
+                model.position.y = -1.7;
                 this.mesh.add(model);
                 this.mixer = new THREE.AnimationMixer(model);
                 for (const clip of animations) {

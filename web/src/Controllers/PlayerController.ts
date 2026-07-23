@@ -37,6 +37,7 @@ export class PlayerController {
     ) {
         this.playerModel = playerModel;
         this.playerView = playerView;
+        this.playerView.SetVisible(false);
         this.input = input;
         this.camera = camera;
         this.gameServerGateway = gameServerGateway;

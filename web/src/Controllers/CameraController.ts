@@ -3,7 +3,7 @@ import { PointerLockControls } from "three/examples/jsm/controls/PointerLockCont
 import { PlayerModel } from "../Models/PlayerModel";
 import { MOUSE_SENSITIVITY } from "../Config/CameraConfig";
 
-const CAMERA_EYE_HEIGHT = 1.55;
+const CAMERA_EYE_HEIGHT = 1.9;
 const CAMERA_FORWARD_OFFSET = 0.5;
 
 export class CameraController
