@@ -169,7 +169,7 @@ type Broadcaster interface {
 type playerData struct {
 	Position geometry.Vec3 `json:"position"`
 	Rotation geometry.Vec3 `json:"rotation"`
-	Health   int
+	Health   int			`json:"health"`
 }
 
 type shipData struct {
