@@ -5,8 +5,9 @@ import (
 )
 
 type AIComponent struct {
-	MoveFront bool
-	Direction geometry.Vec3
+	MoveFront      bool
+	Direction      geometry.Vec3
+	AttackCooldown float32
 }
 
 func (*AIComponent) Type() string {

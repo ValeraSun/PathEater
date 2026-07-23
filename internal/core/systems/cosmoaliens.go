@@ -15,7 +15,7 @@ const (
 	cosmoSpawnZoneSize    = 100
 	cosmoMaxSpawnAttempts = 50
 	maxCosmoAliens        = 5
-	cosmoSpawnChance      = 0.05
+	cosmoSpawnChance      = 0.005
 )
 
 type CosmoAlienSystem struct {

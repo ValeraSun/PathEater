@@ -38,7 +38,11 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 		components.NewColliderComponent(geometry.NewCapsuleCollider(
 			geometry.Vec3{},
 			geometry.Vec3{Y: 2},
-			1.0, 1.0)),
+			1.0, 0.7)),
+		components.NewHitboxComponent(geometry.NewCapsuleCollider(
+			geometry.Vec3{},
+			geometry.Vec3{Y: 2},
+			1.0, 0.7)),
 		components.NewMovableComponent(),
 		components.NewTransformComponent(
 			geometry.Vec3{
@@ -141,7 +145,11 @@ func NewAlien(adder entityAdder, position geometry.Vec3) types.Entity {
 		components.NewColliderComponent(geometry.NewCapsuleCollider(
 			geometry.Vec3{},
 			geometry.Vec3{Y: 2},
-			1.0, 0.6)),
+			1.0, 0.3)),
+		components.NewHitboxComponent(geometry.NewCapsuleCollider(
+			geometry.Vec3{},
+			geometry.Vec3{Y: 2},
+			1.0, 0.3)),
 	)
 	return alien
 }
