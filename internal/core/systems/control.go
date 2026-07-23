@@ -43,7 +43,7 @@ func (s *ControlSystem) drainEvents(comps map[types.Entity]types.Component) {
 	for {
 		select {
 		case e := <-s.eventQueue:
-			comp, ok := comps[e.ID]
+			comp, ok := comps[types.Entity(e.ID)]
 			if !ok {
 				continue
 			}
@@ -69,7 +69,7 @@ func (s *ControlSystem) OnEvent(event events.Event) error {
 	case s.eventQueue <- ps:
 
 	default:
-		fmt.Printf("Преполена очередь %v\n", s)
+		fmt.Printf("Переполена очередь %v\n", s)
 	}
 
 	return nil

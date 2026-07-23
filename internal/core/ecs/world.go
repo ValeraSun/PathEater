@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 	"time"
+	"log"
 
 	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -34,11 +35,17 @@ type Broadcaster interface {
 	SendEntityCreate(EntityInfo) error
 	SendEntityUpdate(EntityInfo) error
 	SendEntityDelete(EntityInfo) error
-	SendSnapshotToAll([]EntityInfo) error
+	SendGameOverState(GameOverInfo) error
+	//SendSnapshotToAll([]EntityInfo) error
 }
 
 type EntityInfo struct {
 	ID   types.Entity
+	Type string
+	Data any
+}
+
+type GameOverInfo struct {
 	Type string
 	Data any
 }
@@ -79,11 +86,13 @@ func HandleWorld(world *World) {
 		case now := <-ticker.C:
 			dt := time.Since(lastTick).Seconds()
 			lastTick = now
-
-			world.Update(float32(dt))
+			if err := world.Update(float32(dt)); err != nil {
+				log.Printf("Ошибка обновления мира: %v", err)
+			}
 		}
 	}
 }
+
 func (w *World) AddSystem(system types.System) {
 	w.mu.Lock()
 	defer w.mu.Unlock()

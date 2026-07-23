@@ -11,7 +11,7 @@ export class GameView
     private scene: THREE.Scene;
     private camera: THREE.PerspectiveCamera;
     private renderer: THREE.WebGLRenderer;
-    private healthView = new HealthbarView();
+    private healthView!: HealthbarView;
 
     private shipView: ShipView;
     private spaceView: SpaceView;
@@ -34,10 +34,25 @@ export class GameView
     {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-        const container = document.getElementById("app");
+       const container = document.getElementById("app");
 
-        container?.appendChild(this.renderer.domElement);
+        if (!container) {
+            throw new Error(
+                "Элемент #app не найден"
+            );
+        }
 
+        container.appendChild(this.renderer.domElement);
+
+        const healthContainer = document.getElementById("healthbar-container");
+
+        if (!healthContainer) {
+            throw new Error(
+                "Элемент #healthbar-container не найден"
+            );
+        }
+
+        this.healthView = new HealthbarView(healthContainer);
         this.camera.position.set(0, 5, 12);
         this.camera.lookAt(0, 0, 1);
         this.AddLights();

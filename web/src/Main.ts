@@ -25,10 +25,83 @@ const gameContainer = getElement("game-container");
 
 const game = Game.GetInstance();
 const gateway = game.GetGateway();
+const musicManager = game.GetMusicManager();
+
+document.addEventListener(
+    "click",
+    () => {
+        void musicManager.PlayMusic("menu");
+    },
+    { once: true }
+);
 
 let connected = false;
 let isHost = false;
 let roomId: string | null = null;
+const playersCount = getElement("players-count");
+const playerList = getElement("player-list");
+
+const MAX_PLAYERS = 4;
+
+gateway.SetRoomPlayersHandler(playerIds => {
+    playersCount.textContent = `${playerIds.length}/${MAX_PLAYERS}`;
+    renderPlayers(playerIds);
+});
+
+function renderPlayers(playerIds: string[]): void {
+    playerList.replaceChildren();
+
+    playerIds.forEach((playerId, index) => {
+        const isLocal = playerId === gateway.localPlayerId;
+
+        const item = document.createElement("li");
+        item.className = "player";
+
+        const avatar = document.createElement("div");
+        avatar.className = "player-avatar";
+
+        const image = document.createElement("img");
+        image.src = "/images/avatar.png";
+        image.alt = "Аватар игрока";
+        avatar.appendChild(image);
+
+        const info = document.createElement("div");
+        info.className = "player-info";
+
+        const name = document.createElement("strong");
+        name.textContent = isLocal
+            ? "Вы"
+            : `Игрок ${index + 1}`;
+
+        const ready = document.createElement("span");
+        ready.className = "ready";
+        ready.textContent = "Готов";
+
+        info.append(name, ready);
+
+        const role = document.createElement("span");
+        role.className = "player-role";
+        role.textContent =
+            isLocal && isHost
+                ? "Капитан"
+                : "Игрок";
+
+        item.append(avatar, info, role);
+        playerList.appendChild(item);
+    });
+
+    for (
+        let index = playerIds.length;
+        index < MAX_PLAYERS;
+        index++
+    ) {
+        const empty = document.createElement("li");
+        empty.className = "empty-player";
+        empty.textContent = "Ожидание игрока";
+
+        playerList.appendChild(empty);
+    }
+}
 
 function showScreen(name: ScreenName): void {
     for (const screen of Object.values(screens)) {
@@ -127,6 +200,7 @@ joinRoomButton.addEventListener("click", async () => {
 });
 
 roomBackButton.addEventListener("click", () => {
+    void musicManager.PlayMusic("menu");
     showScreen("menu");
 });
 
@@ -143,6 +217,7 @@ leaveLobbyButton.addEventListener("click", () => {
     startGameButton.disabled = false;
 
     setRoomButtonsDisabled(false);
+    void musicManager.PlayMusic("menu");
 
     showScreen("room");
 });
@@ -159,6 +234,7 @@ startGameButton.addEventListener("click", () => {
 });
 
 gateway.onGameStarted = async payload => {
+    await musicManager.PlayMusic("game");
     await game.StartMatch(payload);
 
     showScreen("game");

@@ -1,9 +1,8 @@
 import * as THREE from "three";
 import { PlayerView } from "../Views/PlayerView";
-import {
-    ShipView,
-    type ShipStateData
-} from "../Views/ShipView";
+import { type NavigationDisplayState } from "../Views/ComputerView";
+import { ShipView, type ShipStateData } from "../Views/ShipView";
+import { AlienView } from "../Views/AlienView";
 
 export interface EntityTransformData {
     position?: {
@@ -21,12 +20,51 @@ export interface EntityTransformData {
     health: number;
 }
 
+export interface AlienStateData extends EntityTransformData {
+    died?: boolean;
+    attacking?: boolean;
+}
+
+interface Vec2 {
+    x: number;
+    z: number;
+}
+
+interface ShipRadarData {
+    weapon_direction?: { x: number; y: number; z: number };
+    health?: number;
+}
+
+interface AsteroidData {
+    position?: { x: number; y: number; z: number };
+    radius?: number;
+    destroyed?: boolean;
+}
+
+interface CosmoAlienData {
+    position?: { x: number; y: number; z: number };
+    rotation?: { x: number; y: number; z: number };
+    health?: number;
+    died?: boolean;
+}
+
+interface AnimatedEntityView {
+    mesh: THREE.Object3D;
+    AdvanceAnimation(dt: number): void;
+}
+
 interface EntityRecord {
     id: string;
     type: string;
     object: THREE.Object3D;
+    animatedView: AnimatedEntityView | null;
     targetPosition: THREE.Vector3;
     targetRotationY: number;
+}
+
+interface CreatedEntityObject {
+    object: THREE.Object3D;
+    animatedView: AnimatedEntityView | null;
 }
 
 const NETWORK_LERP_SPEED = 12;
@@ -39,6 +77,13 @@ export class EntityManager
     private localPlayerId: string | null = null;
     private shipView: ShipView | null = null;
     private onLocalPlayerUpdate: ((data: EntityTransformData) => void) | null = null;
+    private onPlayersChanged: ((playerIds: string[]) => void) | null = null;
+    private onRadarChanged: ((state: NavigationDisplayState) => void) | null = null;
+
+    private shipHp = 100;
+    private shipWeaponDirection: Vec2 = { x: 0, z: -1 };
+    private readonly asteroids = new Map<string, Vec2>();
+    private readonly monsters = new Map<string, Vec2>();
 
     public constructor(scene: THREE.Scene)
     {
@@ -59,6 +104,19 @@ export class EntityManager
     {
         this.localPlayerId = id;
         this.DeleteEntity(id);
+        this.EmitPlayersChanged();
+    }
+
+    public SetPlayersChangedHandler(handler: (playerIds: string[]) => void): void
+    {
+        this.onPlayersChanged = handler;
+        this.EmitPlayersChanged();
+    }
+
+    public SetRadarChangedHandler(handler: (state: NavigationDisplayState) => void): void
+    {
+        this.onRadarChanged = handler;
+        this.EmitRadarChanged();
     }
 
     public CreateEntity(id: string, type: string, data: unknown): void
@@ -69,10 +127,21 @@ export class EntityManager
             return;
         }
 
+        if (type === "asteroid")
+        {
+            this.UpdateAsteroid(id, data);
+            return;
+        }
+
+        if (type === "alien")
+        {
+            this.UpdateMonster(id, data);
+            return;
+        }
+
         if (id === this.localPlayerId)
         {
             this.onLocalPlayerUpdate?.(data as EntityTransformData);
-
             return;
         }
 
@@ -81,31 +150,37 @@ export class EntityManager
         if (existing)
         {
             this.UpdateEntity(id, type, data);
-
             return;
         }
 
-        const object = this.CreateObject(type);
+        const created = this.CreateObject(type);
 
-        if (!object)
+        if (!created)
         {
             console.warn(`Невозможно создать сущность неизвестного типа: ${type}`);
-
             return;
         }
 
         const transformData = data as EntityTransformData;
 
-        this.ApplyTransform(object, transformData);
+        this.ApplyTransform(created.object, transformData);
+        this.ApplyEntityState(type, created.animatedView, data);
 
-        this.scene.add(object);
+        this.scene.add(created.object);
+
         this.entities.set(id, {
             id,
             type,
-            object,
-            targetPosition: object.position.clone(),
-            targetRotationY: object.rotation.y
+            object: created.object,
+            animatedView: created.animatedView,
+            targetPosition: created.object.position.clone(),
+            targetRotationY: created.object.rotation.y
         });
+
+        if (type === "player")
+        {
+            this.EmitPlayersChanged();
+        }
     }
 
     public UpdateEntity(id: string, type: string, data: unknown): void
@@ -116,10 +191,21 @@ export class EntityManager
             return;
         }
 
+        if (type === "asteroid")
+        {
+            this.UpdateAsteroid(id, data);
+            return;
+        }
+
+        if (type === "alien")
+        {
+            this.UpdateMonster(id, data);
+            return;
+        }
+
         if (id === this.localPlayerId)
         {
             this.onLocalPlayerUpdate?.(data as EntityTransformData);
-
             return;
         }
 
@@ -128,15 +214,27 @@ export class EntityManager
         if (!entity)
         {
             this.CreateEntity(id, type, data);
-
             return;
         }
 
         this.SetTarget(entity, data as EntityTransformData);
+        this.ApplyEntityState(entity.type, entity.animatedView, data);
     }
 
     public DeleteEntity(id: string): void
     {
+        if (this.asteroids.delete(id))
+        {
+            this.EmitRadarChanged();
+            return;
+        }
+
+        if (this.monsters.delete(id))
+        {
+            this.EmitRadarChanged();
+            return;
+        }
+
         const entity = this.entities.get(id);
 
         if (!entity)
@@ -144,9 +242,16 @@ export class EntityManager
             return;
         }
 
+        const wasPlayer = entity.type === "player";
+
         this.scene.remove(entity.object);
         this.DisposeObject(entity.object);
         this.entities.delete(id);
+
+        if (wasPlayer)
+        {
+            this.EmitPlayersChanged();
+        }
     }
 
     public Clear(): void
@@ -155,25 +260,19 @@ export class EntityManager
         {
             this.DeleteEntity(id);
         }
+
+        this.EmitPlayersChanged();
     }
 
     public Update(dt: number): void
     {
-        const interpolation =
-            1 -
-            Math.exp(
-                -NETWORK_LERP_SPEED * dt
-            );
+        const interpolation = 1 - Math.exp(-NETWORK_LERP_SPEED * dt);
 
-        for (
-            const entity of
-            this.entities.values()
-        )
+        for (const entity of this.entities.values())
         {
-            entity.object.position.lerp(
-                entity.targetPosition,
-                interpolation
-            );
+            entity.animatedView?.AdvanceAnimation(dt);
+
+            entity.object.position.lerp(entity.targetPosition, interpolation);
 
             entity.object.rotation.y = this.LerpAngle(
                 entity.object.rotation.y,
@@ -183,76 +282,225 @@ export class EntityManager
         }
     }
 
-    public GetEntity(
-        id: string
-    ): THREE.Object3D | null
+    public GetEntity(id: string): THREE.Object3D | null
     {
-        return (
-            this.entities.get(id)?.object ??
-            null
+        return this.entities.get(id)?.object ?? null;
+    }
+
+    private EmitPlayersChanged(): void
+    {
+        const playerIds: string[] = [];
+
+        if (this.localPlayerId)
+        {
+            playerIds.push(this.localPlayerId);
+        }
+
+        for (const entity of this.entities.values())
+        {
+            if (entity.type === "player")
+            {
+                playerIds.push(entity.id);
+            }
+        }
+
+        this.onPlayersChanged?.(playerIds);
+    }
+
+    private EmitRadarChanged(): void
+    {
+        if (!this.onRadarChanged)
+        {
+            return;
+        }
+
+        const rotationY = Math.atan2(
+            this.shipWeaponDirection.x,
+            this.shipWeaponDirection.z
         );
+
+        this.onRadarChanged({
+            ship: { x: 0, z: 0, rotationY, hp: this.shipHp },
+            asteroids: Array.from(this.asteroids, ([id, pos]) => ({ id, x: pos.x, z: pos.z })),
+            monsters: Array.from(this.monsters, ([id, pos]) => ({ id, x: pos.x, z: pos.z }))
+        });
     }
 
     private UpdateShip(data: unknown): void
     {
         if (!this.shipView)
         {
-            console.warn(
-                "ShipView не установлен в EntityManager"
-            );
-
+            console.warn("ShipView не установлен в EntityManager");
             return;
         }
 
         if (!this.IsShipStateData(data))
         {
-            console.warn(
-                "Получено некорректное состояние корабля",
-                data
-            );
-
+            console.warn("Получено некорректное состояние корабля", data);
             return;
         }
 
         this.shipView.UpdateState(data);
+
+        const shipData = data as ShipRadarData;
+
+        if (typeof shipData.health === "number")
+        {
+            this.shipHp = shipData.health;
+        }
+
+        if (shipData.weapon_direction)
+        {
+            this.shipWeaponDirection = {
+                x: shipData.weapon_direction.x,
+                z: shipData.weapon_direction.z
+            };
+        }
+
+        this.EmitRadarChanged();
     }
 
-    private IsShipStateData(
-        data: unknown
-    ): data is ShipStateData
+    private UpdateAsteroid(id: string, data: unknown): void
     {
-        if (
-            !data ||
-            typeof data !== "object"
-        )
+        if (!this.IsAsteroidData(data))
+        {
+            console.warn("Получены некорректные данные астероида", data);
+            return;
+        }
+
+        if (data.destroyed)
+        {
+            this.asteroids.delete(id);
+            this.EmitRadarChanged();
+            return;
+        }
+
+        if (data.position)
+        {
+            this.asteroids.set(id, { x: data.position.x, z: data.position.z });
+            this.EmitRadarChanged();
+        }
+    }
+
+    private UpdateMonster(id: string, data: unknown): void
+    {
+        if (!this.IsCosmoAlienData(data))
+        {
+            console.warn("Получены некорректные данные пришельца", data);
+            return;
+        }
+
+        if (data.died)
+        {
+            this.monsters.delete(id);
+            this.EmitRadarChanged();
+            return;
+        }
+
+        if (data.position)
+        {
+            this.monsters.set(id, { x: data.position.x, z: data.position.z });
+            this.EmitRadarChanged();
+        }
+    }
+
+    private ApplyEntityState(type: string, animatedView: AnimatedEntityView | null, data: unknown): void
+    {
+        if (type !== "alien" && type !== "monster")
+        {
+            return;
+        }
+
+        if (!(animatedView instanceof AlienView))
+        {
+            return;
+        }
+
+        if (!this.IsAlienStateData(data))
+        {
+            console.warn("Получено некорректное состояние пришельца:", data);
+            return;
+        }
+
+        const died = data.died ?? false;
+        const attacking = data.attacking ?? false;
+
+        animatedView.mesh.visible = !died;
+
+        if (died)
+        {
+            return;
+        }
+
+        animatedView.SetAttacking(attacking);
+    }
+
+    private IsShipStateData(data: unknown): data is ShipStateData
+    {
+        if (!data || typeof data !== "object")
         {
             return false;
         }
 
-        const state =
-            data as Record<string, unknown>;
+        const state = data as Record<string, unknown>;
 
-        const baggageIsValid =
-            state.baggageStatus === undefined ||
-            typeof state.baggageStatus ===
-                "number";
-
-        const healthIsValid =
-            state.health === undefined ||
-            typeof state.health === "number";
+        const baggageIsValid = state.baggageStatus === undefined || typeof state.baggageStatus === "number";
+        const healthIsValid = state.health === undefined || typeof state.health === "number";
 
         return baggageIsValid && healthIsValid;
+    }
+
+    private IsAsteroidData(data: unknown): data is AsteroidData
+    {
+        if (!data || typeof data !== "object")
+        {
+            return false;
+        }
+
+        const d = data as Record<string, unknown>;
+
+        return (
+            (d.position === undefined || typeof d.position === "object") &&
+            (d.destroyed === undefined || typeof d.destroyed === "boolean")
+        );
+    }
+
+    private IsCosmoAlienData(data: unknown): data is CosmoAlienData
+    {
+        if (!data || typeof data !== "object")
+        {
+            return false;
+        }
+
+        const d = data as Record<string, unknown>;
+
+        return (
+            (d.position === undefined || typeof d.position === "object") &&
+            (d.died === undefined || typeof d.died === "boolean")
+        );
+    }
+
+    private IsAlienStateData(data: unknown): data is AlienStateData
+    {
+        if (!data || typeof data !== "object")
+        {
+            return false;
+        }
+
+        const state = data as Record<string, unknown>;
+
+        const attackingIsValid = state.attacking === undefined || typeof state.attacking === "boolean";
+        const diedIsValid = state.died === undefined || typeof state.died === "boolean";
+        const healthIsValid = state.health === undefined || typeof state.health === "number";
+
+        return attackingIsValid && diedIsValid && healthIsValid;
     }
 
     private SetTarget(entity: EntityRecord, data: EntityTransformData): void
     {
         if (data.position)
         {
-            entity.targetPosition.set(
-                data.position.x,
-                data.position.y,
-                data.position.z
-            );
+            entity.targetPosition.set(data.position.x, data.position.y, data.position.z);
         }
 
         if (data.rotation)
@@ -261,34 +509,44 @@ export class EntityManager
         }
     }
 
-    private CreateObject(
-        type: string
-    ): THREE.Object3D | null
+    private CreateObject(type: string): CreatedEntityObject | null
     {
         switch (type)
         {
             case "player":
             {
-                const playerView =
-                    new PlayerView();
-
-                return playerView.mesh;
+                const playerView = new PlayerView();
+                return {
+                    object: playerView.mesh,
+                    animatedView: playerView
+                };
             }
 
+            case "alien":
             case "monster":
-                return this.CreateBox(
-                    0xff0000
-                );
+            {
+                const alienView = new AlienView();
+                return {
+                    object: alienView.mesh,
+                    animatedView: alienView
+                };
+            }
 
             case "door":
-                return this.CreateBox(
-                    0x4444ff
-                );
+            {
+                return {
+                    object: this.CreateBox(0x4444ff),
+                    animatedView: null
+                };
+            }
 
             case "cargo":
-                return this.CreateBox(
-                    0xffaa00
-                );
+            {
+                return {
+                    object: this.CreateBox(0xffaa00),
+                    animatedView: null
+                };
+            }
 
             default:
                 return null;
@@ -313,14 +571,13 @@ export class EntityManager
         return Math.atan2(dir.x, dir.z);
     }
 
-    private LerpAngle(current: number, target: number, t: number): number {
+    private LerpAngle(current: number, target: number, t: number): number
+    {
         const delta = Math.atan2(Math.sin(target - current), Math.cos(target - current));
         return current + delta * t;
     }
 
-    private DisposeObject(
-        object: THREE.Object3D
-    ): void
+    private DisposeObject(object: THREE.Object3D): void
     {
         object.traverse(child =>
         {
@@ -333,10 +590,7 @@ export class EntityManager
 
             if (Array.isArray(child.material))
             {
-                for (
-                    const material of
-                    child.material
-                )
+                for (const material of child.material)
                 {
                     material.dispose();
                 }
@@ -348,19 +602,11 @@ export class EntityManager
         });
     }
 
-    private CreateBox(
-        color: number
-    ): THREE.Mesh
+    private CreateBox(color: number): THREE.Mesh
     {
         return new THREE.Mesh(
-            new THREE.BoxGeometry(
-                1,
-                1,
-                1
-            ),
-            new THREE.MeshStandardMaterial({
-                color
-            })
+            new THREE.BoxGeometry(1, 1, 1),
+            new THREE.MeshStandardMaterial({ color })
         );
     }
 }

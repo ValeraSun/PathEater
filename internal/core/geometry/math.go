@@ -2,9 +2,6 @@ package geometry
 
 import "math"
 
-type Vec interface {
-}
-
 //модуль числа
 func abs(f float64) float64 {
 	if f < 0 {
@@ -43,4 +40,17 @@ func clamp(v, lo, hi float64) float64 {
 //находит синус с помощью косинуса
 func cosToSin(cos float64) float64 {
 	return math.Sqrt(1 - cos*cos)
+}
+
+func average(nums ...float64) float64 {
+	if len(nums) == 0 {
+		return 0
+	}
+
+	var sum float64 = 0
+	for _, num := range nums {
+		sum += num
+	}
+
+	return sum / float64(len(nums))
 }

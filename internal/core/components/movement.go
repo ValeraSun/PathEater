@@ -11,19 +11,19 @@ func (*MovementComponent) Type() string {
 	return "movement"
 }
 
-func NewMovementComponent(speed float64) *MovementComponent {
+func NewMovementComponent(speed float64, dir geometry.Vec3) *MovementComponent {
 	return &MovementComponent{
-		Speed: speed,
+		Speed:     speed,
+		Direction: dir,
 	}
 }
 
 func (c *MovementComponent) ApplyControl(state *ControlComponent) {
-	forwardVector := state.GetInputVector().Normalize()
+	forwardVector := state.GetInputVector()
 	direction := state.Direction
 	direction.Y = 0
 	direction = direction.Normalize()
 	c.Direction = geometry.CombineVectors(direction, forwardVector)
-
 }
 
 func (c *MovementComponent) ApplyAI(state *AIComponent) {

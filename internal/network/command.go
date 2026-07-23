@@ -38,6 +38,8 @@ func (c *createRoomCommand) Execute(client *Client, payload json.RawMessage) err
 		"playerId": client.ID,
 	})
 
+	broadcastRoomPlayers(room)
+
 	client.SetState(GameRoomState())
 	return nil
 }
@@ -74,6 +76,21 @@ func (c *deleteRoomCommand) Execute(client *Client, payload json.RawMessage) err
 	return nil
 }
 
+type roomPlayersPayload struct {
+	PlayerIds []string `json:"playerIds"`
+}
+
+func broadcastRoomPlayers(room *GameRoom) {
+	room.Mutex.RLock()
+	ids := make([]string, 0, len(room.Clients))
+	for id := range room.Clients {
+		ids = append(ids, id)
+	}
+	room.Mutex.RUnlock()
+
+	room.SendToAll("RoomPlayers", roomPlayersPayload{PlayerIds: ids})
+}
+
 // присоединение к комнате
 type joinRoomCommand struct{}
 
@@ -99,6 +116,8 @@ func (c *joinRoomCommand) Execute(client *Client, payload json.RawMessage) error
 		"roomId":   roomID.RoomID,
 		"playerId": client.ID,
 	})
+
+	broadcastRoomPlayers(room)
 
 	client.SetState(GameRoomState())
 	return nil
@@ -129,8 +148,11 @@ func (c *exitRoomCommand) Execute(client *Client, payload json.RawMessage) error
 		return client.SendError(errors.New("клиент не находится в комнате"))
 	}
 
+	room := client.room 
 	client.room.RemoveClient(client)
 	client.SetState(MainMenuState())
+
+	broadcastRoomPlayers(room)
 
 	return nil
 }
@@ -222,6 +244,20 @@ func (s Sendler) SendSnapshotToAll(entities []ecs.EntityInfo) error {
 	return nil
 }
 
+func (s Sendler) SendGameOverState(gameOverInfo ecs.GameOverInfo) error {
+	var info struct {
+		Data any `json:"data"`
+	}
+	info.Data = gameOverInfo.Data
+	payload, err := json.Marshal(info)
+	if err != nil {
+		return err
+	}
+
+	s.room.SendToAll("GameOver", payload)
+	return nil
+}
+
 // начало игры
 type createGameSessionCommand struct{}
 
@@ -259,7 +295,39 @@ func (c *playerStateCommand) Execute(client *Client, payload json.RawMessage) er
 		return client.SendError(err)
 	}
 
-	transfer.SendPlayerState(client.room.World.EventBus, state, types.Entity(client.ID))
+	transfer.SendPlayerState(client.room.World.EventBus, state, client.ID)
+
+	return nil
+}
+
+type weaponStateCommand struct{}
+
+func (c *weaponStateCommand) Name() string { return "weaponState" }
+
+func (c *weaponStateCommand) Execute(client *Client, payload json.RawMessage) error {
+	var state events.WeaponState
+
+	if err := json.Unmarshal(payload, &state); err != nil {
+		return client.SendError(err)
+	}
+
+	transfer.SendWeaponState(client.room.World.EventBus, state)
+
+	return nil
+}
+
+type shipStateCommand struct{}
+
+func (c *shipStateCommand) Name() string { return "shipState" }
+
+func (c *shipStateCommand) Execute(client *Client, payload json.RawMessage) error {
+	var state events.ShipState
+
+	if err := json.Unmarshal(payload, &state); err != nil {
+		return client.SendError(err)
+	}
+
+	transfer.SendShipState(client.room.World.EventBus, state)
 
 	return nil
 }

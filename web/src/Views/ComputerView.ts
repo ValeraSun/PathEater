@@ -119,7 +119,6 @@ export class ComputerView
         this.context.fillText("NAVIGATION SYSTEM", 55, 75);
         this.context.font = "28px monospace";
         this.context.fillText("WAITING FOR SERVER DATA...", 55, 140);
-        this.DrawGrid();
         this.texture.needsUpdate = true;
     }
 
@@ -130,8 +129,6 @@ export class ComputerView
 
         this.context.fillStyle = "#020b12";
         this.context.fillRect(0, 0, width, height);
-
-        this.DrawGrid();
 
         this.context.strokeStyle = "#00d9ff";
         this.context.lineWidth = 6;
@@ -204,34 +201,6 @@ export class ComputerView
         );
 
         this.texture.needsUpdate = true;
-    }
-
-    private DrawGrid(): void 
-    {
-        const width = this.canvas.width;
-        const height = this.canvas.height;
-
-        this.context.strokeStyle = "rgba(0, 210, 255, 0.12)";
-
-        this.context.lineWidth = 1;
-
-        const step = 64;
-
-        for (let x = 0; x <= width; x += step) 
-        {
-            this.context.beginPath();
-            this.context.moveTo(x, 0);
-            this.context.lineTo(x, height);
-            this.context.stroke();
-        }
-
-        for (let y = 0; y <= height; y += step) 
-        {
-            this.context.beginPath();
-            this.context.moveTo(0, y);
-            this.context.lineTo(width, y);
-            this.context.stroke();
-        }
     }
 
     private DrawShip(x: number, y: number, rotationY: number): void 

@@ -11,6 +11,7 @@ import { InteractionView } from "../Views/InteractionView";
 import { InteractionController } from "../Controllers/InteractionController";
 import { ComputerController } from "../Controllers/ComputerController";
 import { GameServerGateway, type GameStartedPayload } from "../Services/GameServerGateway";
+import { MusicManager } from "../Services/MusicManager";
 
 const POSITION_LERP_SPEED = 12;
 const ROTATION_LERP_SPEED = 12;
@@ -28,6 +29,7 @@ export class Game {
     private gameView: GameView;
     private entityManager: EntityManager;
     private gameServerGateway: GameServerGateway;
+    private musicManager: MusicManager;
 
     private playerModel: PlayerModel | null = null;
     private playerView: PlayerView | null = null;
@@ -36,7 +38,7 @@ export class Game {
     private interactionController: InteractionController | null = null;
     private computerController: ComputerController | null = null;
 
-    private readonly targetPosition = new THREE.Vector3();
+    private targetPosition = new THREE.Vector3();
     private targetRotationY = 0;
 
     private lastTime = performance.now();
@@ -61,6 +63,8 @@ export class Game {
             this.gameView.GetShipView()
         );
 
+        this.musicManager = new MusicManager();
+
         this.gameServerGateway = new GameServerGateway(
             this.entityManager
         );
@@ -79,6 +83,10 @@ export class Game {
     public async Connect(): Promise<void> {
         this.gameServerGateway.InitListeners();
         await this.gameServerGateway.ConnectToServer();
+    }
+
+    public GetMusicManager(): MusicManager {
+        return this.musicManager;
     }
 
     public async StartMatch(payload: GameStartedPayload): Promise<void> {
@@ -136,6 +144,9 @@ export class Game {
         );
 
         const computerView = this.gameView.GetComputerView();
+        this.entityManager.SetRadarChangedHandler(state => {
+            computerView.UpdateDisplay(state);
+        });
 
         this.computerController = new ComputerController(
             this.input,

@@ -1,15 +1,48 @@
 package systems
 
+import (
+	"fmt"
+
+	"github.com/ValeraSun/PathEater/internal/core/components"
+	"github.com/ValeraSun/PathEater/internal/core/events"
+)
+
 type HealthSystem struct {
-	getter componentsGetter
+	getter     componentsGetter
+	publisher  publisher
+	eventQueue chan events.Event
 }
 
-func NewHealthSystem(getter componentsGetter) *HealthSystem {
-	return &HealthSystem{
-		getter: getter,
+func NewHealthSystem(getter componentsGetter, publisher publisher, subscriber subscriber) *HealthSystem {
+	s := &HealthSystem{
+		getter:     getter,
+		publisher:  publisher,
+		eventQueue: make(chan events.Event, 100),
 	}
+	subscriber.Subscribe("damageDeal", s.OnEvent)
+	return s
 }
 
-func (*HealthSystem) Update(dt float32) error {
+func (s *HealthSystem) Update(dt float32) error {
+	for e := range s.eventQueue {
+		ev, _ := e.(*events.DamageDealEvent)
+		c, _ := s.getter.GetComponent(ev.ID, "health")
+		hp := c.(*components.HealthComponent)
+		isDead := hp.Damage(ev.Damage)
+		if isDead {
+			e := events.NewGameOverEvent(0)
+			s.publisher.Publish(e)
+		}
+	}
+	return nil
+}
+
+func (s *HealthSystem) OnEvent(event events.Event) error {
+	select {
+	case s.eventQueue <- event:
+	default:
+		fmt.Printf("Преполена очередь %v\n", s)
+	}
+
 	return nil
 }

@@ -11,6 +11,7 @@ func NewTransformSystem(getter componentsGetter) *TransformSystem {
 		getter: getter,
 	}
 }
+
 func (s *TransformSystem) Update(dt float32) error {
 	comps := s.getter.GetEntitiesByComponent("transform")
 

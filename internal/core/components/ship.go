@@ -1,12 +1,17 @@
 package components
 
 type ShipComponent struct {
-	StatusBag int
+	BaggageStatus int
+	Speed         float64
 }
 
-func NewShipComponent() *ShipComponent {
+func (*ShipComponent) Type() string {
+	return "ship"
+}
+
+func NewShipComponent(baggageStatus int, speed float64) *ShipComponent {
 	return &ShipComponent{
-		StatusBag: 100,
+		BaggageStatus: baggageStatus,
+		Speed:         speed,
 	}
 }
-func (*ShipComponent) Type() string { return "ship" }
