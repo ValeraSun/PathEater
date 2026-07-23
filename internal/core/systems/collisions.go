@@ -113,8 +113,8 @@ func shipAsteroidCollision(shipID, asteroidID types.Entity) (e1 *events.DamageDe
 	return events.NewDamageDealEvent(shipID, 20), events.NewDeleteAsteroidEvent(asteroidID)
 }
 
-func shipCosmoAlienCollision(shipID, alienID types.Entity) (e1 *events.DamageDealEvent, e2 *events.CreateAlienEvent) {
-	return events.NewDamageDealEvent(shipID, 10), events.NewCreateAlienEvent(randomPosition())
+func shipCosmoAlienCollision(shipID, alienID types.Entity) (e1 *events.DamageDealEvent, e2 *events.DamageDealEvent) {
+	return events.NewDamageDealEvent(shipID, 10), events.NewDamageDealEvent(shipID, 10)
 }
 
 func asteroidAsteroidCollision(asteroid1ID, asteroid2ID types.Entity) (e1 *events.DeleteAsteroidEvent, e2 *events.DeleteAsteroidEvent) {

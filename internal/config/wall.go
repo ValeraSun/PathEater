@@ -55,7 +55,12 @@ func getWallsConfigPath() string {
 	var data map[string]interface{}
 	yaml.Unmarshal(jsonData, &data)
 
-	path := data["walls_path"].(string)
+	path := data["walls_path_dev"].(string)
+	_, err = os.ReadFile(path)
+
+	if err != nil {
+		path = data["walls_path"].(string)
+	}
 
 	return path
 }

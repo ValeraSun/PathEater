@@ -22,7 +22,6 @@ RUN go mod download
 
 COPY . .
 
-RUN rm -rf ./web
 COPY --from=frontend-build /app/web/dist ./web
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/main ./cmd/app
