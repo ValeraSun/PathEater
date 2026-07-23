@@ -34,6 +34,7 @@ export class PlayerView
         loadModel()
             .then(({ scene, animations }) => {
                 const model = cloneSkeleton(scene) as THREE.Group;
+                model.scale.setScalar(0.8);
                 this.mesh.add(model);
 
                 this.mixer = new THREE.AnimationMixer(model);
