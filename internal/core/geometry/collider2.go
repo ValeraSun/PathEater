@@ -8,7 +8,7 @@ type TriangleCollider struct {
 }
 
 func NewTriangleCollider(v1, v2, v3 Vec3) *TriangleCollider {
-	return &TriangleCollider{Vertex1: v1, Vertex2: v3, Vertex3: v3}
+	return &TriangleCollider{Vertex1: v1, Vertex2: v2, Vertex3: v3}
 }
 
 func (b *TriangleCollider) Collide(other Collider) CollisionResult {
@@ -29,7 +29,7 @@ func (c *TriangleCollider) GetCenter() Vec3 {
 }
 
 func (c *TriangleCollider) ChangeCenter(center Vec3) {
-	change := c.Center.Sub(center)
+	change := center.Sub(c.Center)
 	c.Center = center
 	c.Vertex1.Add(change)
 	c.Vertex2.Add(change)
@@ -71,65 +71,57 @@ func (c *CircleCollider) ChangeCenter(center Vec3) {
 	c.Center = center
 }
 
-func triangleCircleCollide(a *TriangleCollider, b *CircleCollider) CollisionResult {
-	v1, v3 := twoClosestPointsToTarget(b.Center, a.Vertex1, a.Vertex3, a.Vertex3)
+func triangleCircleCollide(triangle *TriangleCollider, circle *CircleCollider) CollisionResult {
+	dist, closestPoint, normal := pointTriangleDistance(
+		circle.Center,
+		triangle.Vertex1,
+		triangle.Vertex2,
+		triangle.Vertex3,
+	)
 
-	h := heightFromA(b.Center, v1, v3)
-
-	overlapX := b.Radius - abs(h.X)
-	if overlapX <= 0 {
+	if dist > circle.Radius {
 		return CollisionResult{HasCollision: false}
 	}
 
-	overlapY := b.Radius - abs(h.Y)
-	if overlapY <= 0 {
-		return CollisionResult{HasCollision: false}
+	dir := closestPoint.Sub(circle.Center)
+	dirLen := dir.Length()
+
+	var mtv Vec3
+	if dirLen < 0.0001 {
+		mtv = normal.Scale(circle.Radius)
+	} else {
+		dirNorm := dir.Scale(1.0 / dirLen)
+		overlap := circle.Radius - dist
+		mtv = dirNorm.Scale(overlap)
 	}
 
-	minOverlap := overlapX
-	mtv := Vec3{X: overlapX, Y: 0}
-	if h.X < 0 {
-		mtv.X = -mtv.X
+	return CollisionResult{
+		HasCollision: true,
+		MTV:          mtv,
 	}
-
-	if overlapY < minOverlap {
-		minOverlap = overlapY
-		mtv = Vec3{X: 0, Y: overlapY}
-		if h.Y < 0 {
-			mtv.Y = -mtv.Y
-		}
-	}
-
-	return CollisionResult{HasCollision: true, MTV: mtv}
 }
 
 func circleCircleCollide(a, b *CircleCollider) CollisionResult {
 	d := a.Center.Sub(b.Center)
+	dist := d.Length()
 
-	overlapX := (a.Radius + b.Radius) - abs(d.X)
-	if overlapX <= 0 {
+	if dist >= a.Radius+b.Radius {
 		return CollisionResult{HasCollision: false}
 	}
 
-	overlapY := (a.Radius + b.Radius) - abs(d.Y)
-	if overlapY <= 0 {
-		return CollisionResult{HasCollision: false}
-	}
-
-	// Ищем минимальное перекрытие для выбора оси выталкивания
-	minOverlap := overlapX
-	mtv := Vec3{X: overlapX, Y: 0}
-	if d.X < 0 {
-		mtv.X = -mtv.X
-	}
-
-	if overlapY < minOverlap {
-		minOverlap = overlapY
-		mtv = Vec3{X: 0, Y: overlapY}
-		if d.Y < 0 {
-			mtv.Y = -mtv.Y
+	if dist < 0.0001 {
+		return CollisionResult{
+			HasCollision: true,
+			MTV:          Vec3{X: 0, Y: a.Radius, Z: 0},
 		}
 	}
 
-	return CollisionResult{HasCollision: true, MTV: mtv}
+	overlap := (a.Radius + b.Radius) - dist
+	direction := d.Normalize()
+	mtv := direction.Scale(overlap)
+
+	return CollisionResult{
+		HasCollision: true,
+		MTV:          mtv,
+	}
 }

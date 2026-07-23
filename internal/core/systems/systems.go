@@ -11,6 +11,10 @@ type entityAdder interface {
 	AddEntityByID(entity types.Entity, components ...types.Component) error
 }
 
+type closer interface {
+	Close()
+}
+
 type componentsGetter interface {
 	GetEntitiesByComponent(componentType string) map[types.Entity]types.Component
 	HasComponents(entity types.Entity, componentTypes ...string) bool

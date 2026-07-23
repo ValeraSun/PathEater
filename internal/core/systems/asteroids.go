@@ -1,7 +1,6 @@
 package systems
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 
@@ -26,18 +25,18 @@ const (
 )
 
 type AsteroidSystem struct {
-	getter     componentsGetter
-	publisher  publisher
-	eventQueue chan *events.MeteoriteZoneEvent
-	rng        *rand.Rand
+	getter    componentsGetter
+	publisher publisher
+	rng       *rand.Rand
+	active    bool
 }
 
 func NewAsteroidSystem(getter componentsGetter, publisher publisher, subscriber subscriber) *AsteroidSystem {
 	s := &AsteroidSystem{
-		getter:     getter,
-		publisher:  publisher,
-		eventQueue: make(chan *events.MeteoriteZoneEvent, 100),
-		rng:        rand.New(rand.NewSource(time.Now().UnixNano())),
+		getter:    getter,
+		publisher: publisher,
+		rng:       rand.New(rand.NewSource(time.Now().UnixNano())),
+		active:    false,
 	}
 	subscriber.Subscribe("meteoriteZone", s.OnEvent)
 	return s
@@ -190,19 +189,10 @@ func (s *AsteroidSystem) Update(dt float32) error {
 }
 
 func (s *AsteroidSystem) OnEvent(event events.Event) error {
-	mz, ok := event.(*events.MeteoriteZoneEvent)
-
+	_, ok := event.(*events.MeteoriteZoneEvent)
 	if !ok {
 		return nil
 	}
-
-	select {
-	case s.eventQueue <- mz:
-		e := <-s.eventQueue
-		active = !e.Active
-	default:
-		fmt.Printf("Переполена очередь %v\n", s)
-	}
-
+	s.active = !s.active
 	return nil
 }

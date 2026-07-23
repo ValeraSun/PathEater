@@ -9,12 +9,14 @@ import (
 
 type HealthSystem struct {
 	getter     componentsGetter
+	publisher  publisher
 	eventQueue chan events.Event
 }
 
-func NewHealthSystem(getter componentsGetter, subscriber subscriber) *HealthSystem {
+func NewHealthSystem(getter componentsGetter, publisher publisher, subscriber subscriber) *HealthSystem {
 	s := &HealthSystem{
 		getter:     getter,
+		publisher:  publisher,
 		eventQueue: make(chan events.Event, 100),
 	}
 	subscriber.Subscribe("damageShip", s.OnEvent)
@@ -23,7 +25,6 @@ func NewHealthSystem(getter componentsGetter, subscriber subscriber) *HealthSyst
 }
 
 func (s *HealthSystem) Update(dt float32) error {
-	//comps := s.getter.GetEntitiesByComponent("health")
 	for {
 		select {
 		case e := <-s.eventQueue:
@@ -36,7 +37,8 @@ func (s *HealthSystem) Update(dt float32) error {
 				hp := c.(*components.HealthComponent)
 				isDead := hp.Damage(ev.Damage)
 				if isDead {
-					//обработка проигрыша
+					e := events.NewGameOverEvent(0)
+					s.publisher.Publish(e)
 				}
 			case typ == "damageCosmoAlien":
 				ev, _ := e.(*events.DamageCosmoAlienEvent)
@@ -44,7 +46,8 @@ func (s *HealthSystem) Update(dt float32) error {
 				hp := c.(*components.HealthComponent)
 				isDead := hp.Damage(ev.Damage)
 				if isDead {
-					//обработка смерти пришельца
+					e := events.NewDeleteCosmoAlienEvent(ev.ID)
+					s.publisher.Publish(e)
 				}
 			}
 		default:

@@ -84,6 +84,7 @@ func HandleWorld(world *World) {
 		}
 	}
 }
+
 func (w *World) AddSystem(system types.System) {
 	w.mu.Lock()
 	defer w.mu.Unlock()

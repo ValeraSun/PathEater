@@ -299,10 +299,10 @@ func SendShip(id types.Entity, getter componentsGetter, broadcaster Sendler) err
 }
 
 func IsAsteroid(id types.Entity, getter componentsGetter) bool {
-	return getter.HasComponents(id, "asteroid")
+	return getter.HasComponents(id, "asteroid") && isVisibleAsteroid(id, getter)
 }
 
-func IsVisible(id types.Entity, getter componentsGetter) bool {
+func isVisibleAsteroid(id types.Entity, getter componentsGetter) bool {
 	c, _ := getter.GetComponent(id, "asteroid")
 	aster := c.(*components.AsteroidComponent)
 	return aster.Visible
@@ -343,7 +343,13 @@ func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Sendler)
 }
 
 func IsCosmoAlien(id types.Entity, getter componentsGetter) bool {
-	return getter.HasComponents(id, "cosmoAlien")
+	return getter.HasComponents(id, "cosmoAlien") && isVisibleCosmoAlien(id, getter)
+}
+
+func isVisibleCosmoAlien(id types.Entity, getter componentsGetter) bool {
+	c, _ := getter.GetComponent(id, "cosmoAlien")
+	alien := c.(*components.CosmoAlienComponent)
+	return alien.Visible
 }
 
 func SendCosmoAlien(id types.Entity, getter componentsGetter, broadcaster Sendler) error {

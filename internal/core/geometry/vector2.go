@@ -16,32 +16,23 @@ func (v Vec3) Perpend() Vec3 {
 	}
 }
 
-func (v Vec3) Distance(other Vec3) float64 {
-	dx := v.X - other.X
-	dy := v.Y - other.Y
-	return math.Sqrt(dx*dx + dy*dy)
-}
-
-func (v Vec3) DistanceSq(other Vec3) float64 {
-	dx := v.X - other.X
-	dy := v.Y - other.Y
-	return dx*dx + dy*dy
-}
-
 func (v1 Vec3) CosOfAngleBetweenVec2(v2 Vec3) float64 {
 	return v1.Dot(v2) / (v1.Length() * v2.Length())
 }
 
-func (v Vec3) RotateBySinCos(sin, cos float64) {
-	v.X = v.X*cos - v.Y*sin
-	v.Y = v.Y*cos + v.X*sin
+func (v *Vec3) RotateBySinCos(sin, cos float64) {
+	x := v.X
+	y := v.Y
+	v.X = x*cos - y*sin
+	v.Y = y*cos + x*sin
 }
 
 func (v Vec3) Rotate(angle float64) {
-	v.RotateBySinCos(math.Sincos(angle))
+	sin, cos := math.Sincos(angle)
+	v.RotateBySinCos(sin, cos)
 }
 
-func (v Vec3) RotateAroundPoint(pos *Vec3, center Vec3, cos float64) {
+func (v *Vec3) RotateAroundPoint(pos *Vec3, center Vec3, cos float64) {
 	sin := cosToSin(cos)
 	v.RotateBySinCos(sin, cos)
 	dxA := pos.X - center.X
@@ -50,49 +41,89 @@ func (v Vec3) RotateAroundPoint(pos *Vec3, center Vec3, cos float64) {
 	pos.Y = center.Y + dxA*sin + dyA*cos
 }
 
-func heightFromA(A, B, C Vec3) Vec3 {
-	BC := C.Sub(B)
+//расстояние от точки до отрезка
+func pointSegmentDistance(p, a, b Vec3) (float64, Vec3) {
+	ab := b.Sub(a)
+	ap := p.Sub(a)
 
-	BA := A.Sub(B)
+	t := (ap.X*ab.X + ap.Y*ab.Y + ap.Z*ab.Z) / (ab.X*ab.X + ab.Y*ab.Y + ab.Z*ab.Z)
+	t = math.Max(0, math.Min(1, t))
 
-	bcLenSq := BC.Dot(BC)
-
-	t := BA.Dot(BC) / bcLenSq
-
-	H := B.Add(BC.Scale(t))
-
-	AH := H.Sub(A)
-
-	return AH
+	closest := a.Add(ab.Scale(t))
+	diff := p.Sub(closest)
+	return diff.Length(), closest
 }
 
-func twoClosestPointsToTarget(target, p1, p2, p3 Vec3) (Vec3, Vec3) {
-	d1 := target.DistanceSq(p1)
-	d2 := target.DistanceSq(p2)
-	d3 := target.DistanceSq(p3)
+//расстояние от точки до треугольника
+func pointTriangleDistance(p, v1, v2, v3 Vec3) (float64, Vec3, Vec3) {
+	var minDist float64 = math.MaxFloat64
+	var closestPoint Vec3
+	var edgeNormal Vec3
 
-	points := []Vec3{p1, p2, p3}
-	distances := []float64{d1, d2, d3}
-
-	minIdx := 0
-	for i := 1; i < 3; i++ {
-		if distances[i] < distances[minIdx] {
-			minIdx = i
+	dist, cp := pointSegmentDistance(p, v1, v2)
+	if dist < minDist {
+		minDist = dist
+		closestPoint = cp
+		edge := v2.Sub(v1)
+		edgeNormal = Vec3{X: -edge.Y, Y: edge.X, Z: 0}
+		if edgeNormal.Length() > 0 {
+			edgeNormal = edgeNormal.Normalize()
 		}
 	}
 
-	secondMinIdx := -1
-	secondMinDist := math.Inf(1)
-
-	for i := 0; i < 3; i++ {
-		if i == minIdx {
-			continue
-		}
-		if distances[i] < secondMinDist {
-			secondMinIdx = i
-			secondMinDist = distances[i]
+	dist, cp = pointSegmentDistance(p, v2, v3)
+	if dist < minDist {
+		minDist = dist
+		closestPoint = cp
+		edge := v3.Sub(v2)
+		edgeNormal = Vec3{X: -edge.Y, Y: edge.X, Z: 0}
+		if edgeNormal.Length() > 0 {
+			edgeNormal = edgeNormal.Normalize()
 		}
 	}
 
-	return points[minIdx], points[secondMinIdx]
+	dist, cp = pointSegmentDistance(p, v3, v1)
+	if dist < minDist {
+		minDist = dist
+		closestPoint = cp
+		edge := v1.Sub(v3)
+		edgeNormal = Vec3{X: -edge.Y, Y: edge.X, Z: 0}
+		if edgeNormal.Length() > 0 {
+			edgeNormal = edgeNormal.Normalize()
+		}
+	}
+
+	if pointInTriangle(p, v1, v2, v3) {
+		center := Vec3{
+			X: (v1.X + v2.X + v3.X) / 3,
+			Y: (v1.Y + v2.Y + v3.Y) / 3,
+			Z: 0,
+		}
+		dir := p.Sub(center)
+		if dir.Length() > 0 {
+			edgeNormal = dir.Normalize()
+		} else {
+			edgeNormal = Vec3{X: 0, Y: 1, Z: 0}
+		}
+		return 0, p, edgeNormal
+	}
+
+	return minDist, closestPoint, edgeNormal
+}
+
+//проверяет, внутри треугольника ли точка
+func pointInTriangle(p, v1, v2, v3 Vec3) bool {
+	d1 := sign(p, v1, v2)
+	d2 := sign(p, v2, v3)
+	d3 := sign(p, v3, v1)
+
+	hasNeg := (d1 < 0) || (d2 < 0) || (d3 < 0)
+	hasPos := (d1 > 0) || (d2 > 0) || (d3 > 0)
+
+	return !(hasNeg && hasPos)
+}
+
+//проверяет, с какой стороны от линии v1-v2 точка p. Отрицательное значение - слева, положительное - справа
+func sign(p, v1, v2 Vec3) float64 {
+	return (p.X-v2.X)*(v1.Y-v2.Y) - (v1.X-v2.X)*(p.Y-v2.Y)
 }
