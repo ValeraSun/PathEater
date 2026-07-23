@@ -19,10 +19,14 @@ type entitiesHitbox struct {
 	id     types.Entity
 }
 
-func NewAttackSystem(getter componentsGetter) *AttackSystem {
-	return &AttackSystem{
-		getter: getter,
+func NewAttackSystem(getter componentsGetter, subscriber subscriber) *AttackSystem {
+	s := &AttackSystem{
+		getter:     getter,
+		eventQueue: make(chan *events.AttackEvent, 20),
 	}
+	subscriber.Subscribe("attack", s.OnEvent)
+	return s
+
 }
 
 func (s *AttackSystem) Update(dt float32) error {
