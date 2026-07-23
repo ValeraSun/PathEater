@@ -7,7 +7,7 @@ import (
 
 type HitboxComponent struct {
 	Collider geometry.Collider
-	Target   events.Target
+	Team     events.Target
 }
 
 func (*HitboxComponent) Type() string {

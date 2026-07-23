@@ -90,14 +90,18 @@ func (s *VisionSystem) Update(dt float32) error {
 
 			playerDirection := player.Position.Sub(enemy.transform.Position)
 			angle := geometry.AngleBetweenDegrees(enemy.vision.Direction, playerDirection)
-			if canSee && angle <= 120 {
+			canSee = canSee && angle <= 120
+
+			if canSee {
 				enemy.vision.CanSee = true
 				enemy.vision.Direction = playerDirection
 				enemy.vision.LastSeen = player.Position
 			} else {
-				if player.Position.Sub(enemy.transform.Position).Length() > 0.2 {
+
+				lastSeenDirection := enemy.vision.LastSeen.Sub(enemy.transform.Position)
+				if lastSeenDirection.Length() > 0.2 {
 					enemy.vision.CanSee = true
-					enemy.vision.Direction = enemy.vision.LastSeen.Sub(enemy.transform.Position)
+					enemy.vision.Direction = lastSeenDirection
 				} else {
 					enemy.vision.CanSee = false
 				}

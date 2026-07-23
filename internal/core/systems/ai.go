@@ -48,9 +48,12 @@ func (s *AISystem) Update(dt float32) error {
 
 	for _, enemy := range enemies {
 		if enemy.vision.CanSee {
-
 			enemy.ai.Direction = enemy.vision.Direction.Normalize()
 			enemy.ai.MoveFront = true
+
+			if enemy.ai.Direction.Length() < 0.2 {
+
+			}
 		} else {
 			enemy.ai.MoveFront = false
 		}
