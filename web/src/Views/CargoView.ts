@@ -3,12 +3,10 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export class CargoView
 {
-    private readonly group = new THREE.Group();
-
+    private group = new THREE.Group();
     private cargoModel: THREE.Object3D | null = null;
     private baggageStatus = 0;
-
-    private readonly maxVisibleCargo = 15;
+    private maxVisibleCargo = 15;
 
     public constructor()
     {
@@ -19,10 +17,7 @@ export class CargoView
     {
         const nextStatus = THREE.MathUtils.clamp(Math.round(value), 0, 100);
 
-        if (nextStatus === this.baggageStatus)
-        {
-            return;
-        }
+        if (nextStatus === this.baggageStatus) return;
 
         this.baggageStatus = nextStatus;
         this.UpdateCargoObjects();

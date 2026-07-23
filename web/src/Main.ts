@@ -67,9 +67,7 @@ function renderPlayers(playerIds: string[]): void {
         info.className = "player-info";
 
         const name = document.createElement("strong");
-        name.textContent = isLocal
-            ? "Вы"
-            : `Игрок ${index + 1}`;
+        name.textContent = isLocal ? "Вы" : `Игрок ${index + 1}`;
 
         const ready = document.createElement("span");
         ready.className = "ready";
@@ -79,20 +77,13 @@ function renderPlayers(playerIds: string[]): void {
 
         const role = document.createElement("span");
         role.className = "player-role";
-        role.textContent =
-            isLocal && isHost
-                ? "Капитан"
-                : "Игрок";
+        role.textContent = isLocal && isHost ? "Капитан" : "Игрок";
 
         item.append(avatar, info, role);
         playerList.appendChild(item);
     });
 
-    for (
-        let index = playerIds.length;
-        index < MAX_PLAYERS;
-        index++
-    ) {
+    for (let index = playerIds.length; index < MAX_PLAYERS; index++) {
         const empty = document.createElement("li");
         empty.className = "empty-player";
         empty.textContent = "Ожидание игрока";
@@ -108,10 +99,7 @@ function showScreen(name: ScreenName): void {
 
     screens[name].classList.add("screen--active");
 
-    document.body.classList.toggle(
-        "background--blurred",
-        name !== "menu"
-    );
+    document.body.classList.toggle("background--blurred", name !== "menu");
 }
 
 playButton.addEventListener("click", async () => {
@@ -131,11 +119,7 @@ playButton.addEventListener("click", async () => {
         playButton.disabled = false;
         showScreen("room");
     } catch (error) {
-        menuStatus.textContent =
-            error instanceof Error
-                ? error.message
-                : "Сервер недоступен";
-
+        menuStatus.textContent = error instanceof Error ? error.message : "Сервер недоступен";
         playButton.disabled = false;
     }
 });
@@ -155,11 +139,7 @@ createRoomButton.addEventListener("click", async () => {
 
         showScreen("lobby");
     } catch (error) {
-        roomStatus.textContent =
-            error instanceof Error
-                ? error.message
-                : "Не удалось создать комнату";
-
+        roomStatus.textContent = error instanceof Error ? error.message : "Не удалось создать комнату";
         setRoomButtonsDisabled(false);
     }
 });
@@ -183,16 +163,10 @@ joinRoomButton.addEventListener("click", async () => {
         isHost = false;
 
         startGameButton.hidden = true;
-        lobbyStatus.textContent =
-            "Ожидание запуска игры командиром…";
-
+        lobbyStatus.textContent = "Ожидание запуска игры командиром…";
         showScreen("lobby");
     } catch (error) {
-        roomStatus.textContent =
-            error instanceof Error
-                ? error.message
-                : "Комната не найдена";
-
+        roomStatus.textContent = error instanceof Error ? error.message : "Комната не найдена";
         setRoomButtonsDisabled(false);
     }
 });

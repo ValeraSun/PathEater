@@ -12,7 +12,6 @@ export class GameView
     private camera: THREE.PerspectiveCamera;
     private renderer: THREE.WebGLRenderer;
     private healthView!: HealthbarView;
-
     private shipView: ShipView;
     private spaceView: SpaceView;
     private computerView: ComputerView;
@@ -20,11 +19,8 @@ export class GameView
     public constructor()
     {
         this.scene = new THREE.Scene();
-
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
         this.renderer = new THREE.WebGLRenderer({antialias: true});
-
         this.shipView = new ShipView();
         this.spaceView = new SpaceView();
         this.computerView = new ComputerView();
@@ -33,13 +29,10 @@ export class GameView
     public Init(): void
     {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-
        const container = document.getElementById("app");
 
         if (!container) {
-            throw new Error(
-                "Элемент #app не найден"
-            );
+            throw new Error("Элемент #app не найден");
         }
 
         container.appendChild(this.renderer.domElement);
@@ -47,9 +40,7 @@ export class GameView
         const healthContainer = document.getElementById("healthbar-container");
 
         if (!healthContainer) {
-            throw new Error(
-                "Элемент #healthbar-container не найден"
-            );
+            throw new Error("Элемент #healthbar-container не найден");
         }
 
         this.healthView = new HealthbarView(healthContainer);
@@ -120,7 +111,6 @@ export class GameView
         this.scene.add(ambientLight);
 
         const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444466, 1.0);
-
         this.scene.add(hemisphereLight);
 
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1);

@@ -6,8 +6,7 @@ export class InteractionView
     {
         this.element = document.createElement("div");
 
-        this.element.textContent =
-            "Нажмите E, чтобы управлять кораблём";
+        this.element.textContent = "Нажмите E, чтобы управлять кораблём";
 
         this.element.style.position = "fixed";
         this.element.style.left = "50%";

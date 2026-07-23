@@ -15,18 +15,18 @@ export interface PlayerStatePayload {
 }
 
 export class PlayerController {
-    private readonly playerModel: PlayerModel;
-    private readonly playerView: PlayerView;
-    private readonly input: InputController;
-    private readonly camera: THREE.Camera;
-    private readonly gameServerGateway: GameServerGateway;
+    private playerModel: PlayerModel;
+    private playerView: PlayerView;
+    private input: InputController;
+    private camera: THREE.Camera;
+    private gameServerGateway: GameServerGateway;
 
     private inputLocked = false;
 
     private networkAccumulator = 0;
-    private readonly networkInterval = 1 / 20;
+    private networkInterval = 1 / 20;
 
-    private readonly cameraDirection = new THREE.Vector3();
+    private cameraDirection = new THREE.Vector3();
 
     public constructor(
         playerModel: PlayerModel,

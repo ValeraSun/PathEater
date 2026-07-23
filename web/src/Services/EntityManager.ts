@@ -82,8 +82,8 @@ export class EntityManager
 
     private shipHp = 100;
     private shipWeaponDirection: Vec2 = { x: 0, z: -1 };
-    private readonly asteroids = new Map<string, Vec2>();
-    private readonly monsters = new Map<string, Vec2>();
+    private asteroids = new Map<string, Vec2>();
+    private monsters = new Map<string, Vec2>();
 
     public constructor(scene: THREE.Scene)
     {
