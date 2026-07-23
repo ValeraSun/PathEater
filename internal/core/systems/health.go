@@ -31,6 +31,15 @@ func (s *HealthSystem) Update(dt float32) error {
 			typ := e.Type()
 
 			switch {
+			case typ == "damagePlayer":
+				ev, _ := e.(*events.DamagePlayerEvent)
+				c, _ := s.getter.GetComponent(ev.ID, "health")
+				hp := c.(*components.HealthComponent)
+				isDead := hp.Damage(ev.Damage)
+				if isDead {
+					e := events.NewPlayerDeathEvent(ev.ID)
+					s.publisher.Publish(e)
+				}
 			case typ == "damageShip":
 				ev, _ := e.(*events.DamageShipEvent)
 				c, _ := s.getter.GetComponent(ev.ID, "health")

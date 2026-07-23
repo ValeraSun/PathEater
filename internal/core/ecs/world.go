@@ -34,11 +34,17 @@ type Broadcaster interface {
 	SendEntityCreate(EntityInfo) error
 	SendEntityUpdate(EntityInfo) error
 	SendEntityDelete(EntityInfo) error
-	SendSnapshotToAll([]EntityInfo) error
+	SendGameOverState(GameOverInfo) error
+	//SendSnapshotToAll([]EntityInfo) error
 }
 
 type EntityInfo struct {
 	ID   types.Entity
+	Type string
+	Data any
+}
+
+type GameOverInfo struct {
 	Type string
 	Data any
 }

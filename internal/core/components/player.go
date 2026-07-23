@@ -1,11 +1,15 @@
 package components
 
-type PlayerComponent struct{}
+type PlayerComponent struct {
+	Died bool
+}
 
 func (*PlayerComponent) Type() string {
 	return "player"
 }
 
 func NewPlayerComponent() *PlayerComponent {
-	return &PlayerComponent{}
+	return &PlayerComponent{
+		Died: false,
+	}
 }

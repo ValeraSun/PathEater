@@ -64,7 +64,8 @@ func initSystems(adder systemAdder, remover entityRemover, getter componentsGett
 	adder.AddSystem(systems.NewShipSystem(getter, subscriber))
 	adder.AddSystem(systems.NewHealthSystem(getter, publisher, subscriber))
 	adder.AddSystem(systems.NewCosmoAlienSystem(getter, publisher))
-	adder.AddSystem(systems.NewGameOverSystem(getter, subscriber, closer))
+	adder.AddSystem(systems.NewGameOverSystem(getter, subscriber, broadcaster, closer))
+	adder.AddSystem(systems.NewDeathSystem(getter, publisher, subscriber))
 }
 
 func createEntities(world *ecs.World) {

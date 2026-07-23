@@ -29,6 +29,7 @@ type Broadcaster interface {
 	SendEntityCreate(ecs.EntityInfo) error
 	SendEntityUpdate(ecs.EntityInfo) error
 	SendEntityDelete(ecs.EntityInfo) error
+	SendGameOverState(ecs.GameOverInfo) error
 }
 
 type subscriber interface {

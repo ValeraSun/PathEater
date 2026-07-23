@@ -222,6 +222,20 @@ func (s Sendler) SendSnapshotToAll(entities []ecs.EntityInfo) error {
 	return nil
 }
 
+func (s Sendler) SendGameOverState(gameOverInfo ecs.GameOverInfo) error {
+	var info struct {
+		Data any `json:"data"`
+	}
+	info.Data = gameOverInfo.Data
+	payload, err := json.Marshal(info)
+	if err != nil {
+		return err
+	}
+
+	s.room.SendToAll("GameOver", payload)
+	return nil
+}
+
 // начало игры
 type createGameSessionCommand struct{}
 

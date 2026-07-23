@@ -4,6 +4,20 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
+type DamagePlayerEvent struct {
+	ID     types.Entity
+	Damage int
+}
+
+func (*DamagePlayerEvent) Type() string { return "damagePlayer" }
+
+func NewDamagePlayerEvent(id types.Entity, damage int) *DamagePlayerEvent {
+	return &DamagePlayerEvent{
+		ID:     id,
+		Damage: damage,
+	}
+}
+
 type DamageShipEvent struct {
 	ID     types.Entity
 	Damage int
