@@ -65,10 +65,6 @@ func (s *CreateSystem) drainEvents() error {
 				event := e.(*events.CreateBulletEvent)
 				bullet := entities.NewBullet(s.adder, event.Position, event.Direction)
 				err = entities.SendBullet(bullet, s.getter, s.broadcaster.SendEntityCreate)
-				/*case "createNavigationDisplay":
-				event := e.(*events.CreateBulletEvent)
-				bullet := entities.NewBullet(s.adder, event.Position, event.Direction)
-				err = entities.SendBullet(bullet, s.getter, s.broadcaster.SendEntityCreate)*/
 			}
 
 			if err != nil {

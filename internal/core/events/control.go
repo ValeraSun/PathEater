@@ -50,11 +50,13 @@ func NewSetWeaponStateEvent(ws WeaponState) *SetWeaponStateEvent {
 }
 
 type ShipState struct {
-	MoveLeft  bool `json:"move_left"`
-	MoveRight bool `json:"move_right"`
+	ID        string `json:"id"`
+	MoveLeft  bool   `json:"move_left"`
+	MoveRight bool   `json:"move_right"`
 }
 
 type SetShipStateEvent struct {
+	ID        string
 	ShipState ShipState
 }
 
@@ -62,6 +64,7 @@ func (*SetShipStateEvent) Type() string { return "setShipState" }
 
 func NewSetShipStateEvent(ss ShipState) *SetShipStateEvent {
 	return &SetShipStateEvent{
+		ID:        "",
 		ShipState: ss,
 	}
 }

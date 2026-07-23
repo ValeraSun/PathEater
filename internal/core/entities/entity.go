@@ -145,13 +145,6 @@ func NewAlien(adder entityAdder, position geometry.Vec3) types.Entity {
 	return alien
 }
 
-func NewNavigationDisplay(adder entityAdder) types.Entity {
-	e, _ := adder.AddEntity(
-		components.NewNavigationDisplayComponent(""),
-	)
-	return e
-}
-
 type componentsGetter interface {
 	GetEntitiesByComponent(componentType string) map[types.Entity]types.Component
 	HasComponents(entity types.Entity, componentTypes ...string) bool

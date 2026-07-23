@@ -82,3 +82,15 @@ func NewCreateBulletEvent(pos, dir geometry.Vec3) *CreateBulletEvent {
 		Direction: dir,
 	}
 }
+
+type CreateNavigationDisplayEvent struct {
+	ID types.Entity
+}
+
+func (*CreateNavigationDisplayEvent) Type() string { return "createNavigationDisplay" }
+
+func NewNavigationDisplayEvent(id types.Entity) *CreateNavigationDisplayEvent {
+	return &CreateNavigationDisplayEvent{
+		ID: id,
+	}
+}
