@@ -69,11 +69,11 @@ func (s *AttackSystem) drainEvents(hitboxes []*entitiesHitbox) {
 }
 
 func (s *AttackSystem) handleAttack(event *events.AttackEvent, hitboxes []*entitiesHitbox) {
-	for _, c := range hitboxes {
-		_, isColliding := c.hitbox.Collide(event.Collider)
+	for _, hitbox := range hitboxes {
+		_, isColliding := hitbox.hitbox.Collide(event.Collider)
 
-		if isColliding {
-			e := events.NewDamageDealEvent(c.id, event.Damage)
+		if isColliding && event.Attacker != hitbox.id {
+			e := events.NewDamageDealEvent(hitbox.id, event.Damage)
 			s.publisher.Publish(e)
 		}
 	}

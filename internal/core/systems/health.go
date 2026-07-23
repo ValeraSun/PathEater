@@ -32,7 +32,7 @@ func (s *HealthSystem) Update(dt float32) error {
 			hp := c.(*components.HealthComponent)
 			isDead := hp.Damage(ev.Damage)
 			if isDead {
-				e := events.NewGameOverEvent(0)
+				e := events.NewDeadEvent(ev.ID)
 				s.publisher.Publish(e)
 			}
 		default:

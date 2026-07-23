@@ -5,18 +5,21 @@ import (
 
 	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
 )
 
 type DeleteSystem struct {
 	getter      componentsGetter
 	broadcaster Broadcaster
 	remover     entitiesRemover
+	publisher   publisher
 	eventQueue  chan events.Event
 }
 
-func NewDeleteSystem(getter componentsGetter, broadcaster Broadcaster, remover entitiesRemover, subscriber subscriber) *DeleteSystem {
+func NewDeleteSystem(getter componentsGetter, broadcaster Broadcaster, remover entitiesRemover, publisher publisher, subscriber subscriber) *DeleteSystem {
 	s := &DeleteSystem{
 		getter:      getter,
+		publisher:   publisher,
 		broadcaster: broadcaster,
 		remover:     remover,
 		eventQueue:  make(chan events.Event, 100),
@@ -89,12 +92,15 @@ func (s *DeleteSystem) handle(e events.Event) {
 			return
 		}
 		if !s.getter.HasComponents(ev.ID, "cosmoAlien") {
-			return   
+			return
 		}
 		if err := entities.SendCosmoAlien(ev.ID, s.getter, s.broadcaster.SendEntityDelete); err != nil {
 			logSendFail(typ, err)
 		}
 		s.remover.RemoveEntity(ev.ID)
+
+		e := events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1})
+		s.publisher.Publish(e)
 
 	case "deleteBullet":
 		ev, ok := e.(*events.DeleteBulletEvent)

@@ -6,11 +6,10 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/systems"
-	"github.com/ValeraSun/PathEater/internal/core/transfer"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
-type subscriber interface {
+type Subscriber interface {
 	Subscribe(eventType string, handler events.EventHandler) (func(), error)
 }
 
@@ -18,7 +17,7 @@ type closer interface {
 	Close()
 }
 
-type systemAdder interface {
+type systemworld interface {
 	AddSystem(types.System)
 	AddEntity(components ...types.Component) (types.Entity, error)
 	AddEntityByID(entity types.Entity, components ...types.Component) error
@@ -28,7 +27,7 @@ type entityRemover interface {
 	RemoveEntity(entity types.Entity)
 }
 
-type componentsGetter interface {
+type componentsworld interface {
 	GetEntitiesByComponent(componentType string) map[types.Entity]types.Component
 	HasComponents(entity types.Entity, componentTypes ...string) bool
 	GetComponent(entity types.Entity, componentType string) (types.Component, bool)
@@ -36,7 +35,7 @@ type componentsGetter interface {
 
 func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	w := ecs.CreateWorld(broadcaster)
-	initSystems(w, w, w, w.EventBus, w.Broadcaster, w.EventBus, w)
+	initSystems(w)
 	config.CreateWalls(w)
 
 	createEntities(w)
@@ -46,27 +45,28 @@ func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	return w
 }
 
-func initSystems(adder systemAdder, remover entityRemover, getter componentsGetter, publisher transfer.EventPublisher, broadcaster ecs.Broadcaster, subscriber subscriber, closer closer) {
-	adder.AddSystem(systems.NewVisionSystem(getter))
-	adder.AddSystem(systems.NewAISystem(getter, publisher))
-	adder.AddSystem(systems.NewAttackSystem(getter, subscriber, publisher))
-	adder.AddSystem(systems.NewControlSystem(getter, subscriber))
-	adder.AddSystem(systems.NewMovementSystem(getter))
-	adder.AddSystem(systems.NewVelocitySystem(getter))
-	adder.AddSystem(systems.NewTransformSystem(getter))
-	adder.AddSystem(systems.NewCollisionSystem(getter, publisher))
-	adder.AddSystem(systems.NewCollisionsSystem(getter, publisher, subscriber))
-	adder.AddSystem(systems.NewRenderSystem(getter, broadcaster))
-	adder.AddSystem(systems.NewCreateSystem(adder, getter, broadcaster, subscriber))
-	adder.AddSystem(systems.NewDeleteSystem(getter, broadcaster, remover, subscriber))
-	adder.AddSystem(systems.NewWeaponSystem(getter, publisher, subscriber))
-	adder.AddSystem(systems.NewShootSystem(getter))
-	adder.AddSystem(systems.NewAsteroidSystem(getter, publisher, subscriber))
-	adder.AddSystem(systems.NewShipSystem(getter, subscriber))
-	adder.AddSystem(systems.NewHealthSystem(getter, publisher, subscriber))
-	adder.AddSystem(systems.NewCosmoAlienSystem(getter, publisher))
-	adder.AddSystem(systems.NewGameOverSystem(getter, subscriber, broadcaster, closer))
-	adder.AddSystem(systems.NewDeathSystem(getter, publisher, subscriber))
+func initSystems(world *ecs.World) {
+	world.AddSystem(systems.NewVisionSystem(world))
+	world.AddSystem(systems.NewAISystem(world, world.EventBus))
+	world.AddSystem(systems.NewAttackSystem(world, world.EventBus, world.EventBus))
+	world.AddSystem(systems.NewControlSystem(world, world.EventBus))
+	world.AddSystem(systems.NewMovementSystem(world))
+	world.AddSystem(systems.NewVelocitySystem(world))
+	world.AddSystem(systems.NewTransformSystem(world))
+	world.AddSystem(systems.NewCollisionSystem(world, world.EventBus))
+	world.AddSystem(systems.NewCollisionsSystem(world, world.EventBus, world.EventBus))
+	world.AddSystem(systems.NewRenderSystem(world, world.Broadcaster))
+	world.AddSystem(systems.NewCreateSystem(world, world, world.Broadcaster, world.EventBus))
+	world.AddSystem(systems.NewDeleteSystem(world, world.Broadcaster, world, world.EventBus, world.EventBus))
+	world.AddSystem(systems.NewWeaponSystem(world, world.EventBus, world.EventBus))
+	world.AddSystem(systems.NewShootSystem(world))
+	world.AddSystem(systems.NewAsteroidSystem(world, world.EventBus, world.EventBus))
+	world.AddSystem(systems.NewShipSystem(world, world.EventBus))
+	world.AddSystem(systems.NewHealthSystem(world, world.EventBus, world.EventBus))
+	world.AddSystem(systems.NewCosmoAlienSystem(world, world.EventBus))
+	world.AddSystem(systems.NewGameOverSystem(world, world.EventBus, world.Broadcaster, world))
+	world.AddSystem(systems.NewDeathSystem(world, world.EventBus, world.EventBus))
+	world.AddSystem(systems.NewDeadSystem(world, world, world.EventBus))
 }
 
 func createEntities(world *ecs.World) {

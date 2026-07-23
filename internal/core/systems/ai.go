@@ -4,6 +4,7 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
+	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 type AISystem struct {
@@ -25,6 +26,7 @@ func (s *AISystem) Update(dt float32) error {
 		ai        *components.AIComponent
 		vision    *components.VisionComponent
 		transform *components.TransformComponent
+		id        types.Entity
 		privMtv   geometry.Vec3
 	}
 
@@ -49,6 +51,7 @@ func (s *AISystem) Update(dt float32) error {
 				vision:    vision,
 				privMtv:   collider.PrivMTV,
 				transform: transform,
+				id:        id,
 			})
 		}
 
@@ -74,7 +77,7 @@ func (s *AISystem) Update(dt float32) error {
 						geometry.Vec3{Y: 1},
 						1, 1,
 					),
-					events.Friend,
+					enemy.id,
 				)
 				s.publisher.Publish(e)
 			}

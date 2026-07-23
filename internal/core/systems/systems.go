@@ -39,3 +39,7 @@ type subscriber interface {
 type publisher interface {
 	Publish(events.Event) error
 }
+
+type entityRemover interface {
+	RemoveEntity(entity types.Entity)
+}
