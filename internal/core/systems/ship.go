@@ -47,10 +47,10 @@ func (s *ShipSystem) moveShip(comps map[types.Entity]types.Component) {
 func GetMoveVector(e *events.SetShipStateEvent) geometry.Vec3 {
 	vec := geometry.GetZeroVector()
 	if e.ShipState.MoveRight {
-		vec.Add(geometry.Vec3{X: 1, Y: 0, Z: 0})
+		vec.Add(geometry.Vec3{X: 1, Y: 1, Z: 0})
 	}
 	if e.ShipState.MoveLeft {
-		vec.Add(geometry.Vec3{X: -1, Y: 0, Z: 0})
+		vec.Add(geometry.Vec3{X: 1, Y: -1, Z: 0})
 	}
 	return vec.Normalize()
 }

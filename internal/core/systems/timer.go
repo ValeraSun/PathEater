@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
-	"github.com/ValeraSun/PathEater/internal/core/events"
 )
 
 type TimerSystem struct {
@@ -22,7 +21,7 @@ func NewTimerSystem(getter componentsGetter, broadcaster Broadcaster, timer time
 }
 
 type timeData struct {
-	time time.Duration
+	Time time.Duration
 }
 
 func (s *TimerSystem) Update(dt float32) error {

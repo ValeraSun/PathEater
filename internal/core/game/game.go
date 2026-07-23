@@ -1,6 +1,8 @@
 package game
 
 import (
+	"time"
+
 	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -16,6 +18,10 @@ type subscriber interface {
 
 type closer interface {
 	Close()
+}
+
+type timer interface {
+	GetRemainingTime() time.Duration
 }
 
 type systemAdder interface {
@@ -43,7 +49,7 @@ func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 
 	go w.EventBus.ProcessEvents()
 	go ecs.HandleWorld(w)
-	w.Timer.StartTimer(1, timerIsOver(w, w.EventBus))
+	w.Timer.StartTimer(10, func() { timerIsOver(w.EventBus) })
 	return w
 }
 
@@ -75,6 +81,6 @@ func createEntities(world *ecs.World) {
 	world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
 }
 
-func timerIsOver(publisher transfer.EventPublisher){
+func timerIsOver(publisher transfer.EventPublisher) {
 	publisher.Publish(events.NewGameOverEvent(true))
 }

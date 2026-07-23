@@ -12,16 +12,16 @@ import (
 )
 
 type Timer struct {
-    mu         sync.RWMutex
-    duration   time.Duration
-    startTime  time.Time
-    isActive   bool
-    isFinished bool
-    onFinish   func()
+	mu         sync.RWMutex
+	duration   time.Duration
+	startTime  time.Time
+	isActive   bool
+	isFinished bool
+	onFinish   func()
 }
 
-func newTimer() *Timer{
-	return &Timer{}
+func newTimer() Timer {
+	return Timer{}
 }
 
 type World struct {
@@ -45,45 +45,45 @@ type World struct {
 	done chan struct{}
 }
 
-func (t *Timer)StartTimer(duration time.Duration, onFinish func()) {
-    t.mu.Lock()
-    defer t.mu.Unlock()
-    
-    t.duration = duration
-    t.startTime = time.Now()
-    t.isActive = true
-    t.isFinished = false
-    t.onFinish = onFinish
-    
-    go func() {
-        <-time.After(duration)
-        t.mu.Lock()
-        defer t.mu.Unlock()
-        
-        if t.isActive && !t.isFinished {
-            t.isFinished = true
-            t.isActive = false
-            if t.onFinish != nil {
-                t.onFinish()
-            }
-        }
-    }()
+func (t *Timer) StartTimer(duration time.Duration, onFinish func()) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	t.duration = duration
+	t.startTime = time.Now()
+	t.isActive = true
+	t.isFinished = false
+	t.onFinish = onFinish
+
+	go func() {
+		<-time.After(duration)
+		t.mu.Lock()
+		defer t.mu.Unlock()
+
+		if t.isActive && !t.isFinished {
+			t.isFinished = true
+			t.isActive = false
+			if t.onFinish != nil {
+				t.onFinish()
+			}
+		}
+	}()
 }
 
-func (t *Timer)GetRemainingTime() time.Duration {
-    t.mu.RLock()
-    defer t.mu.RUnlock()
-    
-    if !t.isActive {
-        return 0
-    }
-    
-    elapsed := time.Since(t.startTime)
-    remaining := t.duration - elapsed
-    if remaining < 0 {
-        return 0
-    }
-    return remaining
+func (t *Timer) GetRemainingTime() time.Duration {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	if !t.isActive {
+		return 0
+	}
+
+	elapsed := time.Since(t.startTime)
+	remaining := t.duration - elapsed
+	if remaining < 0 {
+		return 0
+	}
+	return remaining
 }
 
 type Broadcaster interface {
@@ -120,7 +120,7 @@ func newWorld(eventBus *events.EventBus, room Broadcaster) *World {
 		systemTimers:   make(map[string]time.Duration),
 		Broadcaster:    room,
 		Timer:          newTimer(),
-		done: make(chan struct{}),
+		done:           make(chan struct{}),
 	}
 }
 

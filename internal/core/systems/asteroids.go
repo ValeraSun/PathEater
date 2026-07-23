@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	displaySize           = 200
+	displayHeight         = 512
+	displayWidth          = 1024
 	spawnZoneSize         = 100
 	maxSpawnAttempts      = 50
 	minAsteroidDistance   = 40
@@ -20,8 +21,8 @@ const (
 	maxAsteroids          = 30
 	maxSpeed              = 20
 	minSpeed              = 1
-	maxRadius             = 20
-	minRadius             = 1
+	maxRadius             = 50
+	minRadius             = 5
 )
 
 type AsteroidSystem struct {
@@ -72,30 +73,32 @@ func (s *AsteroidSystem) generateAsteroid() (geometry.Vec3, float64, geometry.Ve
 	var spawnPos geometry.Vec3
 	var targetPos geometry.Vec3
 
-	halfDisplay := float64(displaySize) / 2
-	halfSpawn := float64(displaySize+spawnZoneSize) / 2
+	halfDisplayHeight := float64(displayHeight) / 2
+	halfSpawnHeight := float64(displayHeight+spawnZoneSize) / 2
+	halfDisplayWidth := float64(displayWidth) / 2
+	halfSpawnWidth := float64(displayWidth+spawnZoneSize) / 2
 
 	switch side {
 	case 0:
-		spawnPos.X = s.rng.Float64()*(halfSpawn*2) - halfSpawn
-		spawnPos.Y = halfSpawn
-		targetPos.X = s.rng.Float64()*(halfDisplay*2) - halfDisplay
-		targetPos.Y = s.rng.Float64()*(halfDisplay*2) - halfDisplay
+		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
+		spawnPos.Y = halfSpawnHeight
+		targetPos.X = s.rng.Float64()*(halfDisplayWidth*2) - halfDisplayWidth
+		targetPos.Y = s.rng.Float64()*(halfDisplayHeight*2) - halfDisplayHeight
 	case 1:
-		spawnPos.X = s.rng.Float64()*(halfSpawn*2) - halfSpawn
-		spawnPos.Y = -halfSpawn
-		targetPos.X = s.rng.Float64()*(halfDisplay*2) - halfDisplay
-		targetPos.Y = s.rng.Float64()*(halfDisplay*2) - halfDisplay
+		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
+		spawnPos.Y = -halfSpawnHeight
+		targetPos.X = s.rng.Float64()*(halfDisplayWidth*2) - halfDisplayWidth
+		targetPos.Y = s.rng.Float64()*(halfDisplayHeight*2) - halfDisplayHeight
 	case 2:
-		spawnPos.X = -halfSpawn
-		spawnPos.Y = s.rng.Float64()*(halfSpawn*2) - halfSpawn
-		targetPos.X = s.rng.Float64()*(halfDisplay*2) - halfDisplay
-		targetPos.Y = s.rng.Float64()*(halfDisplay*2) - halfDisplay
+		spawnPos.X = -halfSpawnHeight
+		spawnPos.Y = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
+		targetPos.X = s.rng.Float64()*(halfDisplayWidth*2) - halfDisplayWidth
+		targetPos.Y = s.rng.Float64()*(halfDisplayHeight*2) - halfDisplayHeight
 	case 3:
-		spawnPos.X = halfSpawn
-		spawnPos.Y = s.rng.Float64()*(halfSpawn*2) - halfSpawn
-		targetPos.X = s.rng.Float64()*(halfDisplay*2) - halfDisplay
-		targetPos.Y = s.rng.Float64()*(halfDisplay*2) - halfDisplay
+		spawnPos.X = halfSpawnHeight
+		spawnPos.Y = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
+		targetPos.X = s.rng.Float64()*(halfDisplayWidth*2) - halfDisplayWidth
+		targetPos.Y = s.rng.Float64()*(halfDisplayHeight*2) - halfDisplayHeight
 	}
 
 	direction := targetPos.Sub(spawnPos).Normalize()
@@ -175,8 +178,8 @@ func (s *AsteroidSystem) Update(dt float32) error {
 
 			x := transform.Position.X
 			y := transform.Position.Y
-			aster.Visible = x >= -displaySize/2 && x <= displaySize/2 && y >= -displaySize/2 && y <= displaySize/2
-			aster.OnField = x >= -(displaySize+100)/2 && x <= (displaySize+100)/2 && y >= -(displaySize+100)/2 && y <= (displaySize+100)/2
+			aster.Visible = x >= -displayWidth/2 && x <= displayWidth/2 && y >= -displayHeight/2 && y <= displayHeight/2
+			aster.OnField = x >= -(displayWidth+spawnZoneSize)/2 && x <= (displayWidth+spawnZoneSize)/2 && y >= -(displayHeight+spawnZoneSize)/2 && y <= (displayHeight+spawnZoneSize)/2
 
 			if !aster.OnField {
 				e := events.NewDeleteAsteroidEvent(id)

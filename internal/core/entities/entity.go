@@ -62,8 +62,8 @@ func NewShip(adder entityAdder) types.Entity {
 		components.NewShipComponent(10, 5),
 		components.NewWeaponComponent(geometry.GetZeroVector(), 10, 30),
 		components.NewColliderComponent(geometry.NewTriangleCollider(
-			geometry.Vec3{X: 0, Y: 20, Z: 0},
-			geometry.Vec3{X: 20, Y: -20, Z: 0},
+			geometry.Vec3{X: 20, Y: 0, Z: 0},
+			geometry.Vec3{X: -20, Y: 20, Z: 0},
 			geometry.Vec3{X: -20, Y: -20, Z: 0},
 		)),
 	)
@@ -143,6 +143,13 @@ func NewAlien(adder entityAdder, position geometry.Vec3) types.Entity {
 			1.0, 0.6)),
 	)
 	return alien
+}
+
+func NewNavigationDisplay(adder entityAdder) types.Entity {
+	e, _ := adder.AddEntity(
+		components.NewNavigationDisplayComponent(""),
+	)
+	return e
 }
 
 type componentsGetter interface {
