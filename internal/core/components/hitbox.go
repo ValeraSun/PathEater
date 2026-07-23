@@ -1,8 +1,13 @@
+package components
 
-import "github.com/ValeraSun/PathEater/internal/core/geometry"
+import (
+	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
+)
 
 type HitboxComponent struct {
 	Collider geometry.Collider
+	Target   events.Target
 }
 
 func (*HitboxComponent) Type() string {
@@ -15,7 +20,7 @@ func NewHitboxComponent(collider geometry.Collider) *HitboxComponent {
 	}
 }
 
-func (c *HitboxComponent) Collide(other *HitboxComponent) (geometry.Vec3, bool) {
-	result := c.Collider.Collide(other.Collider)
+func (c *HitboxComponent) Collide(other geometry.Collider) (geometry.Vec3, bool) {
+	result := c.Collider.Collide(other)
 	return result.MTV, result.HasCollision
 }
