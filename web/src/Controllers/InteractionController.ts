@@ -6,11 +6,11 @@ import { InputController } from "./InputController";
 export class InteractionController {
     private readonly interactionDistance = 2.5;
 
-    private readonly input: InputController;
-    private readonly playerModel: PlayerModel;
-    private readonly computerView: ComputerView;
-    private readonly interactionView: InteractionView;
-    private readonly onInteract: () => void;
+    private input: InputController;
+    private playerModel: PlayerModel;
+    private computerView: ComputerView;
+    private interactionView: InteractionView;
+    private onInteract: () => void;
 
     public constructor(
         input: InputController,

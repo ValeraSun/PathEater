@@ -51,6 +51,7 @@ interface CosmoAlienData {
 interface AnimatedEntityView {
     mesh: THREE.Object3D;
     AdvanceAnimation(dt: number): void;
+    SetMoving?(isMoving: boolean): void;
 }
 
 interface EntityRecord {
@@ -265,22 +266,29 @@ export class EntityManager
     }
 
     public Update(dt: number): void
+{
+    const interpolation = 1 - Math.exp(-NETWORK_LERP_SPEED * dt);
+
+    for (const entity of this.entities.values())
     {
-        const interpolation = 1 - Math.exp(-NETWORK_LERP_SPEED * dt);
-
-        for (const entity of this.entities.values())
+        if (entity.type === "player")
         {
-            entity.animatedView?.AdvanceAnimation(dt);
-
-            entity.object.position.lerp(entity.targetPosition, interpolation);
-
-            entity.object.rotation.y = this.LerpAngle(
-                entity.object.rotation.y,
-                entity.targetRotationY,
-                interpolation
-            );
+            const distanceToTarget = entity.object.position.distanceTo(entity.targetPosition);
+            const isMoving = distanceToTarget > 0.01;
+            entity.animatedView?.SetMoving?.(isMoving);
         }
+
+        entity.animatedView?.AdvanceAnimation(dt);
+
+        entity.object.position.lerp(entity.targetPosition, interpolation);
+
+        entity.object.rotation.y = this.LerpAngle(
+            entity.object.rotation.y,
+            entity.targetRotationY,
+            interpolation
+        );
     }
+}
 
     public GetEntity(id: string): THREE.Object3D | null
     {
