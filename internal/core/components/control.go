@@ -39,7 +39,7 @@ func (c *ControlComponent) Superimpose(state *events.PlayerState) {
 	c.MoveLeft = state.MoveLeft
 	c.MoveRight = state.MoveRight
 	c.MoveBack = state.MoveBack
-	c.Interact = state.Interact
+	c.Interact = c.Interact || state.Interact
 	c.Attack = state.Attack
 	c.Direction = state.Direction
 }

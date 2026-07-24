@@ -63,6 +63,8 @@ func NewShip(adder entityAdder) types.Entity {
 			geometry.GetZeroVector(),
 		),
 		components.NewHealthComponent(100),
+		components.NewMovementComponent(10, geometry.GetZeroVector()),
+		components.NewVelocityComponent(),
 		components.NewShipComponent(10, 5),
 		components.NewWeaponComponent(geometry.GetZeroVector(), 10, 30),
 		components.NewColliderComponent(geometry.NewTriangleCollider(
@@ -80,6 +82,7 @@ func NewAsteroid(adder entityAdder, pos geometry.Vec3, radius float64, dir geome
 			pos,
 			dir,
 		),
+		components.NewUpdateComponent(),
 		components.NewMovementComponent(speed, dir),
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
@@ -99,6 +102,7 @@ func NewCosmoAlien(adder entityAdder, pos geometry.Vec3, shipID types.Entity) ty
 			geometry.GetZeroVector(),
 		),
 		components.NewMovementComponent(10, geometry.GetZeroVector()),
+		components.NewUpdateComponent(),
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
 		components.NewStalkerComponent(shipID),
@@ -318,25 +322,25 @@ func isVisibleAsteroid(id types.Entity, getter componentsGetter) bool {
 
 func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
 	c, ok := getter.GetComponent(id, "asteroid")
+
+	if !ok {
+		return errors.New("Не найден необходимый компнонент")
+	}
 	aster := c.(*components.AsteroidComponent)
 
+	c, ok = getter.GetComponent(id, "transform")
+
 	if !ok {
 		return errors.New("Не найден необходимый компнонент")
 	}
-
-	c, ok = getter.GetComponent(id, "transform")
 	transform := c.(*components.TransformComponent)
 
-	if !ok {
-		return errors.New("Не найден необходимый компнонент")
-	}
-
 	c, ok = getter.GetComponent(id, "collider")
-	col := c.(*components.ColliderComponent)
 
 	if !ok {
 		return errors.New("Не найден необходимый компнонент")
 	}
+	col := c.(*components.ColliderComponent)
 
 	broadcaster(ecs.EntityInfo{
 		ID:   id,

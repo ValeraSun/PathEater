@@ -22,8 +22,3 @@ func SendWeaponState(publisher EventPublisher, state events.WeaponState) error {
 	e := events.NewSetWeaponStateEvent(state)
 	return publisher.Publish(e)
 }
-
-func SendShipState(publisher EventPublisher, state events.ShipState) error {
-	e := events.NewSetShipStateEvent(state)
-	return publisher.Publish(e)
-}

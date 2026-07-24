@@ -148,7 +148,7 @@ func (c *exitRoomCommand) Execute(client *Client, payload json.RawMessage) error
 		return client.SendError(errors.New("клиент не находится в комнате"))
 	}
 
-	room := client.room 
+	room := client.room
 	client.room.RemoveClient(client)
 	client.SetState(MainMenuState())
 
@@ -326,22 +326,6 @@ func (c *weaponStateCommand) Execute(client *Client, payload json.RawMessage) er
 	}
 
 	transfer.SendWeaponState(client.room.World.EventBus, state)
-
-	return nil
-}
-
-type shipStateCommand struct{}
-
-func (c *shipStateCommand) Name() string { return "shipState" }
-
-func (c *shipStateCommand) Execute(client *Client, payload json.RawMessage) error {
-	var state events.ShipState
-
-	if err := json.Unmarshal(payload, &state); err != nil {
-		return client.SendError(err)
-	}
-
-	transfer.SendShipState(client.room.World.EventBus, state)
 
 	return nil
 }

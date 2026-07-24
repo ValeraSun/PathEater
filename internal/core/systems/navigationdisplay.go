@@ -2,7 +2,6 @@ package systems
 
 import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
-	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
@@ -10,41 +9,34 @@ type NavigationDisplaySystem struct {
 	getter componentsGetter
 }
 
-func NewNavigationDisplaySystem(getter componentsGetter, subscriber subscriber) *NavigationDisplaySystem {
+func NewNavigationDisplaySystem(getter componentsGetter) *NavigationDisplaySystem {
 	s := &NavigationDisplaySystem{
 		getter: getter,
 	}
-	subscriber.Subscribe("setPlayerState", s.OnEvent)
+
 	return s
 }
 
 func (s *NavigationDisplaySystem) Update(dt float32) error {
-	return nil
-}
+	comps := s.getter.GetEntitiesByComponent("ship")
 
-func (s *NavigationDisplaySystem) OnEvent(event events.Event) error {
-	ps, ok := event.(*events.SetPlayerStateEvent)
-
-	if !ok {
+	if len(comps) == 0 {
 		return nil
 	}
-
-	ships := s.getter.GetEntitiesByComponent("ship")
-	var shipComp types.Component
-	for _, sh := range ships {
-		shipComp = sh
+	var c types.Component
+	for _, sh := range comps {
+		c = sh
 	}
-	ship := shipComp.(*components.ShipComponent)
 
-	if ps.PlayerState.Interact {
-		switch ship.AvailableID {
-		case "":
-			ship.AvailableID = ps.ID
-		case ps.ID:
-			ship.AvailableID = ""
+	ship := c.(*components.ShipComponent)
+
+	comps = s.getter.GetEntitiesByComponent("control")
+	for id, c := range comps {
+		control := c.(*components.ControlComponent)
+		if control.Interact {
+			ship.AvailableID = id
 		}
-		return nil
-	}
 
+	}
 	return nil
 }

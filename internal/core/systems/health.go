@@ -28,7 +28,10 @@ func (s *HealthSystem) Update(dt float32) error {
 		select {
 		case e := <-s.eventQueue:
 			ev, _ := e.(*events.DamageDealEvent)
-			c, _ := s.getter.GetComponent(ev.ID, "health")
+			c, ok := s.getter.GetComponent(ev.ID, "health")
+			if !ok {
+				return nil
+			}
 			hp := c.(*components.HealthComponent)
 			isDead := hp.Damage(ev.Damage)
 			if isDead {

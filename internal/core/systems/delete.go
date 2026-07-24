@@ -5,7 +5,6 @@ import (
 
 	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/events"
-	"github.com/ValeraSun/PathEater/internal/core/geometry"
 )
 
 type DeleteSystem struct {
@@ -99,7 +98,7 @@ func (s *DeleteSystem) handle(e events.Event) {
 		}
 		s.remover.RemoveEntity(ev.ID)
 
-		e := events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1})
+		//e := events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1})
 		s.publisher.Publish(e)
 
 	case "deleteBullet":

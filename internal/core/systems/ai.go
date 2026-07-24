@@ -71,7 +71,7 @@ func (s *AISystem) Update(dt float32) error {
 			if enemy.ai.Direction.Length() < 2 && enemy.ai.AttackCooldown == 0 {
 				enemy.ai.AttackCooldown = 1
 				e := events.NewAttackEvent(
-					20,
+					0,
 					geometry.NewCapsuleCollider(
 						enemy.transform.Position.Add(enemy.ai.Direction),
 						geometry.Vec3{Y: 1},
