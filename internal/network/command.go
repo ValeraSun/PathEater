@@ -3,7 +3,6 @@ package network
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -177,7 +176,7 @@ func (s Sendler) SendEntityCreate(entityInfo ecs.EntityInfo) error {
 		return err
 	}
 
-	fmt.Printf("Отправлено create в room %v сообщение: %+v\n", s.room.ID, info)
+	//fmt.Printf("Отправлено create в room %v сообщение: %+v\n", s.room.ID, info)
 
 	s.room.SendToAll("CreateEntity", payload)
 

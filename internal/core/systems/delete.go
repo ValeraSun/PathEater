@@ -122,14 +122,14 @@ func logBadType(typ string, e events.Event) {
 }
 
 func logSendFail(typ string, err error) {
-	log.Printf("DeleteSystem: не удалось отправить удаление (%s): %v", typ, err)
+	//log.Printf("DeleteSystem: не удалось отправить удаление (%s): %v", typ, err)
 }
 
 func (s *DeleteSystem) OnEvent(event events.Event) error {
 	select {
 	case s.eventQueue <- event:
 	default:
-		log.Printf("DeleteSystem: переполнена очередь событий, событие %q отброшено", event.Type())
+		//log.Printf("DeleteSystem: переполнена очередь событий, событие %q отброшено", event.Type())
 	}
 	return nil
 }

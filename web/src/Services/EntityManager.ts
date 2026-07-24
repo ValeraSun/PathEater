@@ -27,7 +27,7 @@ export interface AlienStateData extends EntityTransformData {
 
 interface Vec2 {
     x: number;
-    z: number;
+    y: number;
 }
 
 interface ShipRadarData {
@@ -82,7 +82,7 @@ export class EntityManager
     private onRadarChanged: ((state: NavigationDisplayState) => void) | null = null;
 
     private shipHp = 100;
-    private shipWeaponDirection: Vec2 = { x: 0, z: -1 };
+    private shipWeaponDirection: Vec2 = { x: 0, y: -1 };
     private asteroids = new Map<string, Vec2>();
     private monsters = new Map<string, Vec2>();
 
@@ -324,13 +324,13 @@ export class EntityManager
 
         const rotationY = Math.atan2(
             this.shipWeaponDirection.x,
-            this.shipWeaponDirection.z
+            this.shipWeaponDirection.y
         );
 
         this.onRadarChanged({
-            ship: { x: 0, z: 0, rotationY, hp: this.shipHp },
-            asteroids: Array.from(this.asteroids, ([id, pos]) => ({ id, x: pos.x, z: pos.z })),
-            monsters: Array.from(this.monsters, ([id, pos]) => ({ id, x: pos.x, z: pos.z }))
+            ship: { x: 0, y: 0, rotationY, hp: this.shipHp },
+            asteroids: Array.from(this.asteroids, ([id, pos]) => ({ id, x: pos.x, y: pos.y })),
+            monsters: Array.from(this.monsters, ([id, pos]) => ({ id, x: pos.x, y: pos.y }))
         });
     }
 
@@ -361,7 +361,7 @@ export class EntityManager
         {
             this.shipWeaponDirection = {
                 x: shipData.weapon_direction.x,
-                z: shipData.weapon_direction.z
+                y: shipData.weapon_direction.y
             };
         }
 
@@ -385,7 +385,8 @@ export class EntityManager
 
         if (data.position)
         {
-            this.asteroids.set(id, { x: data.position.x, z: data.position.z });
+           // console.dir(data)
+            this.asteroids.set(id, { x: data.position.x, y: data.position.y });
             this.EmitRadarChanged();
         }
     }
@@ -407,7 +408,7 @@ export class EntityManager
 
         if (data.position)
         {
-            this.monsters.set(id, { x: data.position.x, z: data.position.z });
+            this.monsters.set(id, { x: data.position.x, y: data.position.z });
             this.EmitRadarChanged();
         }
     }

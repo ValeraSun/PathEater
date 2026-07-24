@@ -36,3 +36,16 @@ func (c *MovementComponent) ApplyAI(state *AIComponent) {
 	}
 
 }
+
+func (c *MovementComponent) ApplyShipControl(state *ControlComponent) {
+	forwardVector := geometry.Vec3{X: 1}
+	if state.MoveFront {
+		forwardVector.X = 0
+		forwardVector.Y += 1
+	}
+	if state.MoveBack {
+		forwardVector.X = 0
+		forwardVector.Y -= 1
+	}
+	c.Direction = forwardVector.Normalize()
+}

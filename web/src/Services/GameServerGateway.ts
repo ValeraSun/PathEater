@@ -70,14 +70,14 @@ export class GameServerGateway {
 
     public InitListeners(): void {
         this.wsClient.on("CreateEntity", (payload: EntityCreateInfo) => {
-            console.dir(payload)
+         //   console.dir(payload)
             if (!this.isValidEntityInfo(payload)) return;
             const parsed = EntityParser.Parse(payload.type, payload.data)
             this.entityManager.CreateEntity(payload.id, payload.type, parsed);
         });
 
         this.wsClient.on("UpdateEntity", (payload: EntityUpdateInfo) => {
-                console.dir(payload);
+              //  console.dir(payload);
                 if (!this.isValidEntityInfo(payload))  return;
                 const parsed = EntityParser.Parse(payload.type, payload.data);
                 this.entityManager.UpdateEntity(payload.id, payload.type, parsed );

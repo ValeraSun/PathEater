@@ -4,7 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 export type NavigationDisplayState = {
     ship: {
         x: number;
-        z: number;
+        y: number;
         rotationY: number;
         hp: number;
     };
@@ -12,13 +12,13 @@ export type NavigationDisplayState = {
     asteroids: Array<{
         id: string;
         x: number;
-        z: number;
+        y: number;
     }>;
 
     monsters: Array<{
         id: string;
         x: number;
-        z: number;
+        y: number;
     }>;
 };
 
@@ -148,16 +148,17 @@ export class ComputerView
 
         for (const asteroid of state.asteroids) 
         {
-            const screenX = centerX + (asteroid.x - state.ship.x) * mapScale;
-            const screenY = centerY + (asteroid.z - state.ship.z) * mapScale;
+            const screenX = centerX + asteroid.x 
+            const screenY = centerY + asteroid.y
 
+          //  console.log(screenX, screenY)
             this.DrawAsteroid(screenX, screenY);
         }
 
         for (const monster of state.monsters) 
         {
-            const screenX = centerX + (monster.x - state.ship.x) * mapScale;
-            const screenY = centerY + (monster.z - state.ship.z) * mapScale;
+             const screenX = centerX + monster.x 
+            const screenY = centerY + monster.y
 
             this.DrawMonster(screenX, screenY);
         }

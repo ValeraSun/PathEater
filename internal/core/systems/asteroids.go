@@ -10,25 +10,25 @@ import (
 )
 
 const (
-	displayHeight    = 512
-	displayWidth     = 1024
-	spawnZoneSize    = 100
-	maxSpawnAttempts = 50
-	minAsteroidDist  = 40
+	displayHeight     = 512
+	displayWidth      = 1024
+	spawnZoneSize     = 100
+	maxSpawnAttempts  = 50
+	minAsteroidDist   = 40
 	asteroidsPerFrame = 5
-	maxAsteroids     = 30
-	maxSpeed         = 20
-	minSpeed         = 1
-	maxRadius        = 50
-	minRadius        = 5
+	maxAsteroids      = 30
+	maxSpeed          = 20
+	minSpeed          = 1
+	maxRadius         = 50
+	minRadius         = 5
 )
 
 type AsteroidSystem struct {
-	getter    componentsGetter
-	publisher publisher
+	getter     componentsGetter
+	publisher  publisher
 	subscriber subscriber // добавлен для подписки
-	rng       *rand.Rand
-	active    bool
+	rng        *rand.Rand
+	active     bool
 }
 
 func NewAsteroidSystem(getter componentsGetter, publisher publisher, subscriber subscriber) *AsteroidSystem {
@@ -37,7 +37,7 @@ func NewAsteroidSystem(getter componentsGetter, publisher publisher, subscriber 
 		publisher:  publisher,
 		subscriber: subscriber,
 		rng:        rand.New(rand.NewSource(time.Now().UnixNano())),
-		active:     false, 
+		active:     false,
 	}
 	subscriber.Subscribe("meteoriteZone", s.OnEvent)
 	return s
@@ -92,24 +92,24 @@ func (s *AsteroidSystem) generateAsteroid() (geometry.Vec3, float64, geometry.Ve
 	halfSpawnWidth := float64(displayWidth+spawnZoneSize) / 2
 
 	switch side {
-	case 0: 
+	case 0:
 		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
 		spawnPos.Y = halfSpawnHeight
 		targetPos.X = s.rng.Float64()*(halfDisplayWidth*2) - halfDisplayWidth
 		targetPos.Y = s.rng.Float64()*(halfDisplayHeight*2) - halfDisplayHeight
-	case 1: 
+	case 1:
 		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
 		spawnPos.Y = -halfSpawnHeight
 		targetPos.X = s.rng.Float64()*(halfDisplayWidth*2) - halfDisplayWidth
 		targetPos.Y = s.rng.Float64()*(halfDisplayHeight*2) - halfDisplayHeight
-	case 2: 
-		spawnPos.X = -halfSpawnHeight
-		spawnPos.Y = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
+	case 2:
+		spawnPos.X = -halfSpawnWidth
+		spawnPos.Y = s.rng.Float64()*(halfSpawnHeight*2) - halfSpawnHeight
 		targetPos.X = s.rng.Float64()*(halfDisplayWidth*2) - halfDisplayWidth
 		targetPos.Y = s.rng.Float64()*(halfDisplayHeight*2) - halfDisplayHeight
-	case 3: 
-		spawnPos.X = halfSpawnHeight
-		spawnPos.Y = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
+	case 3:
+		spawnPos.X = halfSpawnWidth
+		spawnPos.Y = s.rng.Float64()*(halfSpawnHeight*2) - halfSpawnHeight
 		targetPos.X = s.rng.Float64()*(halfDisplayWidth*2) - halfDisplayWidth
 		targetPos.Y = s.rng.Float64()*(halfDisplayHeight*2) - halfDisplayHeight
 	}

@@ -24,7 +24,6 @@ export class ComputerController {
         }
 
         this.active = true;
-        this.playerController.LockInput();
 
         console.log(
             `Управление компьютером ${this.computerId} включено`
@@ -37,7 +36,6 @@ export class ComputerController {
         }
 
         this.active = false;
-        this.playerController.UnlockInput();
 
         console.log(
             `Управление компьютером ${this.computerId} выключено`
