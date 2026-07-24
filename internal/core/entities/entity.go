@@ -357,6 +357,7 @@ func IsCosmoAlien(id types.Entity, getter componentsGetter) bool {
 func isVisibleCosmoAlien(id types.Entity, getter componentsGetter) bool {
 	c, _ := getter.GetComponent(id, "cosmoAlien")
 	alien := c.(*components.CosmoAlienComponent)
+
 	return alien.Visible
 }
 
