@@ -6,50 +6,69 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
 )
 
+const (
+	forwardSpeed = 30.0
+	verticalSpeed = 20.0
+)
+
 type ShipSystem struct {
 	getter     componentsGetter
-	eventQueue chan *events.SetShipStateEvent
 }
 
 func NewShipSystem(getter componentsGetter, subscriber subscriber) *ShipSystem {
-	s := &ShipSystem{
+	return &ShipSystem{
 		getter: getter,
 	}
-	return s
 }
 
 func (s *ShipSystem) Update(dt float32) error {
-	comps := s.getter.GetEntitiesByComponent("ship")
-	for id, c := range comps {
-		ship := c.(*components.ShipComponent)
+	s.handleShipControl()
 
-		c, _ = s.getter.GetComponent(id, "movement")
+	entities := s.getter.GetEntitiesByComponent("navigationEntity")
+	for id, _ := range entities {
+		c, _ := s.getter.GetComponent(id, "movement")
 		movement := c.(*components.MovementComponent)
-
-		s.moveShip(ship, movement)
+		movement.Position.X += movement.Velocity.X * float64(dt)
+		movement.Position.Y += movement.Velocity.Y * float64(dt)
+		movement.Position.Z += movement.Velocity.Z * float64(dt)
 	}
 
 	return nil
 }
 
-func (s *ShipSystem) moveShip(ship *components.ShipComponent, movement *components.MovementComponent) {
-
-	if ship.AvailableID != "" && s.getter.HasComponents(ship.AvailableID, "control") {
-		c, _ := s.getter.GetComponent(ship.AvailableID, "control")
-		control := c.(*components.ControlComponent)
-
-		movement.Direction = getMoveVector(control)
+func (s *ShipSystem) handleShipControl() {
+	shipID := s.getShipID()
+	if shipID == "" {
+		return
 	}
 
+	if !s.getter.HasComponents(shipID, "control") {
+		return
+	}
+	ctrlComp, _ := s.getter.GetComponent(shipID, "control")
+	control := ctrlComp.(*components.ControlComponent)
+
+	movComp, ok := s.getter.GetComponent(shipID, "movement")
+	if !ok {
+		return
+	}
+	movement := movComp.(*components.MovementComponent)
+
+	movement.Velocity.X = forwardSpeed
+
+	if control.MoveFront {
+		movement.Velocity.Y = verticalSpeed
+	} else if control.MoveBack {
+		movement.Velocity.Y = -verticalSpeed
+	} else {
+		movement.Velocity.Y = 0
+	}
 }
 
-func getMoveVector(control *components.ControlComponent) geometry.Vec3 {
-	vec := geometry.GetZeroVector()
-	if control.MoveRight {
-		vec.Add(geometry.Vec3{X: 1, Y: 1, Z: 0})
+func (s *ShipSystem) getShipID() string {
+	shipEntities := s.getter.GetEntitiesByComponent("ship")
+	for id := range shipEntities {
+		return id
 	}
-	if control.MoveLeft {
-		vec.Add(geometry.Vec3{X: 1, Y: -1, Z: 0})
-	}
-	return vec.Normalize()
+	return ""
 }

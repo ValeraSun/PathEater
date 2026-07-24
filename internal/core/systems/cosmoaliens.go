@@ -11,10 +11,13 @@ import (
 )
 
 const (
-	cosmoSpawnZoneSize    = 100
-	cosmoMaxSpawnAttempts = 50
-	maxCosmoAliens        = 5
-	cosmoSpawnChance      = 0.005
+	displayWidth           = 1024
+	displayHeight          = 512
+	cosmoSpawnZoneSize     = 100
+	cosmoMaxSpawnAttempts  = 50
+	maxCosmoAliens         = 5
+	cosmoSpawnChance       = 0.005
+	minCosmoAlienDistance  = 40
 )
 
 type CosmoAlienSystem struct {
@@ -38,13 +41,11 @@ func (s *CosmoAlienSystem) findShipID() bool {
 	if s.shipID != "" {
 		return true
 	}
-
 	ships := s.getter.GetEntitiesByComponent("ship")
 	for id := range ships {
 		s.shipID = id
 		return true
 	}
-
 	return false
 }
 
@@ -53,18 +54,15 @@ func (s *CosmoAlienSystem) spawnCosmoAliens() {
 	if len(aliens) >= maxCosmoAliens {
 		return
 	}
-
 	if s.rng.Float64() > cosmoSpawnChance {
 		return
 	}
-
 	s.spawnCosmoAlien()
 }
 
 func (s *CosmoAlienSystem) spawnCosmoAlien() {
 	for attempt := 0; attempt < cosmoMaxSpawnAttempts; attempt++ {
 		pos := s.generateCosmoAlien()
-
 		if !s.isPositionOccupied(pos) {
 			s.createCosmoAlien(pos, s.shipID)
 			return
@@ -74,65 +72,51 @@ func (s *CosmoAlienSystem) spawnCosmoAlien() {
 
 func (s *CosmoAlienSystem) generateCosmoAlien() geometry.Vec3 {
 	side := s.rng.Intn(4)
-
 	var spawnPos geometry.Vec3
 
 	halfSpawnWidth := float64(displayWidth+cosmoSpawnZoneSize) / 2
 	halfSpawnHeight := float64(displayHeight+cosmoSpawnZoneSize) / 2
 
 	switch side {
-	case 0:
+	case 0: 
 		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
 		spawnPos.Y = halfSpawnHeight
 	case 1:
 		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
 		spawnPos.Y = -halfSpawnHeight
-	case 2:
+	case 2: 
 		spawnPos.X = -halfSpawnWidth
 		spawnPos.Y = s.rng.Float64()*(halfSpawnHeight*2) - halfSpawnHeight
-	case 3:
+	case 3: 
 		spawnPos.X = halfSpawnWidth
 		spawnPos.Y = s.rng.Float64()*(halfSpawnHeight*2) - halfSpawnHeight
 	}
-
 	return spawnPos
 }
 
 func (s *CosmoAlienSystem) isPositionOccupied(pos geometry.Vec3) bool {
 	aliens := s.getter.GetEntitiesByComponent("cosmoAlien")
-	asteroids := s.getter.GetEntitiesByComponent("asteroid")
-
 	for id := range aliens {
 		c, ok := s.getter.GetComponent(id, "transform")
 		if !ok {
 			continue
 		}
-		transform, ok := c.(*components.TransformComponent)
-		if !ok {
-			continue
-		}
-
-		distance := pos.Sub(transform.Position).Length()
-		if distance < minCosmoAlienDistance {
+		transform := c.(*components.TransformComponent)
+		if pos.Sub(transform.Position).Length() < minCosmoAlienDistance {
 			return true
 		}
 	}
+	asteroids := s.getter.GetEntitiesByComponent("asteroid")
 	for id := range asteroids {
 		c, ok := s.getter.GetComponent(id, "transform")
 		if !ok {
 			continue
 		}
-		transform, ok := c.(*components.TransformComponent)
-		if !ok {
-			continue
-		}
-
-		distance := pos.Sub(transform.Position).Length()
-		if distance < minCosmoAlienDistance {
+		transform := c.(*components.TransformComponent)
+		if pos.Sub(transform.Position).Length() < minCosmoAlienDistance {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -146,65 +130,43 @@ func (s *CosmoAlienSystem) Update(dt float32) error {
 		return nil
 	}
 
-	c, ok := s.getter.GetComponent(s.shipID, "transform")
+	shipTrComp, ok := s.getter.GetComponent(s.shipID, "transform")
 	if !ok {
 		return nil
 	}
-	trShip, ok := c.(*components.TransformComponent)
+	shipTr := shipTrComp.(*components.TransformComponent)
+
+	shipComp, ok := s.getter.GetComponent(s.shipID, "ship")
 	if !ok {
 		return nil
 	}
+	ship := shipComp.(*components.ShipComponent)
 
-	c, ok = s.getter.GetComponent(s.shipID, "ship")
-	if !ok {
-		return nil
-	}
-	ship, ok := c.(*components.ShipComponent)
-	if !ok {
-		return nil
-	}
-
-	comps := s.getter.GetEntitiesByComponent("cosmoAlien")
-	for id, comp := range comps {
-		alien, ok := comp.(*components.CosmoAlienComponent)
+	aliens := s.getter.GetEntitiesByComponent("cosmoAlien")
+	for id := range aliens {
+		trComp, ok := s.getter.GetComponent(id, "transform")
 		if !ok {
 			continue
 		}
+		tr := trComp.(*components.TransformComponent)
 
-		c, ok := s.getter.GetComponent(id, "transform")
+		movComp, ok := s.getter.GetComponent(id, "movement")
 		if !ok {
 			continue
 		}
-		transform, ok := c.(*components.TransformComponent)
+		mov := movComp.(*components.MovementComponent)
+
+		alienComp, ok := s.getter.GetComponent(id, "cosmoAlien")
 		if !ok {
 			continue
 		}
+		alien := alienComp.(*components.CosmoAlienComponent)
 
-		c, ok = s.getter.GetComponent(id, "movement")
-		if !ok {
-			continue
-		}
-		mov, ok := c.(*components.MovementComponent)
-		if !ok {
-			continue
-		}
+		mov.Direction = shipTr.Position.Sub(tr.Position)
 
-		c, ok = s.getter.GetComponent(id, "externalVelocity")
-		if !ok {
-			continue
-		}
-		ext, ok := c.(*components.ExternalVelocityComponent)
-		if !ok {
-			continue
-		}
-
-		ext.Direction = geometry.GetZeroVector().Sub(trShip.Direction.Scale(ship.Speed)).Normalize()
-
-		mov.Direction = trShip.Position.Sub(transform.Position)
-
-		x := transform.Position.X
-		y := transform.Position.Y
-		alien.Visible = x >= -displayWidth/2 && x <= displayWidth/2 && y >= -displayHeight/2 && y <= displayHeight/2
+		x, y := tr.Position.X, tr.Position.Y
+		halfW, halfH := float64(displayWidth)/2, float64(displayHeight)/2
+		alien.Visible = x >= -halfW && x <= halfW && y >= -halfH && y <= halfH
 	}
 
 	s.spawnCosmoAliens()
