@@ -21,6 +21,7 @@ type CosmoAlienSystem struct {
 	getter    componentsGetter
 	publisher publisher
 	rng       *rand.Rand
+	shipID    types.Entity
 }
 
 var shipID types.Entity
@@ -33,7 +34,7 @@ func NewCosmoAlienSystem(getter componentsGetter, publisher publisher) *CosmoAli
 	}
 	ships := s.getter.GetEntitiesByComponent("ship")
 	for id := range ships {
-		shipID = id
+		s.shipID = id
 	}
 	return s
 }
@@ -143,7 +144,7 @@ func (s *CosmoAlienSystem) Update(dt float32) error {
 		mov := c.(*components.MovementComponent)
 
 		c, _ = s.getter.GetComponent(id, "externalVelocity")
-		ext, _ := comp.(*components.ExternalVelocityComponent)
+		ext, _ := c.(*components.ExternalVelocityComponent)
 
 		ext.Direction = geometry.GetZeroVector().Sub(trShip.Direction.Scale(ship.Speed)).Normalize()
 

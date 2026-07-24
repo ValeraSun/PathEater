@@ -148,46 +148,45 @@ func (s *AsteroidSystem) createAsteroid(position geometry.Vec3, radius float64, 
 	s.publisher.Publish(e)
 }
 
-var active bool
-
 func (s *AsteroidSystem) Update(dt float32) error {
-	if active {
-		ships := s.getter.GetEntitiesByComponent("ship")
-		var shipId types.Entity
-		for id := range ships {
-			shipId = id
-		}
-
-		c, _ := s.getter.GetComponent(shipId, "transform")
-		trShip := c.(*components.TransformComponent)
-
-		c, _ = s.getter.GetComponent(shipId, "ship")
-		ship := c.(*components.ShipComponent)
-
-		comps := s.getter.GetEntitiesByComponent("asteroid")
-		for id, comp := range comps {
-			aster := comp.(*components.AsteroidComponent)
-
-			c, _ := s.getter.GetComponent(id, "transform")
-			transform := c.(*components.TransformComponent)
-
-			c, _ = s.getter.GetComponent(id, "externalVelocity")
-			ext, _ := comp.(*components.ExternalVelocityComponent)
-
-			ext.Direction = geometry.GetZeroVector().Sub(trShip.Direction.Scale(ship.Speed)).Normalize()
-
-			x := transform.Position.X
-			y := transform.Position.Y
-			aster.Visible = x >= -displayWidth/2 && x <= displayWidth/2 && y >= -displayHeight/2 && y <= displayHeight/2
-			aster.OnField = x >= -(displayWidth+spawnZoneSize)/2 && x <= (displayWidth+spawnZoneSize)/2 && y >= -(displayHeight+spawnZoneSize)/2 && y <= (displayHeight+spawnZoneSize)/2
-
-			if !aster.OnField {
-				e := events.NewDeleteAsteroidEvent(id)
-				s.publisher.Publish(e)
-			}
-		}
+	if s.active {
 		s.spawnAsteroids()
 	}
+	ships := s.getter.GetEntitiesByComponent("ship")
+	var shipId types.Entity
+	for id := range ships {
+		shipId = id
+	}
+
+	c, _ := s.getter.GetComponent(shipId, "transform")
+	trShip := c.(*components.TransformComponent)
+
+	c, _ = s.getter.GetComponent(shipId, "ship")
+	ship := c.(*components.ShipComponent)
+
+	comps := s.getter.GetEntitiesByComponent("asteroid")
+	for id, comp := range comps {
+		aster := comp.(*components.AsteroidComponent)
+
+		c, _ := s.getter.GetComponent(id, "transform")
+		transform := c.(*components.TransformComponent)
+
+		c, _ = s.getter.GetComponent(id, "externalVelocity")
+		ext, _ := c.(*components.ExternalVelocityComponent)
+
+		ext.Direction = geometry.GetZeroVector().Sub(trShip.Direction.Scale(ship.Speed)).Normalize()
+
+		x := transform.Position.X
+		y := transform.Position.Y
+		aster.Visible = x >= -displayWidth/2 && x <= displayWidth/2 && y >= -displayHeight/2 && y <= displayHeight/2
+		aster.OnField = x >= -(displayWidth+spawnZoneSize)/2 && x <= (displayWidth+spawnZoneSize)/2 && y >= -(displayHeight+spawnZoneSize)/2 && y <= (displayHeight+spawnZoneSize)/2
+
+		if !aster.OnField {
+			e := events.NewDeleteAsteroidEvent(id)
+			s.publisher.Publish(e)
+		}
+	}
+
 	return nil
 }
 

@@ -16,7 +16,8 @@ type ShipSystem struct {
 
 func NewShipSystem(getter componentsGetter, subscriber subscriber) *ShipSystem {
 	s := &ShipSystem{
-		getter: getter,
+		getter:     getter,
+		eventQueue: make(chan *events.SetPlayerStateEvent, 100),
 	}
 	subscriber.Subscribe("setShipState", s.OnEvent)
 	return s
@@ -36,7 +37,7 @@ func (s *ShipSystem) moveShip(comps map[types.Entity]types.Component) {
 		case e := <-s.eventQueue:
 			if e.ID == string(id) {
 				c, _ := s.getter.GetComponent(id, "transform")
-				transform := c.(*components.MovementComponent)
+				transform := c.(*components.TransformComponent)
 
 				transform.Direction = GetMoveVector(e)
 			}
