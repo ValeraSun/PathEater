@@ -2,11 +2,12 @@ package systems
 
 import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
+	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 const (
-	forwardSpeed = 30.0
-	verticalSpeed = 20.0
+	forwardSpeed   = 30.0
+	verticalSpeed  = 20.0
 )
 
 type ShipSystem struct {
@@ -14,9 +15,7 @@ type ShipSystem struct {
 }
 
 func NewShipSystem(getter componentsGetter) *ShipSystem {
-	return &ShipSystem{
-		getter: getter,
-	}
+	return &ShipSystem{getter: getter}
 }
 
 func (s *ShipSystem) Update(dt float32) error {
@@ -29,20 +28,21 @@ func (s *ShipSystem) handleShipControl() {
 	if shipID == "" {
 		return
 	}
-	if !s.getter.HasComponents(shipID, "control") {
+	entity := types.Entity(shipID)
+
+	if !s.getter.HasComponents(entity, "control") {
 		return
 	}
-	ctrlComp, _ := s.getter.GetComponent(shipID, "control")
+	ctrlComp, _ := s.getter.GetComponent(entity, "control")
 	control := ctrlComp.(*components.ControlComponent)
 
-	if !s.getter.HasComponents(shipID, "externalVelocity") {
+	if !s.getter.HasComponents(entity, "externalVelocity") {
 		return
 	}
-	extComp, _ := s.getter.GetComponent(shipID, "externalVelocity")
+	extComp, _ := s.getter.GetComponent(entity, "externalVelocity")
 	ext := extComp.(*components.ExternalVelocityComponent)
 
 	ext.Direction.X = forwardSpeed
-
 	if control.MoveFront {
 		ext.Direction.Y = verticalSpeed
 	} else if control.MoveBack {
@@ -56,7 +56,7 @@ func (s *ShipSystem) handleShipControl() {
 func (s *ShipSystem) getShipID() string {
 	shipEntities := s.getter.GetEntitiesByComponent("ship")
 	for id := range shipEntities {
-		return id
+		return string(id) 
 	}
 	return ""
 }

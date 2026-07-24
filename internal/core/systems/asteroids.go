@@ -7,7 +7,6 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
-	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 const (
