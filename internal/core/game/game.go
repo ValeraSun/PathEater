@@ -59,6 +59,7 @@ func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewControlSystem(world, world.EventBus))
 	world.AddSystem(systems.NewNavigationDisplaySystem(world))
 	world.AddSystem(systems.NewMovementSystem(world))
+	world.AddSystem(systems.NewExternalVelocitySystem(world))
 	world.AddSystem(systems.NewVelocitySystem(world))
 	world.AddSystem(systems.NewTransformSystem(world))
 	world.AddSystem(systems.NewCollisionSystem(world, world.EventBus))
