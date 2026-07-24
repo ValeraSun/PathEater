@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { ShipView } from "./ShipView";
-import { SpaceView } from "./SpaceView";
 import { WindowResize } from "../Utils/WindowResize";
 import { PlayerView } from "./PlayerView";
 import { ComputerView } from "./ComputerView";
@@ -13,7 +12,6 @@ export class GameView
     private renderer: THREE.WebGLRenderer;
     private healthView!: HealthbarView;
     private shipView: ShipView;
-    private spaceView: SpaceView;
     private computerView: ComputerView;
 
     public constructor()
@@ -22,7 +20,6 @@ export class GameView
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({antialias: true});
         this.shipView = new ShipView();
-        this.spaceView = new SpaceView();
         this.computerView = new ComputerView();
     }
 
@@ -48,7 +45,6 @@ export class GameView
         this.camera.lookAt(0, 0, 1);
         this.AddLights();
 
-        this.scene.add(this.spaceView.GetObject());
         this.scene.add(this.shipView.GetObject());
         this.scene.add(this.computerView.GetObject());
 
