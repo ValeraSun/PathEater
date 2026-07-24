@@ -2,8 +2,6 @@ package systems
 
 import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
-	"github.com/ValeraSun/PathEater/internal/core/events"
-	"github.com/ValeraSun/PathEater/internal/core/geometry"
 )
 
 const (
@@ -12,10 +10,10 @@ const (
 )
 
 type ShipSystem struct {
-	getter     componentsGetter
+	getter componentsGetter
 }
 
-func NewShipSystem(getter componentsGetter, subscriber subscriber) *ShipSystem {
+func NewShipSystem(getter componentsGetter) *ShipSystem {
 	return &ShipSystem{
 		getter: getter,
 	}
@@ -23,16 +21,6 @@ func NewShipSystem(getter componentsGetter, subscriber subscriber) *ShipSystem {
 
 func (s *ShipSystem) Update(dt float32) error {
 	s.handleShipControl()
-
-	entities := s.getter.GetEntitiesByComponent("navigationEntity")
-	for id, _ := range entities {
-		c, _ := s.getter.GetComponent(id, "movement")
-		movement := c.(*components.MovementComponent)
-		movement.Position.X += movement.Velocity.X * float64(dt)
-		movement.Position.Y += movement.Velocity.Y * float64(dt)
-		movement.Position.Z += movement.Velocity.Z * float64(dt)
-	}
-
 	return nil
 }
 
@@ -41,28 +29,28 @@ func (s *ShipSystem) handleShipControl() {
 	if shipID == "" {
 		return
 	}
-
 	if !s.getter.HasComponents(shipID, "control") {
 		return
 	}
 	ctrlComp, _ := s.getter.GetComponent(shipID, "control")
 	control := ctrlComp.(*components.ControlComponent)
 
-	movComp, ok := s.getter.GetComponent(shipID, "movement")
-	if !ok {
+	if !s.getter.HasComponents(shipID, "externalVelocity") {
 		return
 	}
-	movement := movComp.(*components.MovementComponent)
+	extComp, _ := s.getter.GetComponent(shipID, "externalVelocity")
+	ext := extComp.(*components.ExternalVelocityComponent)
 
-	movement.Velocity.X = forwardSpeed
+	ext.Direction.X = forwardSpeed
 
 	if control.MoveFront {
-		movement.Velocity.Y = verticalSpeed
+		ext.Direction.Y = verticalSpeed
 	} else if control.MoveBack {
-		movement.Velocity.Y = -verticalSpeed
+		ext.Direction.Y = -verticalSpeed
 	} else {
-		movement.Velocity.Y = 0
+		ext.Direction.Y = 0
 	}
+	ext.Direction.Z = 0
 }
 
 func (s *ShipSystem) getShipID() string {

@@ -11,8 +11,6 @@ import (
 )
 
 const (
-	displayWidth           = 1024
-	displayHeight          = 512
 	cosmoSpawnZoneSize     = 100
 	cosmoMaxSpawnAttempts  = 50
 	maxCosmoAliens         = 5
@@ -135,12 +133,6 @@ func (s *CosmoAlienSystem) Update(dt float32) error {
 		return nil
 	}
 	shipTr := shipTrComp.(*components.TransformComponent)
-
-	shipComp, ok := s.getter.GetComponent(s.shipID, "ship")
-	if !ok {
-		return nil
-	}
-	ship := shipComp.(*components.ShipComponent)
 
 	aliens := s.getter.GetEntitiesByComponent("cosmoAlien")
 	for id := range aliens {
