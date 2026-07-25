@@ -33,8 +33,18 @@ func (s *NavigationDisplaySystem) Update(dt float32) error {
 	comps = s.getter.GetEntitiesByComponent("control")
 	for id, c := range comps {
 		control := c.(*components.ControlComponent)
-		if control.Interact {
+		switch {
+		case control.Interact && ship.AvailableID != id:
 			ship.AvailableID = id
+			c, _ = s.getter.GetComponent(id, "controlShip")
+			controlShip := c.(*components.ControlShipComponent)
+			controlShip.IsControling = true
+
+		case control.Interact && ship.AvailableID == id:
+			ship.AvailableID = ""
+			c, _ = s.getter.GetComponent(id, "controlShip")
+			controlShip := c.(*components.ControlShipComponent)
+			controlShip.IsControling = false
 		}
 
 	}

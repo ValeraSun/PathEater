@@ -1,8 +1,6 @@
 package systems
 
 import (
-	"fmt"
-
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 )
@@ -30,12 +28,12 @@ func (s *VelocitySystem) Update(dt float32) error {
 
 			movement, _ := comp.(*components.MovementComponent)
 
-			if s.getter.HasComponents(entity, "ship") {
-				c, _ := s.getter.GetComponent(entity, "transform")
-				t := c.(*components.TransformComponent)
-				fmt.Printf("Корабль: %+v\n", t)
-				//	fmt.Println("да")
-			}
+			// if s.getter.HasComponents(entity, "ship") {
+			// 	c, _ := s.getter.GetComponent(entity, "transform")
+			// 	t := c.(*components.TransformComponent)
+			// 	//fmt.Printf("Корабль: %+v\n", t)
+			// 	//	fmt.Println("да")
+			// }
 
 			velocity.Movement = movement.Direction.Scale(movement.Speed * float64(dt))
 		}

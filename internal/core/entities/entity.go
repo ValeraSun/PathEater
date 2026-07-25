@@ -28,6 +28,7 @@ type entityAdder interface {
 func NewPlayer(adder entityAdder, clientID string) types.Entity {
 	adder.AddEntityByID(
 		types.Entity(clientID),
+		components.NewControlShipComponent(),
 		components.NewPlayerComponent(),
 		components.NewUpdateComponent(),
 		components.NewControlComponent(clientID),
@@ -63,7 +64,7 @@ func NewShip(adder entityAdder) types.Entity {
 			geometry.GetZeroVector(),
 		),
 		components.NewHealthComponent(100),
-		components.NewMovementComponent(10, geometry.GetZeroVector()),
+		components.NewMovementComponent(40, geometry.GetZeroVector()),
 		components.NewVelocityComponent(),
 		components.NewShipComponent(10, 5),
 		components.NewWeaponComponent(geometry.GetZeroVector(), 10, 30),
@@ -214,7 +215,7 @@ type bulletData struct {
 type Sendler func(ecs.EntityInfo) error
 
 func IsPlayer(id types.Entity, getter componentsGetter) bool {
-	return getter.HasComponents(id, "transform") && getter.HasComponents(id, "control") && getter.HasComponents(id, "health")
+	return getter.HasComponents(id, "transform", "control")
 }
 
 func SendPlayer(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
@@ -325,10 +326,6 @@ func isVisibleAsteroid(id types.Entity, getter componentsGetter) bool {
 }
 
 func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
-	shipPos, err := getShipPosition(getter)
-	if err != nil {
-		return err
-	}
 
 	c, ok := getter.GetComponent(id, "asteroid")
 	if !ok {
@@ -348,16 +345,11 @@ func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Sendler)
 	}
 	col := c.(*components.ColliderComponent)
 
-	relPos := geometry.Vec3{
-		X: transform.Position.X - shipPos.X,
-		Y: transform.Position.Y - shipPos.Y,
-	}
-
 	broadcaster(ecs.EntityInfo{
 		ID:   id,
 		Type: "asteroid",
 		Data: asteroidData{
-			Position:  relPos,
+			Position:  transform.Position,
 			Radius:    col.Collider.(*geometry.CircleCollider).Radius,
 			Destroyed: aster.Destroyed,
 		},

@@ -14,9 +14,7 @@ func NewHealthComponent(maxHealth int) *HealthComponent {
 
 func (*HealthComponent) Type() string { return "health" }
 
-type isDead bool
-
-func (hp *HealthComponent) Damage(damage int) isDead {
+func (hp *HealthComponent) Damage(damage int) bool {
 	hp.Health = hp.Health - damage
 	if hp.Health <= 0 {
 		return true

@@ -7,9 +7,11 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
+	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 const (
+	deleteRadius      = 1000
 	displayHeight     = 512
 	displayWidth      = 1024
 	spawnZoneSize     = 100
@@ -44,9 +46,11 @@ func NewAsteroidSystem(getter componentsGetter, publisher publisher, subscriber 
 }
 
 func (s *AsteroidSystem) Update(dt float32) error {
+	asteroids := s.getter.GetEntitiesByComponent("asteroid")
 	if s.active {
-		s.spawnAsteroids()
+		s.spawnAsteroids(asteroids)
 	}
+	s.deleteNotValid(asteroids)
 	return nil
 }
 
@@ -59,8 +63,8 @@ func (s *AsteroidSystem) OnEvent(event events.Event) error {
 	return nil
 }
 
-func (s *AsteroidSystem) spawnAsteroids() {
-	asteroids := s.getter.GetEntitiesByComponent("asteroid")
+func (s *AsteroidSystem) spawnAsteroids(asteroids map[types.Entity]types.Component) {
+
 	if len(asteroids) >= maxAsteroids {
 		return
 	}
@@ -139,4 +143,18 @@ func (s *AsteroidSystem) isPositionOccupied(pos geometry.Vec3) bool {
 func (s *AsteroidSystem) createAsteroid(position geometry.Vec3, radius float64, direction geometry.Vec3, speed float64) {
 	e := events.NewCreateAsteroidEvent(position, radius, direction, speed)
 	s.publisher.Publish(e)
+}
+
+func (s *AsteroidSystem) deleteNotValid(asteroids map[types.Entity]types.Component) {
+
+	for id := range asteroids {
+		c, _ := s.getter.GetComponent(id, "transform")
+		t := c.(*components.TransformComponent)
+
+		if t.Position.Length() > deleteRadius {
+			e := events.NewDeleteAsteroidEvent(id)
+			s.publisher.Publish(e)
+		}
+	}
+
 }

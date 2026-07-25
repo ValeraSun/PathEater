@@ -30,7 +30,8 @@ func (s *ExternalVelocitySystem) Update(dt float32) error {
 		ext, _ := comp.(*components.ExternalVelocityComponent)
 
 		if s.getter.HasComponents(id, "asteroid") {
-			ext.Direction = shipMove.Direction.Scale(-1)
+			ext.Direction.X = shipMove.Speed * shipMove.Direction.X * -1
+			ext.Direction.Y = shipMove.Speed * shipMove.Direction.Y * -3
 		}
 
 	}
