@@ -1,12 +1,14 @@
 import { Game } from "./Core/Game";
 
-type ScreenName = "menu" | "room" | "lobby" | "game";
+type ScreenName = "menu" | "room" | "lobby" | "game" | "lose"| "win";
 
 const screens: Record<ScreenName, HTMLElement> = {
     menu: getElement("menu-screen"),
     room: getElement("room-screen"),
     lobby: getElement("lobby-screen"),
-    game: getElement("game-screen")
+    game: getElement("game-screen"),
+    lose: getElement("lose-screen"),
+    win: getElement("win-screen")
 };
 
 const playButton = getButton("play-button");
@@ -15,6 +17,8 @@ const joinRoomButton = getButton("join-room-button");
 const roomBackButton = getButton("room-back-button");
 const leaveLobbyButton = getButton("leave-lobby-button");
 const startGameButton = getButton("start-game-button");
+const loseRetryButton = getButton("lose-retry-button");
+const winRetryButton = getButton("win-retry-button");
 
 const roomCodeInput = getInput("room-code-input");
 
@@ -34,6 +38,14 @@ document.addEventListener(
     },
     { once: true }
 );
+
+loseRetryButton.addEventListener("click", () => {
+    showScreen("room");
+});
+
+winRetryButton.addEventListener("click", () => {
+    showScreen("room");
+});
 
 let connected = false;
 let isHost = false;
@@ -99,7 +111,19 @@ function showScreen(name: ScreenName): void {
 
     screens[name].classList.add("screen--active");
 
-    document.body.classList.toggle("background--blurred", name !== "menu");
+    document.body.classList.remove(
+        "background--menu",
+        "background--room",
+        "background--lobby",
+        "background--game",
+        "background--lose",
+        "background--win",
+        "background--blurred"
+    );
+
+    document.body.classList.add(`background--${name}`);
+    const shouldBlur = name === "room" || name === "lobby";
+    document.body.classList.toggle("background--blurred", shouldBlur);
 }
 
 playButton.addEventListener("click", async () => {
@@ -254,3 +278,11 @@ function getInput(id: string): HTMLInputElement {
 }
 
 showScreen("menu");
+
+export function showVictory(): void {
+    showScreen("win");
+}
+
+export function showDefeat(): void {
+    showScreen("lose");
+}

@@ -168,7 +168,7 @@
                     </div>
                 </div>
             </div>
-</section>
+        </section>
 
         <section class="screen" id="game-screen">
             <div id="game-container"></div>
@@ -182,6 +182,47 @@
                 БОРТ
             </div>
         </section>
+
+        <section class="screen" id="lose-screen">
+            <div class="menu-content">
+                <h1 class="game-title">МИССИЯ ПРОВАЛЕНА</h1>
+
+                <p class="game-subtitle">
+                    ПРИШЕЛЬЦЫ УКРАЛИ ВЕСЬ ГРУЗ
+                </p>
+
+                <nav class="menu">
+                    <button
+                        class="button button--primary"
+                        id="lose-retry-button"
+                        type="button"
+                    >
+                        ПОПРОБОВАТЬ СНОВА
+                    </button>
+                </nav>
+            </div>
+        </section>
+
+        <section class="screen" id="win-screen">
+            <div class="menu-content">
+                <h1 class="game-title">МИССИЯ ВЫПОЛНЕНА</h1>
+
+                <p class="game-subtitle">
+                    ГРУЗ ДОСТАВЛЕН! ПЛАНЕТА БУДЕТ ЖИТЬ!
+                </p>
+
+                <nav class="menu">
+                    <button
+                        class="button button--primary"
+                        id="win-retry-button"
+                        type="button"
+                    >
+                        ИГРАТЬ СНОВА
+                    </button>
+                </nav>
+            </div>
+        </section>
+
     </main>
 
     <script type="module" src="/src/Main.ts"></script>
