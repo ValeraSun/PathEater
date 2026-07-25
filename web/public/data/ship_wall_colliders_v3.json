@@ -8,16 +8,16 @@
   },
   "colliders": [
     {
-      "id": "Hull_Side_Bottom",
+      "id": "Hull_Lounge",
       "type": "hull",
       "shape": "obb",
       "center": {
-        "x": 16.0,
+        "x": 26.65,
         "y": 2.8,
         "z": 0.0
       },
       "halfExtents": {
-        "x": 16.0,
+        "x": 5.36,
         "y": 2.2024,
         "z": 0.15
       },
@@ -30,16 +30,60 @@
       "layer": "static"
     },
     {
-      "id": "Hull_Side_Top",
+      "id": "Hull_Cafeteria",
       "type": "hull",
       "shape": "obb",
       "center": {
         "x": 16.0,
         "y": 2.8,
+        "z": 0.0
+      },
+      "halfExtents": {
+        "x": 5.36,
+        "y": 2.2024,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": -0.0,
+        "z": 0.0,
+        "w": 1.0
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Hull_Cargo_Bottom",
+      "type": "hull",
+      "shape": "obb",
+      "center": {
+        "x": 5.3,
+        "y": 2.8,
+        "z": 0.0
+      },
+      "halfExtents": {
+        "x": 5.36,
+        "y": 2.2024,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": -0.0,
+        "z": 0.0,
+        "w": 1.0
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Hull_Armory",
+      "type": "hull",
+      "shape": "obb",
+      "center": {
+        "x": 26.65,
+        "y": 2.8,
         "z": -18.0
       },
       "halfExtents": {
-        "x": 16.0,
+        "x": 5.36,
         "y": 2.2024,
         "z": 0.15
       },
@@ -52,7 +96,73 @@
       "layer": "static"
     },
     {
-      "id": "Hull_Aft",
+      "id": "Hull_Medical",
+      "type": "hull",
+      "shape": "obb",
+      "center": {
+        "x": 16.0,
+        "y": 2.8,
+        "z": -18.0
+      },
+      "halfExtents": {
+        "x": 5.36,
+        "y": 2.2024,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Hull_Engine_Top",
+      "type": "hull",
+      "shape": "obb",
+      "center": {
+        "x": 5.31,
+        "y": 2.8,
+        "z": -18.0
+      },
+      "halfExtents": {
+        "x": 5.36,
+        "y": 2.2024,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Hull_Cargo_Aft",
+      "type": "hull",
+      "shape": "obb",
+      "center": {
+        "x": 0.0,
+        "y": 2.8,
+        "z": -3.48
+      },
+      "halfExtents": {
+        "x": 3.47,
+        "y": 2.8,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 0.707107,
+        "y": -0.0,
+        "z": 0.707107,
+        "w": -0.0
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Hull_Hallway",
       "type": "hull",
       "shape": "obb",
       "center": {
@@ -61,7 +171,29 @@
         "z": -9.0
       },
       "halfExtents": {
-        "x": 9.0,
+        "x": 2.0,
+        "y": 2.8,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 0.707107,
+        "y": -0.0,
+        "z": 0.707107,
+        "w": -0.0
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Hull_Engine_Aft",
+      "type": "hull",
+      "shape": "obb",
+      "center": {
+        "x": 0.0,
+        "y": 2.8,
+        "z": -14.5
+      },
+      "halfExtents": {
+        "x": 3.47,
         "y": 2.8,
         "z": 0.15
       },
