@@ -510,6 +510,33 @@ input {
     z-index: 101;
 }
 
+.match-timer {
+    position: absolute;
+    top: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 30px;
+
+    min-width: 150px;
+    padding: 8px 24px;
+
+    border: 1px solid #1da294;
+    border-radius: 10px;
+    opacity: 0.8;
+
+    background: rgba(0, 15, 20, 0.75);
+    box-shadow: 0 0 12px rgba(0, 220, 220, 0.25);
+    color: #1da294;
+    font-family: 'SpaceObs', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-align: center;
+
+    pointer-events: none;
+    z-index: 102;
+}
+
 .lobby-header {
     gap: 12px;
 }
