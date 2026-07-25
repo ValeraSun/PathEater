@@ -91,24 +91,23 @@ func NewAsteroid(adder entityAdder, pos geometry.Vec3, radius float64, dir geome
 		components.NewAsteroidComponent(),
 		components.NewColliderComponent(geometry.NewCircleCollider(
 			pos,
-			radius,
+			30,
 		)),
 	)
 	return e
 }
 
-func NewCosmoAlien(adder entityAdder, pos geometry.Vec3, shipID types.Entity) types.Entity {
+func NewCosmoAlien(adder entityAdder, pos geometry.Vec3) types.Entity {
 	e, _ := adder.AddEntity(
 		components.NewTransformComponent(
 			pos,
 			geometry.GetZeroVector(),
 		),
-		components.NewMovementComponent(10, geometry.GetZeroVector()),
-		components.NewUpdateComponent(),
-		components.NewNavigationEntityComponent(),
+		components.NewMovementComponent(100, geometry.GetZeroVector()),
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
-		components.NewStalkerComponent(shipID),
+		components.NewUpdateComponent(),
+		components.NewNavigationEntityComponent(),
 		components.NewCosmoAlienComponent(),
 		components.NewHealthComponent(10),
 		components.NewColliderComponent(geometry.NewCircleCollider(
@@ -359,7 +358,7 @@ func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Sendler)
 }
 
 func IsCosmoAlien(id types.Entity, getter componentsGetter) bool {
-	return getter.HasComponents(id, "cosmoAlien") && isVisibleCosmoAlien(id, getter)
+	return getter.HasComponents(id, "cosmoAlien") //&& isVisibleCosmoAlien(id, getter)
 }
 
 func isVisibleCosmoAlien(id types.Entity, getter componentsGetter) bool {
@@ -369,11 +368,6 @@ func isVisibleCosmoAlien(id types.Entity, getter componentsGetter) bool {
 }
 
 func SendCosmoAlien(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
-	shipPos, err := getShipPosition(getter)
-	if err != nil {
-		return err
-	}
-
 	c, ok := getter.GetComponent(id, "cosmoAlien")
 	if !ok {
 		return errors.New("не найден компонент cosmoAlien")
@@ -392,16 +386,11 @@ func SendCosmoAlien(id types.Entity, getter componentsGetter, broadcaster Sendle
 	}
 	hp := c.(*components.HealthComponent)
 
-	relPos := geometry.Vec3{
-		X: transform.Position.X - shipPos.X,
-		Y: transform.Position.Y - shipPos.Y,
-	}
-
 	broadcaster(ecs.EntityInfo{
 		ID:   id,
 		Type: "cosmoAlien",
 		Data: cosmoAlienData{
-			Position: relPos,
+			Position: transform.Position,
 			Rotation: transform.Direction,
 			Health:   hp.Health,
 			Died:     alien.Died,

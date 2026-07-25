@@ -3,19 +3,22 @@ package systems
 import (
 	"fmt"
 
+	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 )
 
 type DeadSystem struct {
 	getter     componentsGetter
 	deleter    entityRemover
+	publisher  publisher
 	eventQueue chan *events.DeadEvent
 }
 
-func NewDeadSystem(getter componentsGetter, deleter entityRemover, subscriber subscriber) *DeadSystem {
+func NewDeadSystem(getter componentsGetter, deleter entityRemover, subscriber subscriber, publisher publisher) *DeadSystem {
 	s := &DeadSystem{
 		getter:     getter,
 		deleter:    deleter,
+		publisher:  publisher,
 		eventQueue: make(chan *events.DeadEvent, 100),
 	}
 	subscriber.Subscribe("dead", s.OnEvent)
@@ -33,9 +36,21 @@ func (s *DeadSystem) drainEvents() {
 	for {
 		select {
 		case e := <-s.eventQueue:
-			if !s.getter.HasComponents(e.ID, "ship") {
-				s.deleter.RemoveEntity(e.ID)
+			switch {
+			case entities.IsAsteroid(e.ID, s.getter):
+				e := events.NewDeleteAsteroidEvent(e.ID)
+				s.publisher.Publish(e)
+			case entities.IsCosmoAlien(e.ID, s.getter):
+				e := events.NewDeleteCosmoAlienEvent(e.ID)
+				if e == nil {
+					return
+				}
+				s.publisher.Publish(e)
 			}
+
+			// if !s.getter.HasComponents(e.ID, "ship") {
+			// 	s.deleter.RemoveEntity(e.ID)
+			// }
 
 		default:
 			return
@@ -54,7 +69,7 @@ func (s *DeadSystem) OnEvent(event events.Event) error {
 	case s.eventQueue <- ps:
 
 	default:
-		fmt.Printf("Переполена очередь %v\n", *s)
+		fmt.Printf("2 Переполена очередь %+v\n", *s)
 	}
 
 	return nil

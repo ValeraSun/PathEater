@@ -80,7 +80,7 @@ func (s *WeaponSystem) OnEvent(event events.Event) error {
 	case s.eventQueue <- ws:
 
 	default:
-		fmt.Printf("Переполена очередь %+v\n", *s)
+		fmt.Printf(" 3 Переполена очередь %+v\n", *s)
 	}
 
 	return nil

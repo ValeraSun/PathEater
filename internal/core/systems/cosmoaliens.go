@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	cosmoSpawnZoneSize     = 100
-	cosmoMaxSpawnAttempts  = 50
-	maxCosmoAliens         = 5
-	cosmoSpawnChance       = 0.005
-	minCosmoAlienDistance  = 40
+	cosmoSpawnZoneSize    = 100
+	cosmoMaxSpawnAttempts = 50
+	maxCosmoAliens        = 5
+	cosmoSpawnChance      = 0.005
+	minCosmoAlienDistance = 40
 )
 
 type CosmoAlienSystem struct {
@@ -47,27 +47,6 @@ func (s *CosmoAlienSystem) findShipID() bool {
 	return false
 }
 
-func (s *CosmoAlienSystem) spawnCosmoAliens() {
-	aliens := s.getter.GetEntitiesByComponent("cosmoAlien")
-	if len(aliens) >= maxCosmoAliens {
-		return
-	}
-	if s.rng.Float64() > cosmoSpawnChance {
-		return
-	}
-	s.spawnCosmoAlien()
-}
-
-func (s *CosmoAlienSystem) spawnCosmoAlien() {
-	for attempt := 0; attempt < cosmoMaxSpawnAttempts; attempt++ {
-		pos := s.generateCosmoAlien()
-		if !s.isPositionOccupied(pos) {
-			s.createCosmoAlien(pos, s.shipID)
-			return
-		}
-	}
-}
-
 func (s *CosmoAlienSystem) generateCosmoAlien() geometry.Vec3 {
 	side := s.rng.Intn(4)
 	var spawnPos geometry.Vec3
@@ -76,16 +55,16 @@ func (s *CosmoAlienSystem) generateCosmoAlien() geometry.Vec3 {
 	halfSpawnHeight := float64(displayHeight+cosmoSpawnZoneSize) / 2
 
 	switch side {
-	case 0: 
+	case 0:
 		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
 		spawnPos.Y = halfSpawnHeight
 	case 1:
 		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
 		spawnPos.Y = -halfSpawnHeight
-	case 2: 
+	case 2:
 		spawnPos.X = -halfSpawnWidth
 		spawnPos.Y = s.rng.Float64()*(halfSpawnHeight*2) - halfSpawnHeight
-	case 3: 
+	case 3:
 		spawnPos.X = halfSpawnWidth
 		spawnPos.Y = s.rng.Float64()*(halfSpawnHeight*2) - halfSpawnHeight
 	}
@@ -118,35 +97,24 @@ func (s *CosmoAlienSystem) isPositionOccupied(pos geometry.Vec3) bool {
 	return false
 }
 
-func (s *CosmoAlienSystem) createCosmoAlien(position geometry.Vec3, shipID types.Entity) {
-	e := events.NewCreateCosmoAlienEvent(position, shipID)
-	s.publisher.Publish(e)
-}
-
 func (s *CosmoAlienSystem) Update(dt float32) error {
 	if !s.findShipID() {
 		return nil
 	}
 
-	shipTrComp, ok := s.getter.GetComponent(s.shipID, "transform")
-	if !ok {
-		return nil
-	}
-	shipTr := shipTrComp.(*components.TransformComponent)
-
 	aliens := s.getter.GetEntitiesByComponent("cosmoAlien")
 	for id := range aliens {
-		trComp, ok := s.getter.GetComponent(id, "transform")
+		transfromRaw, ok := s.getter.GetComponent(id, "transform")
 		if !ok {
 			continue
 		}
-		tr := trComp.(*components.TransformComponent)
+		transform := transfromRaw.(*components.TransformComponent)
 
-		movComp, ok := s.getter.GetComponent(id, "movement")
+		moveRaw, ok := s.getter.GetComponent(id, "movement")
 		if !ok {
 			continue
 		}
-		mov := movComp.(*components.MovementComponent)
+		move := moveRaw.(*components.MovementComponent)
 
 		alienComp, ok := s.getter.GetComponent(id, "cosmoAlien")
 		if !ok {
@@ -154,9 +122,9 @@ func (s *CosmoAlienSystem) Update(dt float32) error {
 		}
 		alien := alienComp.(*components.CosmoAlienComponent)
 
-		mov.Direction = shipTr.Position.Sub(tr.Position)
+		move.Direction = transform.Position.Scale(-1).Normalize()
 
-		x, y := tr.Position.X, tr.Position.Y
+		x, y := transform.Position.X, transform.Position.Y
 		halfW, halfH := float64(displayWidth)/2, float64(displayHeight)/2
 		alien.Visible = x >= -halfW && x <= halfW && y >= -halfH && y <= halfH
 	}
@@ -164,4 +132,30 @@ func (s *CosmoAlienSystem) Update(dt float32) error {
 	s.spawnCosmoAliens()
 
 	return nil
+}
+
+func (s *CosmoAlienSystem) spawnCosmoAliens() {
+	aliens := s.getter.GetEntitiesByComponent("cosmoAlien")
+	if len(aliens) >= maxCosmoAliens {
+		return
+	}
+	if s.rng.Float64() > cosmoSpawnChance {
+		return
+	}
+	s.spawnCosmoAlien()
+}
+
+func (s *CosmoAlienSystem) spawnCosmoAlien() {
+	for attempt := 0; attempt < cosmoMaxSpawnAttempts; attempt++ {
+		pos := s.generateCosmoAlien()
+		if !s.isPositionOccupied(pos) {
+			s.createCosmoAlien(pos, s.shipID)
+			return
+		}
+	}
+}
+
+func (s *CosmoAlienSystem) createCosmoAlien(position geometry.Vec3, shipID types.Entity) {
+	e := events.NewCreateCosmoAlienEvent(position, shipID)
+	s.publisher.Publish(e)
 }

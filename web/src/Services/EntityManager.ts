@@ -117,7 +117,6 @@ export class EntityManager
     public SetRadarChangedHandler(handler: (state: NavigationDisplayState) => void): void
     {
         this.onRadarChanged = handler;
-        this.EmitRadarChanged();
     }
 
     public CreateEntity(id: string, type: string, data: unknown): void
@@ -226,13 +225,11 @@ export class EntityManager
     {
         if (this.asteroids.delete(id))
         {
-            this.EmitRadarChanged();
             return;
         }
 
         if (this.monsters.delete(id))
         {
-            this.EmitRadarChanged();
             return;
         }
 
@@ -266,29 +263,31 @@ export class EntityManager
     }
 
     public Update(dt: number): void
-{
-    const interpolation = 1 - Math.exp(-NETWORK_LERP_SPEED * dt);
-
-    for (const entity of this.entities.values())
     {
-        if (entity.type === "player")
+        const interpolation = 1 - Math.exp(-NETWORK_LERP_SPEED * dt);
+
+        for (const entity of this.entities.values())
         {
-            const distanceToTarget = entity.object.position.distanceTo(entity.targetPosition);
-            const isMoving = distanceToTarget > 0.01;
-            entity.animatedView?.SetMoving?.(isMoving);
+            if (entity.type === "player")
+            {
+                const distanceToTarget = entity.object.position.distanceTo(entity.targetPosition);
+                const isMoving = distanceToTarget > 0.01;
+                entity.animatedView?.SetMoving?.(isMoving);
+            }
+
+            entity.animatedView?.AdvanceAnimation(dt);
+
+            entity.object.position.lerp(entity.targetPosition, interpolation);
+
+            entity.object.rotation.y = this.LerpAngle(
+                entity.object.rotation.y,
+                entity.targetRotationY,
+                interpolation
+            );
         }
 
-        entity.animatedView?.AdvanceAnimation(dt);
-
-        entity.object.position.lerp(entity.targetPosition, interpolation);
-
-        entity.object.rotation.y = this.LerpAngle(
-            entity.object.rotation.y,
-            entity.targetRotationY,
-            interpolation
-        );
+        this.EmitRadarChanged();
     }
-}
 
     public GetEntity(id: string): THREE.Object3D | null
     {
@@ -365,7 +364,6 @@ export class EntityManager
             };
         }
 
-        this.EmitRadarChanged();
     }
 
     private UpdateAsteroid(id: string, data: unknown): void
@@ -379,7 +377,6 @@ export class EntityManager
         if (data.destroyed)
         {
             this.asteroids.delete(id);
-            this.EmitRadarChanged();
             return;
         }
 
@@ -387,7 +384,6 @@ export class EntityManager
         {
            // console.dir(data)
             this.asteroids.set(id, { x: data.position.x, y: data.position.y });
-            this.EmitRadarChanged();
         }
     }
 
@@ -402,14 +398,12 @@ export class EntityManager
         if (data.died)
         {
             this.monsters.delete(id);
-            this.EmitRadarChanged();
             return;
         }
 
         if (data.position)
         {
             this.monsters.set(id, { x: data.position.x, y: data.position.z });
-            this.EmitRadarChanged();
         }
     }
 

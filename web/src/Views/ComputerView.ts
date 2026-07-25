@@ -210,7 +210,7 @@ export class ComputerView
         this.context.lineWidth = 2;
 
         this.context.beginPath();
-        this.context.arc(x, y, 10, 0, Math.PI * 2);
+        this.context.arc(x, y, 30, 0, Math.PI * 2);
         this.context.fill();
         this.context.stroke();
     }
@@ -221,6 +221,12 @@ export class ComputerView
 
         this.context.fillStyle = "#ff4055";
         this.context.fillRect(x - 9, y - 9, 18, 18);
+      
+        
+        this.context.beginPath();
+        this.context.arc(x, y, 30, 0, Math.PI * 2);
+        this.context.fill();
+        this.context.stroke();
     }
 
     private IsInsideScreen(x: number, y: number): boolean 

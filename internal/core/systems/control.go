@@ -25,7 +25,7 @@ func NewControlSystem(getter componentsGetter, subscriber subscriber) *ControlSy
 func (s *ControlSystem) Update(dt float32) error {
 	comps := s.getter.GetEntitiesByComponent("control")
 
-	s.resetComponents(comps)
+	//s.resetComponents(comps)
 
 	s.drainEvents(comps)
 
@@ -69,7 +69,7 @@ func (s *ControlSystem) OnEvent(event events.Event) error {
 	case s.eventQueue <- ps:
 
 	default:
-		fmt.Printf("Переполена очередь %+v\n", *s)
+		fmt.Printf("1 Переполена очередь %+v\n", *s)
 	}
 
 	return nil

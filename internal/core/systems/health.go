@@ -32,6 +32,7 @@ func (s *HealthSystem) Update(dt float32) error {
 			if !ok {
 				return nil
 			}
+
 			hp := c.(*components.HealthComponent)
 			isDead := hp.Damage(ev.Damage)
 			if isDead {

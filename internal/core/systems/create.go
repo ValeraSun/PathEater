@@ -59,7 +59,7 @@ func (s *CreateSystem) drainEvents() error {
 				err = entities.SendAsteroid(aster, s.getter, s.broadcaster.SendEntityCreate)
 			case "createCosmoAlien":
 				event := e.(*events.CreateCosmoAlienEvent)
-				alien := entities.NewCosmoAlien(s.adder, event.Position, event.ShipID)
+				alien := entities.NewCosmoAlien(s.adder, event.Position)
 				err = entities.SendCosmoAlien(alien, s.getter, s.broadcaster.SendEntityCreate)
 			case "createBullet":
 				event := e.(*events.CreateBulletEvent)

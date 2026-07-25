@@ -102,7 +102,7 @@ func (s *CollisionsSystem) OnEvent(event events.Event) error {
 	case s.eventQueue <- event:
 
 	default:
-		fmt.Printf("Преполена очередь %v\n", *s)
+		fmt.Printf("Преполена очередь %+v\n", *s)
 	}
 
 	return nil
