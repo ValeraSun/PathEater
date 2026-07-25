@@ -16,6 +16,8 @@ type entityAdder interface {
 }
 
 type Wall struct {
+	ID          string              `json:"id"`
+	Type        string              `json:"type"`
 	Shape       string              `json:"shape"`
 	Center      geometry.Vec3       `json:"center"`
 	HalfExtents geometry.Vec3       `json:"halfExtents"`
@@ -65,15 +67,28 @@ func getWallsConfigPath() string {
 	return path
 }
 
+var ExternalWallEntities []types.Entity
+
 func CreateWalls(adder entityAdder) {
 	path := getWallsConfigPath()
 	walls := getWalls(path)
 	for _, wall := range walls {
-		adder.AddEntity(
+		w, err := adder.AddEntity(
 			components.NewColliderComponent(geometry.NewBoxCollider(
 				wall.Center,
 				wall.HalfExtents,
 				wall.Quaternion.ToRotationMatrix())),
 		)
+		if err != nil {
+			log.Printf("Ошибка создания стены %s: %v", wall.ID, err)
+			continue
+		}
+		if wall.Type == "hull" {
+			ExternalWallEntities = append(ExternalWallEntities, w)
+		}
 	}
+}
+
+func GetExternalWalls() []types.Entity {
+	return ExternalWallEntities
 }

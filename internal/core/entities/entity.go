@@ -160,6 +160,17 @@ func NewAlien(adder entityAdder, position geometry.Vec3) types.Entity {
 	return alien
 }
 
+func NewBreakdown(adder entityAdder, pos geometry.Vec3, wallID types.Entity) types.Entity {
+	e, _ := adder.AddEntity(
+		components.NewTransformComponent(
+			pos,
+			geometry.GetZeroVector(),
+		),
+		components.NewBreakdownComponent(pos, wallID),
+	)
+	return e
+}
+
 type componentsGetter interface {
 	GetEntitiesByComponent(componentType string) map[types.Entity]types.Component
 	HasComponents(entity types.Entity, componentTypes ...string) bool
@@ -209,6 +220,10 @@ type cosmoAlienData struct {
 type bulletData struct {
 	Position geometry.Vec3 `json:"position"`
 	Success  bool          `json:"success"`
+}
+
+type breakdownData struct {
+	Position geometry.Vec3 `json:"position"`
 }
 
 type Sendler func(ecs.EntityInfo) error
@@ -318,11 +333,11 @@ func IsAsteroid(id types.Entity, getter componentsGetter) bool {
 	return getter.HasComponents(id, "asteroid") //&& isVisibleAsteroid(id, getter)
 }
 
-func isVisibleAsteroid(id types.Entity, getter componentsGetter) bool {
+/*func isVisibleAsteroid(id types.Entity, getter componentsGetter) bool {
 	c, _ := getter.GetComponent(id, "asteroid")
 	aster := c.(*components.AsteroidComponent)
 	return aster.Visible
-}
+}*/
 
 func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
 	shipPos, err := getShipPosition(getter)
@@ -446,6 +461,24 @@ func SendBullet(id types.Entity, getter componentsGetter, broadcaster Sendler) e
 		Type: "bullet",
 		Data: bulletData{
 			Position: relPos,
+		},
+	})
+
+	return nil
+}
+
+func SendBreakdown(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
+	c, ok := getter.GetComponent(id, "transform")
+	if !ok {
+		return errors.New("не найден компонент transform")
+	}
+	transform := c.(*components.TransformComponent)
+
+	broadcaster(ecs.EntityInfo{
+		ID:   id,
+		Type: "breakdown",
+		Data: breakdownData{
+			Position: transform.Position,
 		},
 	})
 

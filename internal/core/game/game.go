@@ -72,7 +72,6 @@ func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewHealthSystem(world, world.EventBus, world.EventBus))
 	world.AddSystem(systems.NewCosmoAlienSystem(world, world.EventBus))
 	world.AddSystem(systems.NewGameOverSystem(world, world.EventBus, world.Broadcaster, world))
-	world.AddSystem(systems.NewDeathSystem(world, world.EventBus, world.EventBus))
 	world.AddSystem(systems.NewDeadSystem(world, world, world.EventBus))
 	world.AddSystem(systems.NewTimerSystem(world, world.Broadcaster, &world.Timer))
 }

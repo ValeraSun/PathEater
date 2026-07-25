@@ -13,14 +13,14 @@ import (
 type WeaponSystem struct {
 	getter     componentsGetter
 	publisher  transfer.EventPublisher
-	eventQueue chan *events.SetWeaponStateEvent
+	eventQueue chan *events.SetPlayerStateEvent
 }
 
 func NewWeaponSystem(getter componentsGetter, publisher transfer.EventPublisher, subscriber subscriber) *WeaponSystem {
 	s := &WeaponSystem{
 		getter:     getter,
 		publisher:  publisher,
-		eventQueue: make(chan *events.SetWeaponStateEvent, 100),
+		eventQueue: make(chan *events.SetPlayerStateEvent, 100),
 	}
 	subscriber.Subscribe("setWeaponState", s.OnEvent)
 	return s
@@ -38,24 +38,26 @@ func (s *WeaponSystem) handleWeapon(comps map[types.Entity]types.Component) {
 	for {
 		select {
 		case e := <-s.eventQueue:
-			for _, comp := range comps {
-				weap := comp.(*components.WeaponComponent)
-				var angle float64 = 0
-				if e.WeaponState.TurnClockwise {
-					angle = angle + weap.Speed
-				}
-				if e.WeaponState.TurnCounterclockwise {
-					angle = angle - weap.Speed
-				}
-				weap.Direction.Rotate(angle)
-				if e.WeaponState.Shoot {
-					if weap.Ammo > 0 {
-						weap.ShootSuccess = true
-						event := events.NewCreateBulletEvent(BulletPos(weap.Direction), weap.Direction)
-						s.publisher.Publish(event)
-						weap.Ammo--
-					} else {
-						weap.ShootSuccess = false
+			for id, comp := range comps {
+				if e.ID == string(id) {
+					weap := comp.(*components.WeaponComponent)
+					var angle float64 = 0
+					if e.PlayerState.MoveLeft {
+						angle = angle + weap.Speed
+					}
+					if e.PlayerState.MoveRight {
+						angle = angle - weap.Speed
+					}
+					weap.Direction.Rotate(angle)
+					if e.PlayerState.MoveBack {
+						if weap.Ammo > 0 {
+							weap.ShootSuccess = true
+							event := events.NewCreateBulletEvent(BulletPos(weap.Direction), weap.Direction)
+							s.publisher.Publish(event)
+							weap.Ammo--
+						} else {
+							weap.ShootSuccess = false
+						}
 					}
 				}
 			}
@@ -70,14 +72,30 @@ func BulletPos(dir geometry.Vec3) geometry.Vec3 {
 }
 
 func (s *WeaponSystem) OnEvent(event events.Event) error {
-	ws, ok := event.(*events.SetWeaponStateEvent)
+	ps, ok := event.(*events.SetPlayerStateEvent)
 
 	if !ok {
 		return nil
 	}
 
+	ships := s.getter.GetEntitiesByComponent("ship")
+	var shipComp types.Component
+	for _, sh := range ships {
+		shipComp = sh
+	}
+	ship := shipComp.(*components.ShipComponent)
+
+	if ps.PlayerState.Interact {
+		switch ship.AvailableID {
+		case "":
+			ship.AvailableID = types.Entity(ps.ID)
+		case types.Entity(ps.ID):
+			ship.AvailableID = ""
+		}
+		return nil
+	}
 	select {
-	case s.eventQueue <- ws:
+	case s.eventQueue <- ps:
 
 	default:
 		fmt.Printf("Переполена очередь %v\n", s)
