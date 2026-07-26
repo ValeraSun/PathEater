@@ -2,7 +2,6 @@ package systems
 
 import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
-	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
@@ -24,6 +23,7 @@ func (s *AISystem) Update(dt float32) error {
 
 	type enemy struct {
 		ai        *components.AIComponent
+		attack    *components.AttackComponent
 		vision    *components.VisionComponent
 		transform *components.TransformComponent
 		id        types.Entity
@@ -36,7 +36,7 @@ func (s *AISystem) Update(dt float32) error {
 
 		ai := c.(*components.AIComponent)
 
-		if s.getter.HasComponents(id, "vision") && s.getter.HasComponents(id, "collider") && s.getter.HasComponents(id, "transform") {
+		if s.getter.HasComponents(id, "vision", "collider", "transform", "attack") {
 			comp, _ := s.getter.GetComponent(id, "vision")
 			vision := comp.(*components.VisionComponent)
 
@@ -46,8 +46,12 @@ func (s *AISystem) Update(dt float32) error {
 			comp, _ = s.getter.GetComponent(id, "transform")
 			transform := comp.(*components.TransformComponent)
 
+			comp, _ = s.getter.GetComponent(id, "attack")
+			attack := comp.(*components.AttackComponent)
+
 			enemies = append(enemies, enemy{
 				ai:        ai,
+				attack:    attack,
 				vision:    vision,
 				privMtv:   collider.PrivMTV,
 				transform: transform,
@@ -58,27 +62,16 @@ func (s *AISystem) Update(dt float32) error {
 	}
 
 	for _, enemy := range enemies {
-		if enemy.ai.AttackCooldown-dt > 0 {
-			enemy.ai.AttackCooldown -= dt
-		} else {
-			enemy.ai.AttackCooldown = 0
-		}
+
+		enemy.attack.ReduceCooldown(dt)
 
 		if enemy.vision.CanSee {
 			enemy.ai.Direction = enemy.vision.Direction.Normalize()
 			enemy.ai.MoveFront = true
 
-			if enemy.ai.Direction.Length() < 2 && enemy.ai.AttackCooldown == 0 {
-				enemy.ai.AttackCooldown = 1
-				e := events.NewAttackEvent(
-					0,
-					geometry.NewCapsuleCollider(
-						enemy.transform.Position.Add(enemy.ai.Direction),
-						geometry.Vec3{Y: 1},
-						1, 1,
-					),
-					enemy.id,
-				)
+			e, isAttack := enemy.attack.TryAttack(enemy.id, enemy.transform.Position, enemy.transform.Direction)
+
+			if isAttack {
 				s.publisher.Publish(e)
 			}
 

@@ -32,8 +32,13 @@ const (
 
 	cosmoAlienRadius = 30
 
-	alienHalfHeight = 1
-	alienRadius     = 0.3
+	alienHalfHeight       = 1
+	alienRadius           = 0.3
+	alienAttackDamage     = 10
+	alienAttackCooldown   = 2
+	alienAttackDistant    = 1
+	alienAttackHalfHeight = 1
+	alienAttackRadius     = 1
 )
 
 type entityAdder interface {
@@ -174,6 +179,17 @@ func NewAlien(adder entityAdder, position geometry.Vec3) types.Entity {
 	alien, _ := adder.AddEntity(
 		components.NewTransformComponent(position, geometry.Vec3{}),
 		components.NewVisionComponent(),
+		components.NewAttackComponent(
+			alienAttackDamage,
+			alienAttackCooldown,
+			alienAttackDistant,
+			geometry.NewCapsuleCollider(
+				geometry.GetZeroVector(),
+				geometry.Vec3{Y: 1},
+				alienAttackHalfHeight,
+				alienAttackRadius,
+			),
+		),
 		components.NewMovementComponent(2, geometry.GetZeroVector()),
 		components.NewMovableComponent(),
 		components.NewVelocityComponent(),
