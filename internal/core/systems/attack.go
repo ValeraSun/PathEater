@@ -40,11 +40,6 @@ func (s *AttackSystem) Update(dt float32) error {
 		if s.getter.HasComponents(id, "transform") {
 			h := c.(*components.HitboxComponent)
 
-			c, _ = s.getter.GetComponent(id, "transform")
-			t := c.(*components.TransformComponent)
-
-			h.Collider.ChangeCenter(t.Position)
-
 			hitboxes = append(hitboxes, &entitiesHitbox{
 				hitbox: h,
 				id:     id,

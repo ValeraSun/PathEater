@@ -56,29 +56,37 @@ func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewVisionSystem(world))
 	world.AddSystem(systems.NewAISystem(world, world.EventBus))
-	world.AddSystem(systems.NewAttackSystem(world, world.EventBus, world.EventBus))
-	world.AddSystem(systems.NewControlSystem(world, world.EventBus))
+	world.AddSystem(systems.NewAttackSystem(world, world.EventBus, world.EventBus)) //alien ai
 
+	world.AddSystem(systems.NewControlSystem(world, world.EventBus))
 	world.AddSystem(systems.NewInteractionSystem(world, world.EventBus))
+	world.AddSystem(systems.NewRayAttackComponent(world, world.EventBus)) //игрок
+
+	world.AddSystem(systems.NewAsteroidSystem(world, world.EventBus, world.EventBus))
+	world.AddSystem(systems.NewCosmoAlienSystem(world, world.EventBus))
+	world.AddSystem(systems.NewWeaponSystem(world, world.EventBus, world.EventBus))
+	world.AddSystem(systems.NewShootSystem(world))
 	world.AddSystem(systems.NewNavigationDisplaySystem(world, world.EventBus))
+	world.AddSystem(systems.NewCollisionsSystem(world, world.EventBus, world.EventBus)) //терминал
+
 	world.AddSystem(systems.NewMovementSystem(world))
 	world.AddSystem(systems.NewExternalVelocitySystem(world))
 	world.AddSystem(systems.NewVelocitySystem(world))
 	world.AddSystem(systems.NewTransformSystem(world))
-	world.AddSystem(systems.NewCollisionSystem(world, world.EventBus))
-	world.AddSystem(systems.NewCollisionsSystem(world, world.EventBus, world.EventBus))
+	world.AddSystem(systems.NewColliderMoveSystem(world))
+	world.AddSystem(systems.NewCollisionSystem(world, world.EventBus)) //передвижение
+
+	world.AddSystem(systems.NewHealthSystem(world, world.EventBus, world.EventBus))
+	world.AddSystem(systems.NewDeadSystem(world, world, world.EventBus, world.EventBus))
+	world.AddSystem(systems.NewDeathSystem(world, world.EventBus, world.EventBus)) // здоровье
+
+	world.AddSystem(systems.NewTimerSystem(world, world.Broadcaster, &world.Timer))
+	world.AddSystem(systems.NewGameOverSystem(world, world.EventBus, world.Broadcaster, world)) // конец игры
+
 	world.AddSystem(systems.NewRenderSystem(world, world.Broadcaster))
 	world.AddSystem(systems.NewCreateSystem(world, world, world.Broadcaster, world.EventBus))
-	world.AddSystem(systems.NewDeleteSystem(world, world.Broadcaster, world, world.EventBus, world.EventBus))
-	world.AddSystem(systems.NewWeaponSystem(world, world.EventBus, world.EventBus))
-	world.AddSystem(systems.NewShootSystem(world))
-	world.AddSystem(systems.NewAsteroidSystem(world, world.EventBus, world.EventBus))
-	world.AddSystem(systems.NewHealthSystem(world, world.EventBus, world.EventBus))
-	world.AddSystem(systems.NewCosmoAlienSystem(world, world.EventBus))
-	world.AddSystem(systems.NewGameOverSystem(world, world.EventBus, world.Broadcaster, world))
-	world.AddSystem(systems.NewDeadSystem(world, world, world.EventBus, world.EventBus))
-	world.AddSystem(systems.NewDeathSystem(world, world.EventBus, world.EventBus))
-	world.AddSystem(systems.NewTimerSystem(world, world.Broadcaster, &world.Timer))
+	world.AddSystem(systems.NewDeleteSystem(world, world.Broadcaster, world, world.EventBus, world.EventBus)) // база
+
 }
 
 func createEntities(world *ecs.World) {
