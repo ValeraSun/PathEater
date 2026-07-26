@@ -17,6 +17,7 @@ type entityAdder interface {
 
 type Wall struct {
 	ID          string              `json:"id"`
+	Room        string              `json:"room"`
 	Type        string              `json:"type"`
 	Shape       string              `json:"shape"`
 	Center      geometry.Vec3       `json:"center"`

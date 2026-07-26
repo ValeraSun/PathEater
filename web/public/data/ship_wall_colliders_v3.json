@@ -10,6 +10,7 @@
     {
       "id": "Hull_Lounge",
       "type": "hull",
+      "room": "louge",
       "shape": "obb",
       "center": {
         "x": 26.65,
@@ -32,6 +33,7 @@
     {
       "id": "Hull_Cafeteria",
       "type": "hull",
+      "room": "cafeteria",
       "shape": "obb",
       "center": {
         "x": 16.0,
@@ -54,6 +56,7 @@
     {
       "id": "Hull_Cargo_Bottom",
       "type": "hull",
+      "room": "cargo",
       "shape": "obb",
       "center": {
         "x": 5.3,
@@ -76,6 +79,7 @@
     {
       "id": "Hull_Armory",
       "type": "hull",
+      "room": "armory",
       "shape": "obb",
       "center": {
         "x": 26.65,
@@ -98,6 +102,7 @@
     {
       "id": "Hull_Medical",
       "type": "hull",
+      "room": "medical",
       "shape": "obb",
       "center": {
         "x": 16.0,
@@ -120,6 +125,7 @@
     {
       "id": "Hull_Engine_Top",
       "type": "hull",
+      "room": "engine",
       "shape": "obb",
       "center": {
         "x": 5.31,
@@ -142,6 +148,7 @@
     {
       "id": "Hull_Cargo_Aft",
       "type": "hull",
+      "room": "cargo",
       "shape": "obb",
       "center": {
         "x": 0.0,
@@ -164,6 +171,7 @@
     {
       "id": "Hull_Hallway",
       "type": "hull",
+      "room": "hallway",
       "shape": "obb",
       "center": {
         "x": 0.0,
@@ -186,6 +194,7 @@
     {
       "id": "Hull_Engine_Aft",
       "type": "hull",
+      "room": "engine",
       "shape": "obb",
       "center": {
         "x": 0.0,
@@ -208,6 +217,7 @@
     {
       "id": "Hull_Nose_Bottom",
       "type": "hull",
+      "room": "nose",
       "shape": "obb",
       "center": {
         "x": 37.0,
@@ -230,6 +240,7 @@
     {
       "id": "Hull_Nose_Top",
       "type": "hull",
+      "room": "nose",
       "shape": "obb",
       "center": {
         "x": 37.0,
@@ -251,7 +262,8 @@
     },
     {
       "id": "Hull_Bow_Cap",
-      "type": "hull",
+      "type": "pseudo_hull",
+      "room": "nose",
       "shape": "obb",
       "center": {
         "x": 42.0,
