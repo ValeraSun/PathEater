@@ -41,7 +41,7 @@ func (s *ColliderMoveSystem) Update(dt float32) error {
 
 		t := c.(*components.TransformComponent)
 
-		hitbox := hit.(*components.ColliderComponent)
+		hitbox := hit.(*components.HitboxComponent)
 
 		hitbox.Collider.ChangeCenter(t.Position)
 	}

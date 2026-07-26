@@ -14,13 +14,15 @@ const (
 	cameraHeight  = 1.9
 	cameraOffset  = 0.5
 
-	playerSpeed      = 10
-	playerMaxHealth  = 100
-	playerHalfHeight = 1
-	playerRadius     = 0.7
-	playerSpawnX     = 2
-	playerSpawnY     = 1
-	playerSpawnZ     = 0
+	playerSpeed          = 10
+	playerMaxHealth      = 100
+	playerHalfHeight     = 1
+	playerRadius         = 0.7
+	playerSpawnX         = 2
+	playerSpawnY         = 1
+	playerSpawnZ         = 0
+	playerAttackCooldown = 1
+	playerDamage         = 50
 
 	shipHealth      = 100
 	shipSpeed       = 40
@@ -76,6 +78,7 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 			playerHalfHeight,
 			playerRadius,
 		)),
+		components.NewRayAttackComponent(playerAttackCooldown, playerDamage),
 		components.NewMovableComponent(),
 		components.NewTransformComponent(
 			geometry.Vec3{

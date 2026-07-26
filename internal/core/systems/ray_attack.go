@@ -33,7 +33,7 @@ func (s *RayAttackSystem) Update(dt float32) error {
 		c, _ = s.getter.GetComponent(attackerID, "control")
 		control := c.(*components.ControlComponent)
 
-		if control.Attack && attacker.CanAttack() {
+		if control.Interact && attacker.CanAttack() {
 			c, _ = s.getter.GetComponent(attackerID, "interactionDetector")
 			inter := c.(*components.InteractionDetectorComponent)
 
