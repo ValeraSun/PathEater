@@ -1,19 +1,27 @@
 package systems
 
 import (
+	"fmt"
+
 	"github.com/ValeraSun/PathEater/internal/core/components"
+	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 type NavigationDisplaySystem struct {
-	getter componentsGetter
+	getter     componentsGetter
+	subscriber subscriber
+	eventQueue chan *events.InteractTerminalEvent
 }
 
-func NewNavigationDisplaySystem(getter componentsGetter) *NavigationDisplaySystem {
+func NewNavigationDisplaySystem(getter componentsGetter, subscriber subscriber) *NavigationDisplaySystem {
 	s := &NavigationDisplaySystem{
-		getter: getter,
+		getter:     getter,
+		subscriber: subscriber,
+		eventQueue: make(chan *events.InteractTerminalEvent, 100),
 	}
 
+	s.subscriber.Subscribe("interactTerminal", s.OnEvent)
 	return s
 }
 
@@ -30,23 +38,43 @@ func (s *NavigationDisplaySystem) Update(dt float32) error {
 
 	ship := c.(*components.ShipComponent)
 
-	comps = s.getter.GetEntitiesByComponent("control")
-	for id, c := range comps {
-		control := c.(*components.ControlComponent)
-		switch {
-		case control.Interact && ship.AvailableID != id:
-			ship.AvailableID = id
-			c, _ = s.getter.GetComponent(id, "controlShip")
-			controlShip := c.(*components.ControlShipComponent)
-			controlShip.IsControling = true
+	for {
+		select {
+		case e := <-s.eventQueue:
+			if e.ID == ship.AvailableID {
+				c, _ = s.getter.GetComponent(e.ID, "controlShip")
+				controlShip := c.(*components.ControlShipComponent)
+				controlShip.IsControling = false
 
-		case control.Interact && ship.AvailableID == id:
-			ship.AvailableID = ""
-			c, _ = s.getter.GetComponent(id, "controlShip")
-			controlShip := c.(*components.ControlShipComponent)
-			controlShip.IsControling = false
+				ship.AvailableID = ""
+
+			} else {
+				if ship.AvailableID != "" {
+					c, _ = s.getter.GetComponent(ship.AvailableID, "controlShip")
+					controlShip := c.(*components.ControlShipComponent)
+					controlShip.IsControling = false
+				}
+
+				c, _ = s.getter.GetComponent(e.ID, "controlShip")
+				controlShip := c.(*components.ControlShipComponent)
+				controlShip.IsControling = true
+
+				ship.AvailableID = e.ID
+			}
+		default:
+			return nil
 		}
-
 	}
+}
+
+func (s *NavigationDisplaySystem) OnEvent(event events.Event) error {
+	e := event.(*events.InteractTerminalEvent)
+
+	select {
+	case s.eventQueue <- e:
+	default:
+		fmt.Printf("Преполена очередь %v\n", s)
+	}
+
 	return nil
 }

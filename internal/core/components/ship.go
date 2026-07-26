@@ -14,11 +14,10 @@ func (*ShipComponent) Type() string {
 	return "ship"
 }
 
-func NewShipComponent(baggageStatus int, speed float64) *ShipComponent {
+func NewShipComponent(baggageStatus int) *ShipComponent {
 	return &ShipComponent{
 		AvailableID:   "",
 		BaggageStatus: baggageStatus,
-		Speed:         speed,
 	}
 }
 

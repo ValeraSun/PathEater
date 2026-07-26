@@ -9,47 +9,79 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
+const (
+	cameraDistant = 2
+	cameraHeight  = 1.9
+	cameraOffset  = 0.5
+
+	playerSpeed      = 10
+	playerMaxHealth  = 100
+	playerHalfHeight = 1
+	playerRadius     = 0.7
+	playerSpawnX     = 2
+	playerSpawnY     = 1
+	playerSpawnZ     = 0
+
+	shipHealth      = 100
+	shipSpeed       = 40
+	shipBaggage     = 10
+	shupWeaponSpeed = 10
+	shipAmmo        = 30
+
+	asteroidRadius = 30
+
+	cosmoAlienRadius = 30
+
+	alienHalfHeight = 1
+	alienRadius     = 0.3
+)
+
 type entityAdder interface {
 	AddEntity(components ...types.Component) (types.Entity, error)
 	AddEntityByID(entity types.Entity, components ...types.Component) error
 }
 
-// func NewBox(width, depth, height float64, adder entityAdder) types.Entity {
-// 	e, _ := adder.AddEntity(
-// 		components.NewTransformComponent(geometry.GetZeroVector(), geometry.GetZeroVector()),
-// 		components.NewColliderComponent(geometry.NewBoxCollider(
-// 			geometry.GetZeroVector(),
-// 			geometry.Vec3{X: width / 2, Y: height / 2, Z: depth / 2})),
-// 	)
-
-// 	return e
-// }
+func NewTerminal(adder entityAdder) types.Entity {
+	e, _ := adder.AddEntity(
+		components.NewInteractableComponent(
+			geometry.Vec3{X: 39.85, Y: 1.075, Z: -9},
+			geometry.Vec3{X: 0.5, Y: 0.775, Z: 1.150},
+			components.InteractTerminal,
+		),
+	)
+	return e
+}
 
 func NewPlayer(adder entityAdder, clientID string) types.Entity {
 	adder.AddEntityByID(
 		types.Entity(clientID),
+		components.NewInteractionDetectorComponent(cameraDistant, cameraHeight, cameraOffset),
 		components.NewControlShipComponent(),
 		components.NewPlayerComponent(),
 		components.NewUpdateComponent(),
 		components.NewControlComponent(clientID),
-		components.NewMovementComponent(10, geometry.GetZeroVector()),
+		components.NewMovementComponent(playerSpeed, geometry.GetZeroVector()),
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
-		components.NewHealthComponent(100),
+		components.NewHealthComponent(playerMaxHealth),
 		components.NewColliderComponent(geometry.NewCapsuleCollider(
 			geometry.Vec3{},
-			geometry.Vec3{Y: 2},
-			1.0, 0.7)),
+			geometry.Vec3{Y: 1},
+			playerHalfHeight,
+			playerRadius,
+		)),
 		components.NewHitboxComponent(geometry.NewCapsuleCollider(
 			geometry.Vec3{},
-			geometry.Vec3{Y: 2},
-			1.0, 0.7)),
+			geometry.Vec3{Y: 1},
+			playerHalfHeight,
+			playerRadius,
+		)),
 		components.NewMovableComponent(),
 		components.NewTransformComponent(
 			geometry.Vec3{
-				X: 2,
-				Y: 1,
-				Z: 0,
+				X: playerSpawnX,
+				Y: playerSpawnY,
+				Z: playerSpawnZ,
 			},
 			geometry.GetZeroVector(),
 		),
@@ -63,11 +95,11 @@ func NewShip(adder entityAdder) types.Entity {
 			geometry.GetZeroVector(),
 			geometry.GetZeroVector(),
 		),
-		components.NewHealthComponent(100),
-		components.NewMovementComponent(40, geometry.GetZeroVector()),
+		components.NewHealthComponent(shipHealth),
+		components.NewMovementComponent(shipSpeed, geometry.GetZeroVector()),
 		components.NewVelocityComponent(),
-		components.NewShipComponent(10, 5),
-		components.NewWeaponComponent(geometry.GetZeroVector(), 10, 30),
+		components.NewShipComponent(shipBaggage),
+		components.NewWeaponComponent(geometry.GetZeroVector(), shupWeaponSpeed, shipAmmo),
 		components.NewColliderComponent(geometry.NewTriangleCollider(
 			geometry.Vec3{X: 20, Y: 0, Z: 0},
 			geometry.Vec3{X: -20, Y: 20, Z: 0},
@@ -91,7 +123,7 @@ func NewAsteroid(adder entityAdder, pos geometry.Vec3, radius float64, dir geome
 		components.NewAsteroidComponent(),
 		components.NewColliderComponent(geometry.NewCircleCollider(
 			pos,
-			30,
+			asteroidRadius,
 		)),
 	)
 	return e
@@ -112,7 +144,7 @@ func NewCosmoAlien(adder entityAdder, pos geometry.Vec3) types.Entity {
 		components.NewHealthComponent(10),
 		components.NewColliderComponent(geometry.NewCircleCollider(
 			pos,
-			30,
+			cosmoAlienRadius,
 		)),
 		components.NewMovableComponent(),
 	)
@@ -151,11 +183,15 @@ func NewAlien(adder entityAdder, position geometry.Vec3) types.Entity {
 		components.NewColliderComponent(geometry.NewCapsuleCollider(
 			geometry.Vec3{},
 			geometry.Vec3{Y: 2},
-			1.0, 0.3)),
+			alienHalfHeight,
+			alienRadius,
+		)),
 		components.NewHitboxComponent(geometry.NewCapsuleCollider(
 			geometry.Vec3{},
 			geometry.Vec3{Y: 2},
-			1.0, 0.3)),
+			alienHalfHeight,
+			alienRadius,
+		)),
 	)
 	return alien
 }

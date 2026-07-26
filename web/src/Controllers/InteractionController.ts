@@ -34,7 +34,7 @@ export class InteractionController {
         const isNear = distance <= this.interactionDistance;
 
         const isFree = this.computerView.IsFree();
-
+        
         if (!isNear || !isFree) {
             this.interactionView.Hide();
             return;
@@ -42,9 +42,9 @@ export class InteractionController {
 
         this.interactionView.Show();
 
-        if (this.input.WasPressedOnce("KeyE")) {
-            this.interactionView.Hide();
-            this.onInteract();
-        }
+        // if (this.input.WasPressedOnce("KeyE")) {
+        //     this.interactionView.Hide();
+        //     this.onInteract();
+        // }
     }
 }
