@@ -116,17 +116,7 @@ func (s *CosmoAlienSystem) Update(dt float32) error {
 		}
 		move := moveRaw.(*components.MovementComponent)
 
-		alienComp, ok := s.getter.GetComponent(id, "cosmoAlien")
-		if !ok {
-			continue
-		}
-		alien := alienComp.(*components.CosmoAlienComponent)
-
 		move.Direction = transform.Position.Scale(-1).Normalize()
-
-		x, y := transform.Position.X, transform.Position.Y
-		halfW, halfH := float64(displayWidth)/2, float64(displayHeight)/2
-		alien.Visible = x >= -halfW && x <= halfW && y >= -halfH && y <= halfH
 	}
 
 	s.spawnCosmoAliens()

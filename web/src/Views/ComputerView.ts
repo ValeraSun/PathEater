@@ -13,6 +13,7 @@ export type NavigationDisplayState = {
         id: string;
         x: number;
         y: number;
+        radius: number;
     }>;
 
     monsters: Array<{
@@ -152,7 +153,7 @@ export class ComputerView
             const screenY = centerY + asteroid.y
 
           //  console.log(screenX, screenY)
-            this.DrawAsteroid(screenX, screenY);
+            this.DrawAsteroid(screenX, screenY, asteroid.radius);
         }
 
         for (const monster of state.monsters) 
@@ -198,7 +199,7 @@ export class ComputerView
         this.context.restore();
     }
 
-    private DrawAsteroid(x: number, y: number): void 
+    private DrawAsteroid(x: number, y: number, rad: number): void 
     {
         if (!this.IsInsideScreen(x, y)) 
         {
@@ -210,7 +211,7 @@ export class ComputerView
         this.context.lineWidth = 2;
 
         this.context.beginPath();
-        this.context.arc(x, y, 30, 0, Math.PI * 2);
+        this.context.arc(x, y, rad, 0, Math.PI * 2);
         this.context.fill();
         this.context.stroke();
     }
@@ -224,7 +225,7 @@ export class ComputerView
       
         
         this.context.beginPath();
-        this.context.arc(x, y, 30, 0, Math.PI * 2);
+        this.context.arc(x, y, 15, 0, Math.PI * 2);
         this.context.fill();
         this.context.stroke();
     }

@@ -1,6 +1,7 @@
 package systems
 
 import (
+	"math"
 	"math/rand"
 	"time"
 
@@ -11,18 +12,21 @@ import (
 )
 
 const (
-	deleteRadius      = 1000
-	displayHeight     = 512
-	displayWidth      = 1024
-	spawnZoneSize     = 100
-	maxSpawnAttempts  = 50
-	minAsteroidDist   = 40
-	asteroidsPerFrame = 5
-	maxAsteroids      = 30
-	maxSpeed          = 20
-	minSpeed          = 1
-	maxRadius         = 50
-	minRadius         = 5
+	displayHeight       = 512
+	displayWidth        = 1024
+	spawnZoneSize       = 100
+	halfDisplayHeight   = displayHeight / 2
+	halfDisplayWidth    = displayWidth / 2
+	halfFieldHeight     = (displayHeight + spawnZoneSize) / 2
+	halfFieldWidth      = (displayWidth + spawnZoneSize) / 2
+	maxSpawnAttempts    = 50
+	minAsteroidDist     = 40
+	asteroidSpawnChance = 0.015
+	maxAsteroids        = 30
+	maxSpeed            = 50
+	minSpeed            = 1
+	maxRadius           = 30
+	minRadius           = 5
 )
 
 type AsteroidSystem struct {
@@ -69,7 +73,11 @@ func (s *AsteroidSystem) spawnAsteroids(asteroids map[types.Entity]types.Compone
 		return
 	}
 
-	spawnCount := min(asteroidsPerFrame, maxAsteroids-len(asteroids))
+	if s.rng.Float64() > asteroidSpawnChance {
+		return
+	}
+
+	spawnCount := maxAsteroids - len(asteroids)
 	for i := 0; i < spawnCount; i++ {
 		s.spawnAsteroid()
 	}
@@ -90,39 +98,33 @@ func (s *AsteroidSystem) generateAsteroid() (geometry.Vec3, float64, geometry.Ve
 
 	var spawnPos, targetPos geometry.Vec3
 
-	halfDisplayHeight := float64(displayHeight) / 2
-	halfSpawnHeight := float64(displayHeight+spawnZoneSize) / 2
-	halfDisplayWidth := float64(displayWidth) / 2
-	halfSpawnWidth := float64(displayWidth+spawnZoneSize) / 2
-
 	switch side {
-	case 0:
-		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
-		spawnPos.Y = halfSpawnHeight
-		targetPos.X = s.rng.Float64()*(halfDisplayWidth*2) - halfDisplayWidth
-		targetPos.Y = s.rng.Float64()*(halfDisplayHeight*2) - halfDisplayHeight
-	case 1:
-		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
-		spawnPos.Y = -halfSpawnHeight
-		targetPos.X = s.rng.Float64()*(halfDisplayWidth*2) - halfDisplayWidth
-		targetPos.Y = s.rng.Float64()*(halfDisplayHeight*2) - halfDisplayHeight
-	case 2:
-		spawnPos.X = -halfSpawnWidth
-		spawnPos.Y = s.rng.Float64()*(halfSpawnHeight*2) - halfSpawnHeight
-		targetPos.X = s.rng.Float64()*(halfDisplayWidth*2) - halfDisplayWidth
-		targetPos.Y = s.rng.Float64()*(halfDisplayHeight*2) - halfDisplayHeight
-	case 3:
-		spawnPos.X = halfSpawnWidth
-		spawnPos.Y = s.rng.Float64()*(halfSpawnHeight*2) - halfSpawnHeight
-		targetPos.X = s.rng.Float64()*(halfDisplayWidth*2) - halfDisplayWidth
-		targetPos.Y = s.rng.Float64()*(halfDisplayHeight*2) - halfDisplayHeight
+	case 0: //верх
+		spawnPos.X = s.randomFloatInRange(-halfFieldWidth, halfFieldWidth)
+		spawnPos.Y = s.randomFloatInRange(halfDisplayHeight, halfFieldHeight)
+	case 1: //лево
+		spawnPos.X = s.randomFloatInRange(-halfFieldWidth, -halfDisplayWidth)
+		spawnPos.Y = s.randomFloatInRange(-halfFieldHeight, halfFieldHeight)
+	case 2: //право
+		spawnPos.X = s.randomFloatInRange(halfDisplayWidth, halfFieldWidth)
+		spawnPos.Y = s.randomFloatInRange(-halfFieldHeight, halfFieldHeight)
+	case 3: //низ
+		spawnPos.X = s.randomFloatInRange(-halfFieldWidth, halfFieldWidth)
+		spawnPos.Y = s.randomFloatInRange(-halfFieldHeight, -halfDisplayHeight)
 	}
 
+	targetPos.X = s.randomFloatInRange(-halfDisplayWidth, halfDisplayWidth)
+	targetPos.Y = s.randomFloatInRange(-halfDisplayHeight, halfDisplayHeight)
+
 	direction := targetPos.Sub(spawnPos).Normalize()
-	speed := minSpeed + s.rng.Float64()*(maxSpeed-minSpeed)
-	radius := minRadius + s.rng.Float64()*(maxRadius-minRadius)
+	speed := s.randomFloatInRange(minSpeed, maxSpeed)
+	radius := s.randomFloatInRange(minRadius, maxRadius)
 
 	return spawnPos, radius, direction, speed
+}
+
+func (s *AsteroidSystem) randomFloatInRange(min, max float64) float64 {
+	return min + s.rng.Float64()*(max-min)
 }
 
 func (s *AsteroidSystem) isPositionOccupied(pos geometry.Vec3) bool {
@@ -151,7 +153,7 @@ func (s *AsteroidSystem) deleteNotValid(asteroids map[types.Entity]types.Compone
 		c, _ := s.getter.GetComponent(id, "transform")
 		t := c.(*components.TransformComponent)
 
-		if t.Position.Length() > deleteRadius {
+		if math.Abs(t.Position.X) > halfFieldWidth || math.Abs(t.Position.Y) > halfFieldHeight {
 			e := events.NewDeleteAsteroidEvent(id)
 			s.publisher.Publish(e)
 		}
