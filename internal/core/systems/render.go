@@ -3,24 +3,23 @@ package systems
 import (
 	"sync"
 
-	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 type RenderSystem struct {
-	getter      componentsGetter
-	broadcaster Broadcaster
+	componentsGetter
+	broadcaster
 }
 
-func NewRenderSystem(getter componentsGetter, broadcaster Broadcaster) *RenderSystem {
+func NewRenderSystem(getter componentsGetter, broadcaster broadcaster) *RenderSystem {
 	return &RenderSystem{
-		getter:      getter,
-		broadcaster: broadcaster,
+		getter,
+		broadcaster,
 	}
 }
 
 func (s *RenderSystem) Update(dt float32) error {
-	comps := s.getter.GetEntitiesByComponent("update")
+	comps := s.GetEntitiesByComponent("update")
 
 	var wg sync.WaitGroup
 	errChan := make(chan error, len(comps))
@@ -29,30 +28,17 @@ func (s *RenderSystem) Update(dt float32) error {
 	for id := range comps {
 		var err error
 		wg.Add(1)
+
 		go func(entityID types.Entity) {
 			defer wg.Done()
 
-			switch {
-			case entities.IsPlayer(id, s.getter):
-				err = entities.SendPlayer(id, s.getter, s.broadcaster.SendEntityUpdate)
-			case entities.IsShip(id, s.getter):
-				err = entities.SendShip(id, s.getter, s.broadcaster.SendEntityUpdate)
-			case s.getter.HasComponents(id, "ai"):
-				err = entities.SendAlien(id, s.getter, s.broadcaster.SendEntityUpdate)
-			case entities.IsAsteroid(id, s.getter):
-				err = entities.SendAsteroid(id, s.getter, s.broadcaster.SendEntityUpdate)
-			case entities.IsCosmoAlien(id, s.getter):
-				err = entities.SendCosmoAlien(id, s.getter, s.broadcaster.SendEntityUpdate)
-			case entities.IsBullet(id, s.getter):
-				err = entities.SendBullet(id, s.getter, s.broadcaster.SendEntityUpdate)
-			}
+			s.Send(id, s.SendEntityUpdate)
 
 			if err != nil {
 				errChan <- err
 			}
 
 		}(id)
-
 	}
 
 	go func() {

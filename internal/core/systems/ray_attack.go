@@ -48,6 +48,7 @@ func (s *RayAttackSystem) Update(dt float32) error {
 				result := h.Collider.Collide(ray)
 
 				if result.HasCollision && id != attackerID {
+					attacker.ResetCooldown()
 					e := events.NewDamageDealEvent(id, attacker.Damage)
 					s.publisher.Publish(e)
 				}

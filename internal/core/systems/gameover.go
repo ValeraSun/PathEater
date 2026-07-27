@@ -2,21 +2,21 @@ package systems
 
 import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
-	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/sendler"
 )
 
 type GameOverSystem struct {
-	getter      componentsGetter
-	broadcaster Broadcaster
-	closer      closer
+	componentsGetter
+	broadcaster
+	closer
 }
 
-func NewGameOverSystem(getter componentsGetter, subscriber subscriber, broadcaster Broadcaster, closer closer) *GameOverSystem {
+func NewGameOverSystem(getter componentsGetter, subscriber subscriber, broadcaster broadcaster, closer closer) *GameOverSystem {
 	s := &GameOverSystem{
-		getter:      getter,
-		broadcaster: broadcaster,
-		closer:      closer,
+		getter,
+		broadcaster,
+		closer,
 	}
 	subscriber.Subscribe("gameOver", s.OnEvent)
 	return s
@@ -35,13 +35,13 @@ func (s *GameOverSystem) OnEvent(event events.Event) error {
 	ev := event.(*events.GameOverEvent)
 	var status int
 	if ev.Win {
-		ships := s.getter.GetEntitiesByComponent("ship")
+		ships := s.GetEntitiesByComponent("ship")
 		for _, sh := range ships {
 			ship := sh.(*components.ShipComponent)
 			status = ship.BaggageStatus
 		}
 	}
-	s.broadcaster.SendGameOverState(ecs.GameOverInfo{
+	s.SendGameOverState(sendler.GameOverInfo{
 		Type: "gameOver",
 		Data: GameOverData{
 			Win:    ev.Win,

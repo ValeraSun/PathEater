@@ -22,6 +22,10 @@ func (c *RayAttackComponent) ReduseCooldown(dt float32) {
 	}
 }
 
+func (c *RayAttackComponent) ResetCooldown() {
+	c.currentAttackCooldown = c.attackCooldown
+}
+
 func (c *RayAttackComponent) CanAttack() bool {
 	return c.currentAttackCooldown == 0
 }

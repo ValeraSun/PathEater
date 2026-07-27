@@ -3,8 +3,8 @@ package systems
 import (
 	"time"
 
-	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/sendler"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
@@ -26,19 +26,6 @@ type componentsGetter interface {
 	HasComponents(entity types.Entity, componentTypes ...string) bool
 	GetComponent(entity types.Entity, componentType string) (types.Component, bool)
 }
-
-type entitiesRemover interface {
-	RemoveEntity(entity types.Entity)
-}
-
-type Broadcaster interface {
-	SendEntityCreate(ecs.EntityInfo) error
-	SendEntityUpdate(ecs.EntityInfo) error
-	SendEntityDelete(ecs.EntityInfo) error
-	SendGameOverState(ecs.GameOverInfo) error
-	SendTime(ecs.TimeInfo) error
-}
-
 type subscriber interface {
 	Subscribe(eventType string, handler events.EventHandler) (func(), error)
 }
@@ -49,4 +36,20 @@ type publisher interface {
 
 type entityRemover interface {
 	RemoveEntity(entity types.Entity)
+}
+
+type entitySendler interface {
+	Send(types.Entity, func(sendler.EntityInfo) error) error
+}
+type broadcasterFunc interface {
+	SendEntityCreate(entityInfo sendler.EntityInfo) error
+	SendEntityUpdate(entityInfo sendler.EntityInfo) error
+	SendEntityDelete(entityInfo sendler.EntityInfo) error
+	SendGameOverState(sendler.GameOverInfo) error
+	SendTime(sendler.TimeInfo) error
+}
+
+type broadcaster interface {
+	entitySendler
+	broadcasterFunc
 }

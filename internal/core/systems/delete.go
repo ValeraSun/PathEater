@@ -1,144 +1,68 @@
 package systems
 
 import (
-	"log"
-
-	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 )
 
 type DeleteSystem struct {
-	getter      componentsGetter
-	broadcaster Broadcaster
-	remover     entitiesRemover
-	publisher   publisher
-	eventQueue  chan events.Event
+	componentsGetter
+	entityRemover
+	publisher
+	broadcaster
+	subscriber
+
+	eventQueue chan *events.DeleteEvent
 }
 
-func NewDeleteSystem(getter componentsGetter, broadcaster Broadcaster, remover entitiesRemover, publisher publisher, subscriber subscriber) *DeleteSystem {
+func NewDeleteSystem(getter componentsGetter, remover entityRemover, publisher publisher, subscriber subscriber, broadcaster broadcaster) *DeleteSystem {
 	s := &DeleteSystem{
-		getter:      getter,
-		publisher:   publisher,
-		broadcaster: broadcaster,
-		remover:     remover,
-		eventQueue:  make(chan events.Event, 100),
+		getter,
+		remover,
+		publisher,
+		broadcaster,
+		subscriber,
+
+		make(chan *events.DeleteEvent, 100),
 	}
-	subscriber.Subscribe("deletePlayer", s.OnEvent)
-	subscriber.Subscribe("deleteAlien", s.OnEvent)
-	subscriber.Subscribe("deleteShip", s.OnEvent)
-	subscriber.Subscribe("deleteAsteroid", s.OnEvent)
-	subscriber.Subscribe("deleteCosmoAlien", s.OnEvent)
-	subscriber.Subscribe("deleteBullet", s.OnEvent)
+	subscriber.Subscribe("delete", s.OnEvent)
 	return s
 }
 
 func (s *DeleteSystem) Update(dt float32) error {
-	s.drainEvents()
-	return nil
+	return s.drainEvents()
 }
 
-func (s *DeleteSystem) drainEvents() {
+func (s *DeleteSystem) drainEvents() error {
 	for {
 		select {
 		case e := <-s.eventQueue:
-			s.handle(e)
+			err := s.handle(e)
+			if err != nil {
+				return err
+			}
 		default:
-			return
+			return nil
 		}
 	}
 }
 
-func (s *DeleteSystem) handle(e events.Event) {
-	typ := e.Type()
+func (s *DeleteSystem) handle(e *events.DeleteEvent) error {
 
-	switch typ {
-	case "deletePlayer":
-		ev, ok := e.(*events.DeletePlayerEvent)
-		if !ok {
-			logBadType(typ, e)
-			return
-		}
-		if err := entities.SendPlayer(ev.ID, s.getter, s.broadcaster.SendEntityDelete); err != nil {
-			logSendFail(typ, err)
-		}
-		s.remover.RemoveEntity(ev.ID)
+	err := s.Send(e.ID, s.SendEntityDelete)
 
-	case "deleteAlien":
-		ev, ok := e.(*events.DeleteAlienEvent)
-		if !ok {
-			logBadType(typ, e)
-			return
-		}
-		if err := entities.SendAlien(ev.ID, s.getter, s.broadcaster.SendEntityDelete); err != nil {
-			logSendFail(typ, err)
-		}
-		s.remover.RemoveEntity(ev.ID)
-	case "deleteShip":
-		ev, ok := e.(*events.DeleteShipEvent)
-		if !ok {
-			logBadType(typ, e)
-			return
-		}
-		if err := entities.SendShip(ev.ID, s.getter, s.broadcaster.SendEntityDelete); err != nil {
-			logSendFail(typ, err)
-		}
-		s.remover.RemoveEntity(ev.ID)
-
-	case "deleteAsteroid":
-		ev, ok := e.(*events.DeleteAsteroidEvent)
-		if !ok {
-			logBadType(typ, e)
-			return
-		}
-		if err := entities.SendAsteroid(ev.ID, s.getter, s.broadcaster.SendEntityDelete); err != nil {
-			logSendFail(typ, err)
-		}
-		s.remover.RemoveEntity(ev.ID)
-
-	case "deleteCosmoAlien":
-		ev, ok := e.(*events.DeleteCosmoAlienEvent)
-		if !ok {
-			logBadType(typ, e)
-			return
-		}
-		if !s.getter.HasComponents(ev.ID, "cosmoAlien") {
-			return
-		}
-		if err := entities.SendCosmoAlien(ev.ID, s.getter, s.broadcaster.SendEntityDelete); err != nil {
-			logSendFail(typ, err)
-		}
-		s.remover.RemoveEntity(ev.ID)
-
-		//e := events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1})
-		s.publisher.Publish(e)
-
-	case "deleteBullet":
-		ev, ok := e.(*events.DeleteBulletEvent)
-		if !ok {
-			logBadType(typ, e)
-			return
-		}
-		if err := entities.SendBullet(ev.ID, s.getter, s.broadcaster.SendEntityDelete); err != nil {
-			logSendFail(typ, err)
-		}
-		s.remover.RemoveEntity(ev.ID)
-
-	default:
-		log.Printf("DeleteSystem: неизвестный тип события %q", typ)
+	if err != nil {
+		return err
 	}
-}
 
-func logBadType(typ string, e events.Event) {
-	log.Printf("DeleteSystem: событие %q имеет неожиданный тип %T", typ, e)
-}
+	s.RemoveEntity(e.ID)
 
-func logSendFail(typ string, err error) {
-	//log.Printf("DeleteSystem: не удалось отправить удаление (%s): %v", typ, err)
+	return nil
 }
 
 func (s *DeleteSystem) OnEvent(event events.Event) error {
+	e := event.(*events.DeleteEvent)
 	select {
-	case s.eventQueue <- event:
+	case s.eventQueue <- e:
 	default:
 		//log.Printf("DeleteSystem: переполнена очередь событий, событие %q отброшено", event.Type())
 	}

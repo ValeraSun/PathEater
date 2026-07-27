@@ -5,21 +5,22 @@ import (
 
 	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 type CreateSystem struct {
-	adder       entityAdder
-	getter      componentsGetter
-	broadcaster Broadcaster
-	eventQueue  chan events.Event
+	entityAdder
+	componentsGetter
+	broadcaster
+	eventQueue chan events.Event
 }
 
-func NewCreateSystem(adder entityAdder, getter componentsGetter, broadcaster Broadcaster, subscriber subscriber) *CreateSystem {
+func NewCreateSystem(adder entityAdder, getter componentsGetter, subscriber subscriber, broadcaster broadcaster) *CreateSystem {
 	s := &CreateSystem{
-		adder:       adder,
-		getter:      getter,
-		broadcaster: broadcaster,
-		eventQueue:  make(chan events.Event, 100),
+		adder,
+		getter,
+		broadcaster,
+		make(chan events.Event, 100),
 	}
 	subscriber.Subscribe("createPlayer", s.OnEvent)
 	subscriber.Subscribe("createShip", s.OnEvent)
@@ -39,33 +40,30 @@ func (s *CreateSystem) drainEvents() error {
 		select {
 		case e := <-s.eventQueue:
 			typ := e.Type()
-			var err error
+			var entity types.Entity
 
 			switch typ {
+
 			case "createPlayer":
 				c, _ := e.(*events.CreatePlayerEvent)
-				player := entities.NewPlayer(s.adder, c.ID)
-				err = entities.SendPlayer(player, s.getter, s.broadcaster.SendEntityCreate)
+				entity = entities.NewPlayer(s, c.ID)
 			case "createAlien":
 				c, _ := e.(*events.CreateAlienEvent)
-				alien := entities.NewAlien(s.adder, c.Position)
-				err = entities.SendAlien(alien, s.getter, s.broadcaster.SendEntityCreate)
+				entity = entities.NewAlien(s, c.Position)
 			case "createShip":
-				ship := entities.NewShip(s.adder)
-				err = entities.SendShip(ship, s.getter, s.broadcaster.SendEntityCreate)
+				entity = entities.NewShip(s)
 			case "createAsteroid":
 				event := e.(*events.CreateAsteroidEvent)
-				aster := entities.NewAsteroid(s.adder, event.Position, event.Radius, event.Direction, event.Speed)
-				err = entities.SendAsteroid(aster, s.getter, s.broadcaster.SendEntityCreate)
+				entity = entities.NewAsteroid(s, event.Position, event.Radius, event.Direction, event.Speed)
 			case "createCosmoAlien":
 				event := e.(*events.CreateCosmoAlienEvent)
-				alien := entities.NewCosmoAlien(s.adder, event.Position)
-				err = entities.SendCosmoAlien(alien, s.getter, s.broadcaster.SendEntityCreate)
+				entity = entities.NewCosmoAlien(s, event.Position)
 			case "createBullet":
 				event := e.(*events.CreateBulletEvent)
-				bullet := entities.NewBullet(s.adder, event.Position, event.Direction)
-				err = entities.SendBullet(bullet, s.getter, s.broadcaster.SendEntityCreate)
+				entity = entities.NewBullet(s, event.Position, event.Direction)
 			}
+
+			err := s.Send(entity, s.SendEntityCreate)
 
 			if err != nil {
 				return err

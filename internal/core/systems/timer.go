@@ -3,20 +3,20 @@ package systems
 import (
 	"time"
 
-	"github.com/ValeraSun/PathEater/internal/core/ecs"
+	"github.com/ValeraSun/PathEater/internal/core/sendler"
 )
 
 type TimerSystem struct {
-	getter      componentsGetter
-	broadcaster Broadcaster
-	timer       timer
+	componentsGetter
+	broadcaster
+	timer
 }
 
-func NewTimerSystem(getter componentsGetter, broadcaster Broadcaster, timer timer) *TimerSystem {
+func NewTimerSystem(getter componentsGetter, broadcaster broadcaster, timer timer) *TimerSystem {
 	return &TimerSystem{
-		getter:      getter,
-		broadcaster: broadcaster,
-		timer:       timer,
+		getter,
+		broadcaster,
+		timer,
 	}
 }
 
@@ -28,7 +28,7 @@ func (s *TimerSystem) Update(dt float32) error {
 	remaining := s.timer.GetRemainingTime()
 	seconds := int(remaining.Seconds())
 
-	if err := s.broadcaster.SendTime(ecs.TimeInfo{
+	if err := s.SendTime(sendler.TimeInfo{
 		Type: "time",
 		Data: seconds,
 	}); err != nil {

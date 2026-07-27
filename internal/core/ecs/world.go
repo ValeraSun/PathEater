@@ -9,6 +9,7 @@ import (
 
 	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/sendler"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
@@ -39,7 +40,7 @@ type World struct {
 	entityCount  int64
 	systemTimers map[string]time.Duration
 
-	Broadcaster Broadcaster
+	Broadcaster *Broadcaster
 
 	Timer Timer
 
@@ -87,47 +88,45 @@ func (t *Timer) GetRemainingTime() time.Duration {
 	return remaining
 }
 
-type Broadcaster interface {
-	SendEntityCreate(EntityInfo) error
-	SendEntityUpdate(EntityInfo) error
-	SendEntityDelete(EntityInfo) error
-	SendGameOverState(GameOverInfo) error
-	SendTime(TimeInfo) error
-	SendSnapshotToAll([]EntityInfo) error
+type entitySendler interface {
+	Send(types.Entity, func(sendler.EntityInfo) error) error
+}
+type broadcasterFunc interface {
+	SendEntityCreate(entityInfo sendler.EntityInfo) error
+	SendEntityUpdate(entityInfo sendler.EntityInfo) error
+	SendEntityDelete(entityInfo sendler.EntityInfo) error
+	SendGameOverState(sendler.GameOverInfo) error
+	SendTime(sendler.TimeInfo) error
 }
 
-type EntityInfo struct {
-	ID   types.Entity
-	Type string
-	Data any
+type Broadcaster struct {
+	entitySendler
+	broadcasterFunc
 }
 
-type GameOverInfo struct {
-	Type string `json:"type"`
-	Data any    `json:"data"`
-}
+func newWorld(eventBus *events.EventBus, broadcasterFunc broadcasterFunc) *World {
 
-type TimeInfo struct {
-	Type string `json:"type"`
-	Data any    `json:"data"`
-}
-
-func newWorld(eventBus *events.EventBus, room Broadcaster) *World {
-	return &World{
+	w := &World{
 		entities:       make(map[types.Entity]map[string]types.Component),
 		componentIndex: make(map[string]map[types.Entity]struct{}),
 		systems:        make([]types.System, 0),
 		EventBus:       eventBus,
 		systemTimers:   make(map[string]time.Duration),
-		Broadcaster:    room,
 		Timer:          newTimer(),
 		done:           make(chan struct{}),
 	}
+
+	broadcaster := &Broadcaster{
+		sendler.New(w),
+		broadcasterFunc,
+	}
+	w.Broadcaster = broadcaster
+	return w
 }
 
-func CreateWorld(room Broadcaster) *World {
+func CreateWorld(broadcasterFunc broadcasterFunc) *World {
 	eb := events.NewEventBus(100)
-	w := newWorld(eb, room)
+	w := newWorld(eb, broadcasterFunc)
 
 	return w
 }

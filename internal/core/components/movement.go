@@ -2,7 +2,7 @@ package components
 
 import "github.com/ValeraSun/PathEater/internal/core/geometry"
 
-const shipSpeedMultiplier = 1.5
+const shipSpeedMultiplier = 2
 
 type MovementComponent struct {
 	Speed     float64
@@ -44,11 +44,14 @@ func (c *MovementComponent) ApplyShipControl(state *ControlComponent) {
 	if state.MoveFront {
 		forwardVector.Y -= 1
 	}
-	if state.MoveRight {
-		forwardVector.X = forwardVector.X * shipSpeedMultiplier
-	}
 	if state.MoveBack {
 		forwardVector.Y += 1
 	}
+	forwardVector = forwardVector.Normalize()
+
+	if state.MoveRight {
+		forwardVector.X += shipSpeedMultiplier - 1
+	}
+
 	c.Direction = forwardVector
 }

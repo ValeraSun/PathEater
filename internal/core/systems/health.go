@@ -35,8 +35,8 @@ func (s *HealthSystem) Update(dt float32) error {
 
 			hp := c.(*components.HealthComponent)
 			isDead := hp.Damage(ev.Damage)
-			if isDead {
-				e := events.NewDeadEvent(ev.ID)
+			if isDead && !s.getter.HasComponents(ev.ID, "ship") {
+				e := events.NewDeleteEvent(ev.ID)
 				s.publisher.Publish(e)
 			}
 		default:

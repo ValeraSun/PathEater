@@ -21,10 +21,10 @@ const (
 	halfFieldWidth      = (displayWidth + spawnZoneSize) / 2
 	maxSpawnAttempts    = 50
 	minAsteroidDist     = 40
-	asteroidSpawnChance = 0.015
+	asteroidSpawnChance = 0.07
 	maxAsteroids        = 50
-	maxSpeed            = 50
-	minSpeed            = 10
+	maxSpeed            = 100
+	minSpeed            = 70
 	maxRadius           = 30
 	minRadius           = 5
 )
@@ -154,7 +154,7 @@ func (s *AsteroidSystem) deleteNotValid(asteroids map[types.Entity]types.Compone
 		t := c.(*components.TransformComponent)
 
 		if math.Abs(t.Position.X) > halfFieldWidth || math.Abs(t.Position.Y) > halfFieldHeight {
-			e := events.NewDeleteAsteroidEvent(id)
+			e := events.NewDeleteEvent(id)
 			s.publisher.Publish(e)
 		}
 	}

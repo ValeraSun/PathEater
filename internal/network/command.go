@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/game"
+	"github.com/ValeraSun/PathEater/internal/core/sendler"
 	"github.com/ValeraSun/PathEater/internal/core/transfer"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
@@ -160,7 +160,7 @@ type Sendler struct {
 	room *GameRoom
 }
 
-func (s Sendler) SendEntityCreate(entityInfo ecs.EntityInfo) error {
+func (s Sendler) SendEntityCreate(entityInfo sendler.EntityInfo) error {
 	var info struct {
 		ID   types.Entity `json:"id"`
 		Type string       `json:"type"`
@@ -196,7 +196,7 @@ func (s Sendler) SendEntityCreate(entityInfo ecs.EntityInfo) error {
 // 	return nil
 // }
 
-func (s Sendler) SendEntityUpdate(entityInfo ecs.EntityInfo) error {
+func (s Sendler) SendEntityUpdate(entityInfo sendler.EntityInfo) error {
 	var info struct {
 		ID   types.Entity `json:"id"`
 		Type string       `json:"type"`
@@ -218,7 +218,7 @@ func (s Sendler) SendEntityUpdate(entityInfo ecs.EntityInfo) error {
 	return nil
 }
 
-func (s Sendler) SendEntityDelete(entityInfo ecs.EntityInfo) error {
+func (s Sendler) SendEntityDelete(entityInfo sendler.EntityInfo) error {
 	var info struct {
 		ID types.Entity `json:"id"`
 	}
@@ -232,7 +232,7 @@ func (s Sendler) SendEntityDelete(entityInfo ecs.EntityInfo) error {
 	return nil
 }
 
-func (s Sendler) SendSnapshotToAll(entities []ecs.EntityInfo) error {
+func (s Sendler) SendSnapshotToAll(entities []sendler.EntityInfo) error {
 	// var info struct {
 	// 	Entities []ecs.EntityCreateInfo `json:"entities"`
 	// }
@@ -243,7 +243,7 @@ func (s Sendler) SendSnapshotToAll(entities []ecs.EntityInfo) error {
 	return nil
 }
 
-func (s Sendler) SendGameOverState(gameOverInfo ecs.GameOverInfo) error {
+func (s Sendler) SendGameOverState(gameOverInfo sendler.GameOverInfo) error {
 	var info struct {
 		Type string `json:"type"`
 		Data any    `json:"data"`
@@ -260,7 +260,7 @@ func (s Sendler) SendGameOverState(gameOverInfo ecs.GameOverInfo) error {
 	return nil
 }
 
-func (s Sendler) SendTime(timeInfo ecs.TimeInfo) error {
+func (s Sendler) SendTime(timeInfo sendler.TimeInfo) error {
 	var info struct {
 		Time int `json:"time"`
 	}

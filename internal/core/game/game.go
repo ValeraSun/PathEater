@@ -7,41 +7,31 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/geometry"
+	"github.com/ValeraSun/PathEater/internal/core/sendler"
 	"github.com/ValeraSun/PathEater/internal/core/systems"
 	"github.com/ValeraSun/PathEater/internal/core/transfer"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
-type Subscriber interface {
-	Subscribe(eventType string, handler events.EventHandler) (func(), error)
+type entitySendler interface {
+	Send(types.Entity, func(sendler.EntityInfo) error) error
+}
+type broadcasterFunc interface {
+	SendEntityCreate(entityInfo sendler.EntityInfo) error
+	SendEntityUpdate(entityInfo sendler.EntityInfo) error
+	SendEntityDelete(entityInfo sendler.EntityInfo) error
+	SendGameOverState(sendler.GameOverInfo) error
+	SendTime(sendler.TimeInfo) error
 }
 
-type closer interface {
-	Close()
+type broadcaster interface {
+	entitySendler
+	broadcasterFunc
 }
 
-type timer interface {
-	GetRemainingTime() time.Duration
-}
-
-type systemAdder interface {
-	AddSystem(types.System)
-	AddEntity(components ...types.Component) (types.Entity, error)
-	AddEntityByID(entity types.Entity, components ...types.Component) error
-}
-
-type entityRemover interface {
-	RemoveEntity(entity types.Entity)
-}
-
-type componentsworld interface {
-	GetEntitiesByComponent(componentType string) map[types.Entity]types.Component
-	HasComponents(entity types.Entity, componentTypes ...string) bool
-	GetComponent(entity types.Entity, componentType string) (types.Component, bool)
-}
-
-func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
-	w := ecs.CreateWorld(broadcaster)
+func CreateGame(broadcasterFunc broadcasterFunc) *ecs.World {
+	w := ecs.CreateWorld(broadcasterFunc)
 	initSystems(w)
 	config.CreateWalls(w)
 
@@ -77,23 +67,22 @@ func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewCollisionSystem(world, world.EventBus)) //передвижение
 
 	world.AddSystem(systems.NewHealthSystem(world, world.EventBus, world.EventBus))
-	world.AddSystem(systems.NewDeadSystem(world, world, world.EventBus, world.EventBus))
 	world.AddSystem(systems.NewDeathSystem(world, world.EventBus, world.EventBus)) // здоровье
 
 	world.AddSystem(systems.NewTimerSystem(world, world.Broadcaster, &world.Timer))
 	world.AddSystem(systems.NewGameOverSystem(world, world.EventBus, world.Broadcaster, world)) // конец игры
 
 	world.AddSystem(systems.NewRenderSystem(world, world.Broadcaster))
-	world.AddSystem(systems.NewCreateSystem(world, world, world.Broadcaster, world.EventBus))
-	world.AddSystem(systems.NewDeleteSystem(world, world.Broadcaster, world, world.EventBus, world.EventBus)) // база
+	world.AddSystem(systems.NewCreateSystem(world, world, world.EventBus, world.Broadcaster))
+	world.AddSystem(systems.NewDeleteSystem(world, world, world.EventBus, world.EventBus, world.Broadcaster)) // база
 
 }
 
 func createEntities(world *ecs.World) {
 	entities.NewTerminal(world)
 	world.EventBus.Publish(events.NewCreateShipEvent())
-	// world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
-	// world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
+	world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
+	world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
 	world.EventBus.Publish(events.NewMeteoriteZoneEvent())
 }
 
