@@ -32,7 +32,9 @@ func (s *CollisionSystem) Update(dt float32) error {
 	for id, collider := range collidersRaw {
 		if !s.getter.HasComponents(id, "transform") {
 			c, _ := collider.(*components.ColliderComponent)
-
+			if !c.Enable {
+				continue
+			}
 			colliders = append(colliders, c)
 		}
 	}
@@ -51,6 +53,12 @@ func (s *CollisionSystem) Update(dt float32) error {
 			t, _ := c.(*components.TransformComponent)
 
 			col, _ := collider.(*components.ColliderComponent)
+
+			col.Collider.ChangeCenter(t.Position) //Сразу меняем центр коллайдера
+
+			if !col.Enable {
+				continue
+			}
 
 			movables = append(movables, movable{
 				id:        id,

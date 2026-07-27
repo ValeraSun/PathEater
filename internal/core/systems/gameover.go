@@ -1,7 +1,6 @@
 package systems
 
 import (
-	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 )
@@ -33,19 +32,11 @@ type GameOverData struct {
 
 func (s *GameOverSystem) OnEvent(event events.Event) error {
 	ev := event.(*events.GameOverEvent)
-	var status int
-	if ev.Win {
-		ships := s.getter.GetEntitiesByComponent("ship")
-		for _, sh := range ships {
-			ship := sh.(*components.ShipComponent)
-			status = ship.BaggageStatus
-		}
-	}
 	s.broadcaster.SendGameOverState(ecs.GameOverInfo{
 		Type: "gameOver",
 		Data: GameOverData{
-			Win:    ev.Win,
-			Status: status,
+			Win: ev.Win,
+			//Status: s.status,
 		},
 	})
 	//s.closer.Close()

@@ -12,6 +12,7 @@ type CollisionResult struct {
 type Collider interface {
 	Collide(other Collider) CollisionResult
 	ChangeCenter(center Vec3)
+	GetCenter() Vec3
 }
 
 type BoxCollider struct {
@@ -36,6 +37,42 @@ func (b *BoxCollider) ChangeCenter(center Vec3) {
 	b.Center = center
 }
 
+func (b *BoxCollider) GetCenter() Vec3 {
+	return b.Center
+}
+
+func (b *BoxCollider) GetNormalByAxis(index int) Vec3 {
+	if index < 0 || index > 2 {
+		return Vec3{0, 0, 0}
+	}
+	return b.Axes[index]
+}
+
+// Возвращает нормаль, направленную в center
+func (b *BoxCollider) GetInwardNormal(center Vec3) Vec3 {
+	rawNormal := b.GetThinnestNormal()
+
+	toCenter := b.Center.Sub(center)
+
+	if rawNormal.Dot(toCenter) < 0 {
+		return rawNormal
+	}
+	return rawNormal.Scale(-1)
+}
+
+func (b *BoxCollider) GetThinnestNormal() Vec3 {
+	minAxis := 0
+	minVal := b.HalfExtents.X
+	if b.HalfExtents.Y < minVal {
+		minVal = b.HalfExtents.Y
+		minAxis = 1
+	}
+	if b.HalfExtents.Z < minVal {
+		minAxis = 2
+	}
+	return b.Axes[minAxis]
+}
+
 func (b *BoxCollider) Collide(other Collider) CollisionResult {
 	switch o := other.(type) {
 	case *BoxCollider:
@@ -43,7 +80,6 @@ func (b *BoxCollider) Collide(other Collider) CollisionResult {
 	case *CapsuleCollider:
 		return boxCapsuleCollide(b, o)
 	case *RayCollider:
-
 		res := rayBoxCollide(o, b)
 		if res.HasCollision {
 			res.MTV = res.MTV.Scale(-1)
@@ -71,8 +107,12 @@ func NewCapsuleCollider(center, direction Vec3, halfHeight, radius float64) *Cap
 	}
 }
 
-func (b *CapsuleCollider) ChangeCenter(center Vec3) {
-	b.Center = center
+func (c *CapsuleCollider) ChangeCenter(center Vec3) {
+	c.Center = center
+}
+
+func (c *CapsuleCollider) GetCenter() Vec3 {
+	return c.Center
 }
 
 func (c *CapsuleCollider) Collide(other Collider) CollisionResult {
@@ -306,6 +346,10 @@ func (c *RayCollider) Change(start, end Vec3) {
 
 func (r *RayCollider) ChangeCenter(center Vec3) {
 	r.Origin = center
+}
+
+func (r *RayCollider) GetCenter() Vec3 {
+	return r.Origin
 }
 
 func (r *RayCollider) Collide(other Collider) CollisionResult {

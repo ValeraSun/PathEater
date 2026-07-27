@@ -18,9 +18,9 @@ const (
 	playerMaxHealth      = 100
 	playerHalfHeight     = 1
 	playerRadius         = 0.7
-	playerSpawnX         = 2
+	playerSpawnX         = 26.65
 	playerSpawnY         = 1
-	playerSpawnZ         = 0
+	playerSpawnZ         = -3
 	playerAttackCooldown = 1
 	playerDamage         = 50
 
@@ -216,6 +216,17 @@ func NewAlien(adder entityAdder, position geometry.Vec3) types.Entity {
 	return alien
 }
 
+func NewBreakdown(adder entityAdder, pos geometry.Vec3, wallID types.Entity) types.Entity {
+	e, _ := adder.AddEntity(
+		components.NewTransformComponent(
+			pos,
+			geometry.GetZeroVector(),
+		),
+		components.NewBreakdownComponent(pos, wallID),
+	)
+	return e
+}
+
 type componentsGetter interface {
 	GetEntitiesByComponent(componentType string) map[types.Entity]types.Component
 	HasComponents(entity types.Entity, componentTypes ...string) bool
@@ -265,6 +276,10 @@ type cosmoAlienData struct {
 type bulletData struct {
 	Position geometry.Vec3 `json:"position"`
 	Success  bool          `json:"success"`
+}
+
+type breakdownData struct {
+	Position geometry.Vec3 `json:"position"`
 }
 
 type Sendler func(ecs.EntityInfo) error
@@ -480,6 +495,24 @@ func SendBullet(id types.Entity, getter componentsGetter, broadcaster Sendler) e
 		Type: "bullet",
 		Data: bulletData{
 			Position: relPos,
+		},
+	})
+
+	return nil
+}
+
+func SendBreakdown(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
+	c, ok := getter.GetComponent(id, "transform")
+	if !ok {
+		return errors.New("не найден компонент transform")
+	}
+	transform := c.(*components.TransformComponent)
+
+	broadcaster(ecs.EntityInfo{
+		ID:   id,
+		Type: "breakdown",
+		Data: breakdownData{
+			Position: transform.Position,
 		},
 	})
 

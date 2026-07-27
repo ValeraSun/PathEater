@@ -60,7 +60,6 @@ func GameRoomState() State {
 func PlayerControlState() State {
 	s := NewBaseState("playerControl")
 	s.RegisterCommand(&playerStateCommand{})
-	s.RegisterCommand(&weaponStateCommand{})
 	s.RegisterCommand(&exitGameCommand{})
 	return s
 }

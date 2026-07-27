@@ -37,58 +37,36 @@ func (s *CollisionsSystem) drainEvents() error {
 			case s.getter.HasComponents(ev.ID1, "ship"):
 				switch {
 				case s.getter.HasComponents(ev.ID2, "asteroid"):
-					e1, e2 := shipAsteroidCollision(ev.ID1, ev.ID2)
-					s.publisher.Publish(e1)
-					s.publisher.Publish(e2)
+					s.shipAsteroidCollision(ev.ID1, ev.ID2)
 				case s.getter.HasComponents(ev.ID2, "cosmoAlien"):
-					e1, e2 := shipCosmoAlienCollision(ev.ID1, ev.ID2)
-					s.publisher.Publish(e1)
-					s.publisher.Publish(e2)
+					s.shipCosmoAlienCollision(ev.ID1, ev.ID2)
 				}
 			case s.getter.HasComponents(ev.ID1, "asteroid"):
 				switch {
 				case s.getter.HasComponents(ev.ID2, "ship"):
-					e1, e2 := shipAsteroidCollision(ev.ID2, ev.ID1)
-					s.publisher.Publish(e1)
-					s.publisher.Publish(e2)
+					s.shipAsteroidCollision(ev.ID2, ev.ID1)
 				case s.getter.HasComponents(ev.ID2, "asteroid"):
-					e1, e2 := asteroidAsteroidCollision(ev.ID1, ev.ID2)
-					s.publisher.Publish(e1)
-					s.publisher.Publish(e2)
+					s.asteroidAsteroidCollision(ev.ID1, ev.ID2)
 				case s.getter.HasComponents(ev.ID2, "cosmoAlien"):
-					e1, e2 := asteroidCosmoAlienCollision(ev.ID1, ev.ID2)
-					s.publisher.Publish(e1)
-					s.publisher.Publish(e2)
+					s.asteroidCosmoAlienCollision(ev.ID1, ev.ID2)
 				case s.getter.HasComponents(ev.ID2, "bullet"):
-					e1, e2 := asteroidBulletCollision(ev.ID1, ev.ID2)
-					s.publisher.Publish(e1)
-					s.publisher.Publish(e2)
+					s.asteroidBulletCollision(ev.ID1, ev.ID2)
 				}
 			case s.getter.HasComponents(ev.ID1, "cosmoAlien"):
 				switch {
 				case s.getter.HasComponents(ev.ID2, "ship"):
-					e1, e2 := shipCosmoAlienCollision(ev.ID2, ev.ID1)
-					s.publisher.Publish(e1)
-					s.publisher.Publish(e2)
+					s.shipCosmoAlienCollision(ev.ID2, ev.ID1)
 				case s.getter.HasComponents(ev.ID2, "asteroid"):
-					e1, e2 := asteroidCosmoAlienCollision(ev.ID2, ev.ID1)
-					s.publisher.Publish(e1)
-					s.publisher.Publish(e2)
+					s.asteroidCosmoAlienCollision(ev.ID2, ev.ID1)
 				case s.getter.HasComponents(ev.ID2, "bullet"):
-					e1, e2 := cosmoAlienBulletCollision(ev.ID1, ev.ID2)
-					s.publisher.Publish(e1)
-					s.publisher.Publish(e2)
+					s.cosmoAlienBulletCollision(ev.ID1, ev.ID2)
 				}
 			case s.getter.HasComponents(ev.ID1, "bullet"):
 				switch {
 				case s.getter.HasComponents(ev.ID2, "asteroid"):
-					e1, e2 := asteroidBulletCollision(ev.ID2, ev.ID1)
-					s.publisher.Publish(e1)
-					s.publisher.Publish(e2)
+					s.asteroidBulletCollision(ev.ID2, ev.ID1)
 				case s.getter.HasComponents(ev.ID2, "cosmoAlien"):
-					e1, e2 := cosmoAlienBulletCollision(ev.ID2, ev.ID1)
-					s.publisher.Publish(e1)
-					s.publisher.Publish(e2)
+					s.cosmoAlienBulletCollision(ev.ID2, ev.ID1)
 				}
 			}
 		default:
@@ -108,26 +86,34 @@ func (s *CollisionsSystem) OnEvent(event events.Event) error {
 	return nil
 }
 
-func shipAsteroidCollision(shipID, asteroidID types.Entity) (e1 *events.DamageDealEvent, e2 *events.DeleteAsteroidEvent) {
-	return events.NewDamageDealEvent(shipID, 20), events.NewDeleteAsteroidEvent(asteroidID)
+func (s *CollisionsSystem) shipAsteroidCollision(shipID, asteroidID types.Entity) {
+	s.publisher.Publish(events.NewDamageDealEvent(shipID, 20))
+	s.publisher.Publish(events.NewDeleteAsteroidEvent(asteroidID))
+	s.publisher.Publish(events.NewBreakdownEvent(false))
 }
 
-func shipCosmoAlienCollision(shipID, alienID types.Entity) (e1 *events.DamageDealEvent, e2 *events.DeleteCosmoAlienEvent) {
-	return events.NewDamageDealEvent(shipID, 10), events.NewDeleteCosmoAlienEvent(alienID)
+func (s *CollisionsSystem) shipCosmoAlienCollision(shipID, alienID types.Entity) {
+	s.publisher.Publish(events.NewDamageDealEvent(shipID, 10))
+	s.publisher.Publish(events.NewDeleteCosmoAlienEvent(alienID))
+	s.publisher.Publish(events.NewBreakdownEvent(true))
 }
 
-func asteroidAsteroidCollision(asteroid1ID, asteroid2ID types.Entity) (e1 *events.DeleteAsteroidEvent, e2 *events.DeleteAsteroidEvent) {
-	return events.NewDeleteAsteroidEvent(asteroid1ID), events.NewDeleteAsteroidEvent(asteroid2ID)
+func (s *CollisionsSystem) asteroidAsteroidCollision(asteroid1ID, asteroid2ID types.Entity) {
+	s.publisher.Publish(events.NewDeleteAsteroidEvent(asteroid1ID))
+	s.publisher.Publish(events.NewDeleteAsteroidEvent(asteroid2ID))
 }
 
-func asteroidCosmoAlienCollision(asteroidID, alienID types.Entity) (e1 *events.DeleteAsteroidEvent, e2 *events.DamageDealEvent) {
-	return events.NewDeleteAsteroidEvent(asteroidID), events.NewDamageDealEvent(alienID, 5)
+func (s *CollisionsSystem) asteroidCosmoAlienCollision(asteroidID, alienID types.Entity) {
+	s.publisher.Publish(events.NewDeleteAsteroidEvent(asteroidID))
+	s.publisher.Publish(events.NewDamageDealEvent(alienID, 5))
 }
 
-func asteroidBulletCollision(asteroidID, bulletID types.Entity) (e1 *events.DeleteAsteroidEvent, e2 *events.DeleteBulletEvent) {
-	return events.NewDeleteAsteroidEvent(asteroidID), events.NewDeleteBulletEvent(bulletID)
+func (s *CollisionsSystem) asteroidBulletCollision(asteroidID, bulletID types.Entity) {
+	s.publisher.Publish(events.NewDeleteAsteroidEvent(asteroidID))
+	s.publisher.Publish(events.NewDeleteBulletEvent(bulletID))
 }
 
-func cosmoAlienBulletCollision(alienID, bulletID types.Entity) (e1 *events.DamageDealEvent, e2 *events.DeleteBulletEvent) {
-	return events.NewDamageDealEvent(alienID, 5), events.NewDeleteBulletEvent(bulletID)
+func (s *CollisionsSystem) cosmoAlienBulletCollision(alienID, bulletID types.Entity) {
+	s.publisher.Publish(events.NewDamageDealEvent(alienID, 5))
+	s.publisher.Publish(events.NewDeleteBulletEvent(bulletID))
 }

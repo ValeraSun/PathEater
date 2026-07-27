@@ -83,14 +83,16 @@ func NewCreateBulletEvent(pos, dir geometry.Vec3) *CreateBulletEvent {
 	}
 }
 
-type CreateNavigationDisplayEvent struct {
-	ID types.Entity
+type CreateBreakdownEvent struct {
+	Position geometry.Vec3
+	WallID   types.Entity
 }
 
-func (*CreateNavigationDisplayEvent) Type() string { return "createNavigationDisplay" }
+func (*CreateBreakdownEvent) Type() string { return "createBreakdown" }
 
-func NewNavigationDisplayEvent(id types.Entity) *CreateNavigationDisplayEvent {
-	return &CreateNavigationDisplayEvent{
-		ID: id,
+func NewCreateBreakdownEvent(wallID types.Entity, pos geometry.Vec3) *CreateBreakdownEvent {
+	return &CreateBreakdownEvent{
+		Position: pos,
+		WallID:   wallID,
 	}
 }

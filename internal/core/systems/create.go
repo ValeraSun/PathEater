@@ -27,6 +27,7 @@ func NewCreateSystem(adder entityAdder, getter componentsGetter, broadcaster Bro
 	subscriber.Subscribe("createAsteroid", s.OnEvent)
 	subscriber.Subscribe("createCosmoAlien", s.OnEvent)
 	subscriber.Subscribe("createBullet", s.OnEvent)
+	subscriber.Subscribe("createBreakdown", s.OnEvent)
 	return s
 }
 
@@ -65,6 +66,10 @@ func (s *CreateSystem) drainEvents() error {
 				event := e.(*events.CreateBulletEvent)
 				bullet := entities.NewBullet(s.adder, event.Position, event.Direction)
 				err = entities.SendBullet(bullet, s.getter, s.broadcaster.SendEntityCreate)
+			case "createBreakdown":
+				event := e.(*events.CreateBreakdownEvent)
+				breakdown := entities.NewBreakdown(s.adder, event.Position, event.WallID)
+				err = entities.SendBreakdown(breakdown, s.getter, s.broadcaster.SendEntityCreate)
 			}
 
 			if err != nil {
