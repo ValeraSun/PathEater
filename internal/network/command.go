@@ -245,9 +245,12 @@ func (s Sendler) SendSnapshotToAll(entities []ecs.EntityInfo) error {
 
 func (s Sendler) SendGameOverState(gameOverInfo ecs.GameOverInfo) error {
 	var info struct {
-		Data any `json:"data"`
+		Type string `json:"type"`
+		Data any    `json:"data"`
 	}
+	info.Type = "GameOver"
 	info.Data = gameOverInfo.Data
+
 	payload, err := json.Marshal(info)
 	if err != nil {
 		return err
@@ -259,9 +262,14 @@ func (s Sendler) SendGameOverState(gameOverInfo ecs.GameOverInfo) error {
 
 func (s Sendler) SendTime(timeInfo ecs.TimeInfo) error {
 	var info struct {
-		Data any `json:"data"`
+		Time int `json:"time"`
 	}
-	info.Data = timeInfo.Data
+	seconds, ok := timeInfo.Data.(int)
+	if !ok {
+		return errors.New("SendTime: data is not int")
+	}
+	info.Time = seconds
+
 	payload, err := json.Marshal(info)
 	if err != nil {
 		return err

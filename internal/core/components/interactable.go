@@ -22,9 +22,9 @@ func NewInteractableComponent(center, halfExtents geometry.Vec3, interaction Int
 			center,
 			halfExtents,
 			[3]geometry.Vec3{
-				geometry.Vec3{X: 1},
-				geometry.Vec3{Y: 1},
-				geometry.Vec3{Z: 1},
+				{X: 1},
+				{Y: 1},
+				{Z: 1},
 			},
 		),
 		Interaction: interaction,

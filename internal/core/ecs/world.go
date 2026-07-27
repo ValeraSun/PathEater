@@ -3,9 +3,9 @@ package ecs
 import (
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 	"time"
-	"log"
 
 	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -103,13 +103,13 @@ type EntityInfo struct {
 }
 
 type GameOverInfo struct {
-	Type string
-	Data any
+	Type string `json:"type"`
+	Data any    `json:"data"`
 }
 
 type TimeInfo struct {
-	Type string
-	Data any
+	Type string `json:"type"`
+	Data any    `json:"data"`
 }
 
 func newWorld(eventBus *events.EventBus, room Broadcaster) *World {

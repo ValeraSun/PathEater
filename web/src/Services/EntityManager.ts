@@ -83,7 +83,7 @@ export class EntityManager
 
     private shipHp = 100;
     private shipWeaponDirection: Vec2 = { x: 0, y: -1 };
-    private asteroids = new Map<string, Vec2>();
+    private asteroids = new Map<string, { position: Vec2, radius: number }>();
     private monsters = new Map<string, Vec2>();
 
     public constructor(scene: THREE.Scene)
@@ -328,7 +328,7 @@ export class EntityManager
 
         this.onRadarChanged({
             ship: { x: 0, y: 0, rotationY, hp: this.shipHp },
-            asteroids: Array.from(this.asteroids, ([id, pos]) => ({ id, x: pos.x, y: pos.y })),
+            asteroids: Array.from(this.asteroids, ([id, data]) => ({ id, x: data.position.x, y: data.position.y, radius: data.radius})),
             monsters: Array.from(this.monsters, ([id, pos]) => ({ id, x: pos.x, y: pos.y }))
         });
     }
@@ -383,8 +383,9 @@ export class EntityManager
         if (data.position)
         {
            // console.dir(data)
-            this.asteroids.set(id, { x: data.position.x, y: data.position.y });
+            this.asteroids.set(id, { position: {x: data.position.x, y: data.position.y }, radius: data.radius ?? 90.0});
         }
+
     }
 
     private UpdateMonster(id: string, data: unknown): void
@@ -403,7 +404,7 @@ export class EntityManager
 
         if (data.position)
         {
-            this.monsters.set(id, { x: data.position.x, y: data.position.z });
+            this.monsters.set(id, { x: data.position.x, y: data.position.y });
         }
     }
 

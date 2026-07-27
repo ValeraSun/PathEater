@@ -25,12 +25,15 @@ type timeData struct {
 }
 
 func (s *TimerSystem) Update(dt float32) error {
-	time := s.timer.GetRemainingTime()
-	s.broadcaster.SendTime(ecs.TimeInfo{
+	remaining := s.timer.GetRemainingTime()
+	seconds := int(remaining.Seconds())
+
+	if err := s.broadcaster.SendTime(ecs.TimeInfo{
 		Type: "time",
-		Data: timeData{
-			Time: time,
-		},
-	})
+		Data: seconds,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
