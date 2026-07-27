@@ -58,6 +58,29 @@ func getWalls(path string) []Wall {
 	return colliders
 }
 
+func getDoors(path string) []Door {
+	jsonData, err := os.ReadFile(path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	type rootDTO struct {
+		Colliders []Door `json:"colliders"`
+	}
+
+	var DTO rootDTO
+	err = json.Unmarshal(jsonData, &DTO)
+
+	if err != nil {
+		log.Fatal("Не распарсились двери")
+	}
+
+	colliders := DTO.Colliders
+
+	return colliders
+}
+
 func getWallsConfigPath() string {
 	jsonData, err := os.ReadFile(CONFIG_PATH)
 
@@ -73,6 +96,26 @@ func getWallsConfigPath() string {
 
 	if err != nil {
 		path = data["walls_path"].(string)
+	}
+
+	return path
+}
+
+func getDoorsConfigPath() string {
+	jsonData, err := os.ReadFile(CONFIG_PATH)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var data map[string]interface{}
+	yaml.Unmarshal(jsonData, &data)
+
+	path := data["doors_path_dev"].(string)
+	_, err = os.ReadFile(path)
+
+	if err != nil {
+		path = data["doors_path"].(string)
 	}
 
 	return path
@@ -111,7 +154,36 @@ func CreateWalls(adder entityAdder) {
 	}
 }
 
-//func CreateDoors(adder entityAdder)
+func CreateDoors(adder entityAdder) {
+	path := getDoorsConfigPath()
+	doors := getDoors(path)
+	for _, door := range doors {
+		d, err := adder.AddEntity(
+			components.NewColliderComponent(geometry.NewBoxCollider(
+				door.Center,
+				door.HalfExtents,
+				door.Quaternion.ToRotationMatrix())),
+			components.NewDoorComponent(types.Entity(door.RoomA), types.Entity(door.RoomB)),
+		)
+		if err != nil {
+			log.Printf("Ошибка создания стены %s: %v", wall.ID, err)
+			continue
+		}
+		if wall.Room != "" {
+			r, err := adder.AddEntity(
+				components.NewRoomComponent(),
+			)
+			if err != nil {
+				log.Printf("Ошибка создания комнаты %s: %v", wall.ID, err)
+				continue
+			}
+			NewRoom(r)
+		}
+		if wall.Type == "hull" {
+			ExternalWallEntities = append(ExternalWallEntities, w)
+		}
+	}
+}
 
 func GetExternalWalls() []types.Entity {
 	return ExternalWallEntities
