@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "source": "ship_room_analysis",
+    "space": "world",
+    "up": "Y",
+    "units": "m"
+  },
+  "rooms": [
+    {
+      "id": "lounge",
+      "minX": 21.29,
+      "maxX": 32.01,
+      "minZ": -3.5,
+      "maxZ": 0.0
+    },
+    {
+      "id": "cafeteria",
+      "minX": 10.64,
+      "maxX": 21.36,
+      "minZ": -7.0,
+      "maxZ": 0.0
+    },
+    {
+      "id": "cargo",
+      "minX": -0.06,
+      "maxX": 10.66,
+      "minZ": -7.0,
+      "maxZ": 0.0
+    },
+    {
+      "id": "armory",
+      "minX": 21.29,
+      "maxX": 32.01,
+      "minZ": -14.5,
+      "maxZ": -11.0
+    },
+    {
+      "id": "medical",
+      "minX": 10.64,
+      "maxX": 21.36,
+      "minZ": -14.5,
+      "maxZ": -7.0
+    },
+    {
+      "id": "engine",
+      "minX": -0.05,
+      "maxX": 10.67,
+      "minZ": -14.5,
+      "maxZ": -7.0
+    },
+    {
+      "id": "hallway",
+      "minX": 2.17,
+      "maxX": 29.83,
+      "minZ": -11.0,
+      "maxZ": -7.0
+    },
+    {
+      "id": "nose",
+      "minX": 31.41,
+      "maxX": 42.59,
+      "minZ": -14.5,
+      "maxZ": -3.5
+    }
+  ]
+}

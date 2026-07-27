@@ -10,7 +10,7 @@
     {
       "id": "Hull_Lounge",
       "type": "hull",
-      "room": "louge",
+      "room": "lounge",
       "shape": "obb",
       "center": {
         "x": 26.65,

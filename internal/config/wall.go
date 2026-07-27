@@ -35,9 +35,16 @@ type Door struct {
 	Quaternion  geometry.Quaternion `json:"rotation"`
 }
 
+type Room struct {
+	ID   string  `json:"id"`
+	MinX float64 `json:"minX"`
+	MaxX float64 `json:"maxX"`
+	MinZ float64 `json:"minZ"`
+	MaxZ float64 `json:"maxZ"`
+}
+
 func getWalls(path string) []Wall {
 	jsonData, err := os.ReadFile(path)
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,19 +55,53 @@ func getWalls(path string) []Wall {
 
 	var DTO rootDTO
 	err = json.Unmarshal(jsonData, &DTO)
-
 	if err != nil {
 		log.Fatal("Не распарсились стены")
 	}
 
-	colliders := DTO.Colliders
+	return DTO.Colliders
+}
 
-	return colliders
+func getDoors(path string) []Door {
+	jsonData, err := os.ReadFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	type rootDTO struct {
+		Colliders []Door `json:"colliders"`
+	}
+
+	var DTO rootDTO
+	err = json.Unmarshal(jsonData, &DTO)
+	if err != nil {
+		log.Fatal("Не распарсились двери")
+	}
+
+	return DTO.Colliders
+}
+
+func getRooms(path string) []Room {
+	jsonData, err := os.ReadFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	type rootDTO struct {
+		Rooms []Room `json:"rooms"`
+	}
+
+	var DTO rootDTO
+	err = json.Unmarshal(jsonData, &DTO)
+	if err != nil {
+		log.Fatal("Не распарсились комнаты")
+	}
+
+	return DTO.Rooms
 }
 
 func getWallsConfigPath() string {
 	jsonData, err := os.ReadFile(CONFIG_PATH)
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,7 +111,6 @@ func getWallsConfigPath() string {
 
 	path := data["walls_path_dev"].(string)
 	_, err = os.ReadFile(path)
-
 	if err != nil {
 		path = data["walls_path"].(string)
 	}
@@ -78,12 +118,81 @@ func getWallsConfigPath() string {
 	return path
 }
 
+func getDoorsConfigPath() string {
+	jsonData, err := os.ReadFile(CONFIG_PATH)
+	if err != nil {
+		log.Fatalf("Cannot read config file: %v", err)
+	}
+
+	var data map[string]interface{}
+	if err := yaml.Unmarshal(jsonData, &data); err != nil {
+		log.Fatalf("Cannot parse config file: %v", err)
+	}
+
+	devPath, ok := data["doors_path_dev"].(string)
+	if !ok || devPath == "" {
+		log.Printf("doors_path_dev not found or empty in config")
+	} else {
+		log.Printf("Checking dev path: %s", devPath)
+		if _, err := os.ReadFile(devPath); err == nil {
+			log.Printf("Using dev path: %s", devPath)
+			return devPath
+		}
+		log.Printf("Dev path failed: %v", err)
+	}
+
+	prodPath, ok := data["doors_path"].(string)
+	if !ok || prodPath == "" {
+		log.Fatal("doors_path not found in config")
+	}
+
+	log.Printf("Using production path: %s", prodPath)
+	return prodPath
+}
+
+func getRoomsConfigPath() string {
+	jsonData, err := os.ReadFile(CONFIG_PATH)
+	if err != nil {
+		log.Fatalf("Cannot read config file: %v", err)
+	}
+
+	var data map[string]interface{}
+	if err := yaml.Unmarshal(jsonData, &data); err != nil {
+		log.Fatalf("Cannot parse config file: %v", err)
+	}
+
+	devPath, ok := data["rooms_path_dev"].(string)
+	if !ok || devPath == "" {
+		log.Printf("rooms_path_dev not found or empty in config")
+	} else {
+		log.Printf("Checking dev path: %s", devPath)
+		if _, err := os.ReadFile(devPath); err == nil {
+			log.Printf("Using dev path: %s", devPath)
+			return devPath
+		}
+		log.Printf("Dev path failed: %v", err)
+	}
+
+	prodPath, ok := data["rooms_path"].(string)
+	if !ok || prodPath == "" {
+		log.Fatal("rooms_path not found in config")
+	}
+
+	log.Printf("Using production path: %s", prodPath)
+	return prodPath
+}
+
 var ExternalWallEntities []types.Entity
-var Rooms []types.Entity
+var roomToWallMap = make(map[string]types.Entity)
+var DoorsEntities []types.Entity
+var RoomEntities []types.Entity
 
 func CreateWalls(adder entityAdder) {
 	path := getWallsConfigPath()
 	walls := getWalls(path)
+
+	log.Printf("CreateWalls: loaded %d walls", len(walls))
+
 	for _, wall := range walls {
 		w, err := adder.AddEntity(
 			components.NewColliderComponent(geometry.NewBoxCollider(
@@ -95,44 +204,84 @@ func CreateWalls(adder entityAdder) {
 			log.Printf("Ошибка создания стены %s: %v", wall.ID, err)
 			continue
 		}
+
+		log.Printf("CreateWalls: wall ID=%s, Room=%s, Type=%s", wall.ID, wall.Room, wall.Type)
+
 		if wall.Room != "" {
-			r, err := adder.AddEntity(
-				components.NewRoomComponent(),
-			)
-			if err != nil {
-				log.Printf("Ошибка создания комнаты %s: %v", wall.ID, err)
-				continue
-			}
-			NewRoom(r)
+			roomToWallMap[wall.Room] = w
+			log.Printf("CreateWalls: added to map: room=%s -> wall=%v", wall.Room, w)
 		}
+
 		if wall.Type == "hull" {
 			ExternalWallEntities = append(ExternalWallEntities, w)
 		}
 	}
+
+	log.Printf("CreateWalls: map has %d entries", len(roomToWallMap))
 }
 
-//func CreateDoors(adder entityAdder)
+func CreateDoors(adder entityAdder) {
+	path := getDoorsConfigPath()
+	doors := getDoors(path)
+	for _, door := range doors {
+		tminx := door.Center.X - door.HalfExtents.X
+		tmaxx := door.Center.X + door.HalfExtents.X
+		tminy := door.Center.Y - door.HalfExtents.Y
+		tmaxy := door.Center.Y + door.HalfExtents.Y
+		d, err := adder.AddEntity(
+			components.NewColliderComponent(geometry.NewBoxCollider(
+				door.Center,
+				door.HalfExtents,
+				door.Quaternion.ToRotationMatrix())),
+			components.NewDoorComponent(types.Entity(door.RoomA), types.Entity(door.RoomB), tminx, tmaxx, tminy, tmaxy),
+		)
+		if err != nil {
+			log.Printf("Ошибка создания двери %s: %v", door.ID, err)
+			continue
+		}
+		DoorsEntities = append(DoorsEntities, d)
+	}
+}
+
+func CreateRooms(adder entityAdder) {
+	path := getRoomsConfigPath()
+	rooms := getRooms(path)
+
+	log.Printf("CreateRooms: loaded %d rooms", len(rooms))
+	log.Printf("CreateRooms: map has %d entries before processing", len(roomToWallMap))
+
+	for _, room := range rooms {
+		log.Printf("CreateRooms: looking for room %s in map", room.ID)
+
+		wallEntity, exists := roomToWallMap[room.ID]
+		if !exists {
+			log.Printf("WARNING: room %s has no wall in map!", room.ID)
+			continue
+		}
+
+		log.Printf("CreateRooms: room %s -> wall %v", room.ID, wallEntity)
+
+		r, err := adder.AddEntity(
+			components.NewRoomComponent(room.MinX, room.MaxX, room.MinZ, room.MaxZ, wallEntity),
+		)
+		if err != nil {
+			log.Printf("Ошибка создания комнаты %s: %v", room.ID, err)
+			continue
+		}
+		RoomEntities = append(RoomEntities, r)
+	}
+
+	log.Printf("CreateRooms: created %d rooms", len(RoomEntities))
+}
 
 func GetExternalWalls() []types.Entity {
 	return ExternalWallEntities
 }
 
 func GetRooms() []types.Entity {
-	return ExternalWallEntities
+	return RoomEntities
 }
 
-func NewRoom(roomID types.Entity) {
-	if contains(Rooms, roomID) {
-		return
-	}
-	Rooms = append(Rooms, roomID)
-}
-
-func contains(slice []types.Entity, item types.Entity) bool {
-	for _, v := range slice {
-		if v == item {
-			return true
-		}
-	}
-	return false
+func GetDoors() []types.Entity {
+	return DoorsEntities
 }

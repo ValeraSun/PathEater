@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	cosmoSpawnZoneSize     = 100
-	cosmoMaxSpawnAttempts  = 50
-	maxCosmoAliens         = 5
-	cosmoSpawnChance       = 0.005
-	minCosmoAlienDistance  = 40
+	cosmoSpawnZoneSize    = 100
+	cosmoMaxSpawnAttempts = 50
+	maxCosmoAliens        = 5
+	cosmoSpawnChance      = 0.005
+	minCosmoAlienDistance = 40
 )
 
 type CosmoAlienSystem struct {
@@ -76,16 +76,16 @@ func (s *CosmoAlienSystem) generateCosmoAlien() geometry.Vec3 {
 	halfSpawnHeight := float64(displayHeight+cosmoSpawnZoneSize) / 2
 
 	switch side {
-	case 0: 
+	case 0:
 		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
 		spawnPos.Y = halfSpawnHeight
 	case 1:
 		spawnPos.X = s.rng.Float64()*(halfSpawnWidth*2) - halfSpawnWidth
 		spawnPos.Y = -halfSpawnHeight
-	case 2: 
+	case 2:
 		spawnPos.X = -halfSpawnWidth
 		spawnPos.Y = s.rng.Float64()*(halfSpawnHeight*2) - halfSpawnHeight
-	case 3: 
+	case 3:
 		spawnPos.X = halfSpawnWidth
 		spawnPos.Y = s.rng.Float64()*(halfSpawnHeight*2) - halfSpawnHeight
 	}
