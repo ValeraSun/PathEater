@@ -38,7 +38,7 @@ func (c *MovementComponent) ApplyAI(state *AIComponent) {
 }
 
 func (c *MovementComponent) ApplyShipControl(state *ControlComponent) {
-	forwardVector := geometry.Vec3{X: 0, Y: 0}
+	forwardVector := geometry.Vec3{X: 1}
 	if state.MoveFront {
 		forwardVector.Y -= 1
 	}
@@ -48,5 +48,5 @@ func (c *MovementComponent) ApplyShipControl(state *ControlComponent) {
 	if state.MoveBack {
 		forwardVector.Y += 1
 	}
-	c.Direction = forwardVector.Normalize()
+	c.Direction = forwardVector
 }

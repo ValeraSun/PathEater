@@ -36,8 +36,8 @@ const (
 	cosmoAlienSpeed  = 25
 
 	alienHalfHeight       = 1
-	alienRadius           = 0.3
-	alienAttackDamage     = 10
+	alienRadius           = 0.6
+	alienAttackDamage     = 0
 	alienAttackCooldown   = 2
 	alienAttackDistant    = 1
 	alienAttackHalfHeight = 1
