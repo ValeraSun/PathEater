@@ -28,6 +28,7 @@ const (
 	shipSpeed       = 40
 	shipBaggage     = 10
 	shupWeaponSpeed = 10
+	shipWeaponSpeed = 10
 	shipAmmo        = 30
 	shipDirX        = 1
 	shipDirY        = 0
@@ -109,6 +110,7 @@ func NewShip(adder entityAdder) types.Entity {
 		components.NewVelocityComponent(),
 		components.NewShipComponent(shipBaggage),
 		components.NewWeaponComponent(geometry.GetZeroVector(), shupWeaponSpeed, shipAmmo),
+		components.NewWeaponComponent(geometry.GetZeroVector(), shipWeaponSpeed, shipAmmo),
 		components.NewColliderComponent(geometry.NewTriangleCollider(
 			geometry.Vec3{X: 20, Y: 0, Z: 0},
 			geometry.Vec3{X: -20, Y: 20, Z: 0},

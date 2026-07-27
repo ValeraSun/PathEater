@@ -7,10 +7,13 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/events"
-	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/systems"
 	"github.com/ValeraSun/PathEater/internal/core/transfer"
 	"github.com/ValeraSun/PathEater/internal/core/types"
+)
+
+const (
+	timeGame = 30
 )
 
 type Subscriber interface {
@@ -50,7 +53,7 @@ func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 
 	go w.EventBus.ProcessEvents()
 	go ecs.HandleWorld(w)
-	w.Timer.StartTimer(99999*time.Second, func() { timerIsOver(w.EventBus) })
+	w.Timer.StartTimer(timeGame*time.Second, func() { timerIsOver(w.EventBus) })
 	return w
 }
 
@@ -93,8 +96,8 @@ func initSystems(world *ecs.World) {
 func createEntities(world *ecs.World) {
 	entities.NewTerminal(world)
 	world.EventBus.Publish(events.NewCreateShipEvent())
-	world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
-	world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
+	//world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
+	//world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
 	world.EventBus.Publish(events.NewMeteoriteZoneEvent())
 }
 
