@@ -36,7 +36,6 @@ func (s *DoorsSystem) Update(dt float32) error {
 			return nil
 		}
 	}
-
 }
 
 func (s *DoorsSystem) OnEvent(event events.Event) error {
