@@ -1,7 +1,6 @@
 import { EntityManager } from "./EntityManager";
 import { WebSocketClient } from "./WebSocketClient";
 import type { PlayerStatePayload } from "../Controllers/PlayerController";
-import { EntityParser } from "./EntityParser"
 
 export interface EntityCreateInfo {
     id: string;
@@ -81,19 +80,14 @@ export class GameServerGateway {
 
     public InitListeners(): void {
         this.wsClient.on("CreateEntity", (payload: EntityCreateInfo) => {
-         //   console.dir(payload)
             if (!this.isValidEntityInfo(payload)) return;
-            const parsed = EntityParser.Parse(payload.type, payload.data)
-            this.entityManager.CreateEntity(payload.id, payload.type, parsed);
+            this.entityManager.CreateEntity(payload.id, payload.type, payload.data);
         });
 
         this.wsClient.on("UpdateEntity", (payload: EntityUpdateInfo) => {
-              //  console.dir(payload);
-                if (!this.isValidEntityInfo(payload))  return;
-                const parsed = EntityParser.Parse(payload.type, payload.data);
-                this.entityManager.UpdateEntity(payload.id, payload.type, parsed );
-            }
-        );
+            if (!this.isValidEntityInfo(payload)) return;
+            this.entityManager.UpdateEntity(payload.id, payload.type, payload.data);
+        });
 
         this.wsClient.on("DeleteEntity", (payload: DeleteEntityPayload) => {
             if (!this.isValidDeletePayload(payload)) return;

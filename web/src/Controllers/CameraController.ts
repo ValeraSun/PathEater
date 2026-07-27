@@ -15,20 +15,12 @@ export class CameraController
     private forward = new THREE.Vector3();
     private desiredPosition = new THREE.Vector3();
 
-    public constructor(
-        camera: THREE.PerspectiveCamera,
-        playerModel: PlayerModel,
-        domElement: HTMLElement
-    )
+    public constructor(camera: THREE.PerspectiveCamera, playerModel: PlayerModel, domElement: HTMLElement)
     {
         this.camera = camera;
         this.playerModel = playerModel;
 
-        this.controls = new PointerLockControls(
-            this.camera,
-            domElement
-        );
-
+        this.controls = new PointerLockControls(this.camera, domElement);
         this.controls.pointerSpeed = MOUSE_SENSITIVITY;
 
         document.addEventListener("click", () => {
@@ -48,7 +40,6 @@ export class CameraController
             );
 
         this.desiredPosition.y = this.playerModel.position.y + CAMERA_EYE_HEIGHT;
-
         this.camera.position.copy(this.desiredPosition);
     }
 }

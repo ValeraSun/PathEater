@@ -1,29 +1,18 @@
 import { PlayerModel } from "../Models/PlayerModel";
 import { ComputerView } from "../Views/ComputerView";
 import { InteractionView } from "../Views/InteractionView";
-import { InputController } from "./InputController";
 
 export class InteractionController {
     private readonly interactionDistance = 2.5;
 
-    private input: InputController;
     private playerModel: PlayerModel;
     private computerView: ComputerView;
     private interactionView: InteractionView;
-    private onInteract: () => void;
 
-    public constructor(
-        input: InputController,
-        playerModel: PlayerModel,
-        computerView: ComputerView,
-        interactionView: InteractionView,
-        onInteract: () => void
-    ) {
-        this.input = input;
+    public constructor(playerModel: PlayerModel,computerView: ComputerView,interactionView: InteractionView) {
         this.playerModel = playerModel;
         this.computerView = computerView;
         this.interactionView = interactionView;
-        this.onInteract = onInteract;
     }
 
     public Update(): void {

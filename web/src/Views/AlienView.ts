@@ -67,12 +67,10 @@ export class AlienView {
     }
 
     private ApplyAnimationState(): void {
-        const actionName = this.attacking
-            ? this.FindActionName("attack")
-            : this.FindActionName("walk");
+        const actionName = this.attacking ? this.FindActionName("attack") : this.FindActionName("walk");
 
         if (!actionName) {
-            console.warn('Не найдена анимация');
+            console.log('Не найдена анимация');
             return;
         }
 
@@ -83,9 +81,7 @@ export class AlienView {
         const names = Object.keys(this.actions);
         return (
             names.find(name =>
-                name
-                    .toLowerCase()
-                    .includes(part)
+                name.toLowerCase().includes(part)
             ) ?? null
         );
     }
@@ -105,11 +101,7 @@ export class AlienView {
             next.setLoop(THREE.LoopOnce, 1);
             next.clampWhenFinished = true;
         } else {
-            next.setLoop(
-                THREE.LoopRepeat,
-                Infinity
-            );
-
+            next.setLoop(THREE.LoopRepeat,Infinity);
             next.clampWhenFinished = false;
         }
 

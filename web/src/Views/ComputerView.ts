@@ -151,7 +151,6 @@ export class ComputerView
             const screenX = centerX + asteroid.x 
             const screenY = centerY + asteroid.y
 
-          //  console.log(screenX, screenY)
             this.DrawAsteroid(screenX, screenY, asteroid.radius);
         }
 

@@ -1,45 +1,25 @@
 import { InputController } from "./InputController";
-import { PlayerController } from "./PlayerController";
 
 export class ComputerController {
     private active = false;
-
     private input: InputController;
-    private playerController: PlayerController;
-    private computerId: string;
 
-    public constructor(
-        input: InputController,
-        playerController: PlayerController,
-        computerId: string
-    ) {
+    public constructor(input: InputController) {
         this.input = input;
-        this.playerController = playerController;
-        this.computerId = computerId;
     }
 
     public Enter(): void {
         if (this.active) {
             return;
         }
-
         this.active = true;
-
-        console.log(
-            `Управление компьютером ${this.computerId} включено`
-        );
     }
 
     public Exit(): void {
         if (!this.active) {
             return;
         }
-
         this.active = false;
-
-        console.log(
-            `Управление компьютером ${this.computerId} выключено`
-        );
     }
 
     public Update(): void {

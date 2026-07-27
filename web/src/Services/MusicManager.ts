@@ -50,7 +50,6 @@ export class MusicManager {
         this.music.currentTime = 0;
         this.music.src = config.src;
         this.music.volume = config.volume;
-
         this.currentTrack = track;
 
         await this.TryPlay();

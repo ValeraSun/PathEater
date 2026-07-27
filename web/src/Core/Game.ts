@@ -55,19 +55,13 @@ export class Game {
     private constructor() {
         this.gameView = new GameView();
 
-        this.entityManager = new EntityManager(
-            this.gameView.GetScene()
-        );
+        this.entityManager = new EntityManager(this.gameView.GetScene());
 
-        this.entityManager.SetShipView(
-            this.gameView.GetShipView()
-        );
+        this.entityManager.SetShipView(this.gameView.GetShipView());
 
         this.musicManager = new MusicManager();
 
-        this.gameServerGateway = new GameServerGateway(
-            this.entityManager
-        );
+        this.gameServerGateway = new GameServerGateway(this.entityManager);
     }
 
     public GetGateway(): GameServerGateway {
@@ -75,9 +69,7 @@ export class Game {
     }
 
     public MountTo(container: HTMLElement): void {
-        container.appendChild(
-            this.gameView.GetRendererDomElement()
-        );
+        container.appendChild(this.gameView.GetRendererDomElement());
     }
 
     public async Connect(): Promise<void> {
@@ -110,18 +102,11 @@ export class Game {
 
         this.entityManager.SetLocalPlayerUpdateHandler(data => {
             if (data.position) {
-                this.targetPosition.set(
-                    data.position.x,
-                    data.position.y,
-                    data.position.z
-                );
+                this.targetPosition.set(data.position.x,data.position.y,data.position.z);
             }
 
             if (data.rotation) {
-                this.targetRotationY = Math.atan2(
-                    data.rotation.x,
-                    data.rotation.z
-                );
+                this.targetRotationY = Math.atan2(data.rotation.x,data.rotation.z);
             }
 
             if (typeof data.health === "number") {
@@ -148,20 +133,12 @@ export class Game {
             computerView.UpdateDisplay(state);
         });
 
-        this.computerController = new ComputerController(
-            this.input,
-            this.playerController,
-            computerView.GetId()
-        );
+        this.computerController = new ComputerController(this.input);
 
         this.interactionController = new InteractionController(
-            this.input,
             this.playerModel,
             computerView,
-            this.interactionView,
-            () => {
-                this.computerController!.Enter();
-            }
+            this.interactionView
         );
 
         this.playerView.mesh.position.copy(
@@ -182,14 +159,9 @@ export class Game {
         }
 
         requestAnimationFrame(this.GameLoop);
-
         const now = performance.now();
 
-        const dt = Math.min(
-            (now - this.lastTime) / MILLISECONDS_IN_SECOND,
-            MAX_DELTA_TIME
-        );
-
+        const dt = Math.min((now - this.lastTime) / MILLISECONDS_IN_SECOND, MAX_DELTA_TIME);
         this.lastTime = now;
 
         if (this.playerModel) {
@@ -205,11 +177,7 @@ export class Game {
 
         if (this.playerView) {
             const rotT = 1 - Math.exp(-ROTATION_LERP_SPEED * dt);
-            this.playerView.mesh.rotation.y = lerpAngle(
-                this.playerView.mesh.rotation.y,
-                this.targetRotationY,
-                rotT
-            );
+            this.playerView.mesh.rotation.y = lerpAngle(this.playerView.mesh.rotation.y, this.targetRotationY,rotT);
         }
 
         this.gameView.Render();
