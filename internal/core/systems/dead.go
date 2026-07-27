@@ -46,6 +46,12 @@ func (s *DeadSystem) drainEvents() {
 					return
 				}
 				s.publisher.Publish(e)
+			case s.getter.HasComponents(e.ID, "ai"):
+				e := events.NewDeleteCosmoAlienEvent(e.ID)
+				if e == nil {
+					return
+				}
+				s.publisher.Publish(e)
 			}
 
 			// if !s.getter.HasComponents(e.ID, "ship") {
