@@ -27,8 +27,8 @@ func (s *GameOverSystem) Update(dt float32) error {
 }
 
 type gameOverData struct {
-	Win    bool
-	Status int
+	Win    bool `json:"win"`
+	Status int  `json:"status"`
 }
 
 func (s *GameOverSystem) OnEvent(event events.Event) error {
