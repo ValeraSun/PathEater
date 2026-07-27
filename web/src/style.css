@@ -537,6 +537,21 @@ input {
     z-index: 102;
 }
 
+#lose-screen .menu,
+#win-screen .menu {
+    width: auto;
+    align-items: center; /* чтобы кнопка не растягивалась на всю flex-ширину */
+}
+
+#lose-screen .button,
+#win-screen .button {
+    white-space: nowrap;
+    width: auto;
+    font-size: clamp(20px, 2vw, 32px);
+    letter-spacing: clamp(2px, 0.3vw, 5px);
+    padding: 15px 40px; /* достаточный запас по бокам */
+}
+
 .lobby-header {
     gap: 12px;
 }

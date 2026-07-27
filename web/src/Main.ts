@@ -26,6 +26,7 @@ const menuStatus = getElement("menu-status");
 const roomStatus = getElement("room-status");
 const lobbyStatus = getElement("lobby-status");
 const gameContainer = getElement("game-container");
+const matchTimer = getElement("match-timer");
 
 const game = Game.GetInstance();
 const gateway = game.GetGateway();
@@ -230,6 +231,7 @@ startGameButton.addEventListener("click", () => {
 });
 
 gateway.onGameStarted = async payload => {
+    matchTimer.textContent = "00:00";
     await musicManager.PlayMusic("game");
     await game.StartMatch(payload);
 
@@ -237,9 +239,34 @@ gateway.onGameStarted = async payload => {
     game.MountTo(gameContainer);
 };
 
+gateway.onGameOver = payload => {
+    console.log("Игра завершена:", payload.status);
+
+    if (payload.win) {
+        showVictory();
+    } else {
+        showDefeat();
+    }
+
+    void musicManager.PlayMusic("menu");
+};
+
+gateway.onMatchTimerChanged = seconds => {
+    matchTimer.textContent = formatMatchTime(seconds);
+};
+
 roomCodeInput.addEventListener("input", () => {
     roomCodeInput.value = roomCodeInput.value;
 });
+
+function formatMatchTime(totalSeconds: number): string {
+    const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+
+    const minutes = Math.floor(safeSeconds / 60);
+    const seconds = safeSeconds % 60;
+
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
 
 function setRoomButtonsDisabled(disabled: boolean): void {
     createRoomButton.disabled = disabled;
