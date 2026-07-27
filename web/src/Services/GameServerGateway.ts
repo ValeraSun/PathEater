@@ -33,6 +33,15 @@ export interface GameStartedPayload {
     spawn: { x: number; y: number; z: number };
 }
 
+export interface GameOverPayload {
+    win: boolean;
+    status: number;
+}
+
+export interface MatchTimerPayload {
+    time: number;
+}
+
 export interface RoomPlayersPayload {
     playerIds: string[];
 }
@@ -51,10 +60,12 @@ export class GameServerGateway {
 
     public localPlayerId: string | null = null;
     public onGameStarted: ((payload: GameStartedPayload) => void) | null = null;
+    public onGameOver: ((payload: GameOverPayload) => void) | null = null;
     public onRoomPlayersChanged: ((playerIds: string[]) => void) | null = null;
     public SetRoomPlayersHandler(handler: (playerIds: string[]) => void): void {
         this.onRoomPlayersChanged = handler;
     }
+    public onMatchTimerChanged: ((seconds: number) => void) | null = null;
 
     constructor(entityManager: EntityManager) {
         this.wsClient = new WebSocketClient();
@@ -93,6 +104,14 @@ export class GameServerGateway {
             if (!this.isValidRoomPlayersPayload(payload)) return;
             this.onRoomPlayersChanged?.(payload.playerIds);
         });
+        this.wsClient.on("GameOver", (payload: unknown) => {
+            if (!this.isValidGameOverPayload(payload)) {
+                console.warn("Некорректный GameOver payload:", payload);
+                return;
+            }
+
+            this.onGameOver?.(payload);
+        });
 
         // this.wsClient.on("Snapshot", (payload: unknown) => {
         //     if (!this.isValidSnapshotPayload(payload)) return;
@@ -110,6 +129,15 @@ export class GameServerGateway {
             this.localPlayerId = payload.playerId;
             this.entityManager.SetLocalPlayerId(payload.playerId);
             this.onGameStarted?.(payload);
+        });
+
+        this.wsClient.on("Time", (payload: unknown) => {
+            if (!this.isValidMatchTimerPayload(payload)) {
+                console.warn("Некорректный Timer payload:", payload);
+                return;
+            }
+
+            this.onMatchTimerChanged?.(payload.time);
         });
 
         this.wsClient.on("error", (payload: any) => {
@@ -207,6 +235,39 @@ export class GameServerGateway {
 
         const entity = payload as Record<string,unknown>;
         return (typeof entity.id === "string" );
+    }
+
+    private isValidGameOverPayload(payload: unknown): payload is GameOverPayload {
+        if (!payload || typeof payload !== "object") {
+            return false;
+        }
+
+        const message = payload as Record<string, unknown>;
+
+        if (message.type !== "GameOver") {
+            return false;
+        }
+
+        if (!message.data || typeof message.data !== "object") {
+            return false;
+        }
+
+        const data = message.data as Record<string, unknown>;
+
+        return (
+            typeof data.win === "boolean" &&
+            typeof data.status === "number"
+        );
+    }
+
+    private isValidMatchTimerPayload(payload: unknown): payload is MatchTimerPayload {
+        if (!payload || typeof payload !== "object") {
+            return false;
+        }
+
+        const timer = payload as Record<string, unknown>;
+
+        return typeof timer.time === "number";
     }
 
     public SetPlayersChangedHandler( handler: (playerIds: string[]) => void): void {

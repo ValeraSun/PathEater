@@ -33,6 +33,8 @@ body,
 }
 
 body {
+    --screen-background: url('/images/main.png');
+
     position: relative;
     min-height: 100vh;
     overflow: hidden;
@@ -40,8 +42,6 @@ body {
     color: white;
     background: #05080d;
 }
-
-/* Фоновая картинка */
 
 body::before {
     content: "";
@@ -54,20 +54,51 @@ body::before {
             rgba(0, 0, 0, 0.2),
             rgba(0, 0, 0, 0.45)
         ),
-        url('/images/main.png') center / cover no-repeat;
+        var(--screen-background) center / cover no-repeat;
 
     filter: blur(0);
     transform: scale(1.02);
 
     transition:
         filter 0.45s ease,
-        transform 0.45s ease;
+        transform 0.45s ease,
+        opacity 0.3s ease;
 
     pointer-events: none;
     z-index: 0;
 }
 
-/* Затемнение поверх фона */
+body.background--menu {
+    --screen-background: url('/images/main.png');
+}
+
+body.background--room,
+body.background--lobby {
+    --screen-background: url('/images/main.png');
+}
+
+body.background--lose {
+    --screen-background: url('/images/lose.png');
+}
+
+body.background--win {
+    --screen-background: url('/images/win.png');
+}
+
+body.background--game::before {
+    opacity: 0;
+}
+
+body.background--lose::before,
+body.background--win::before {
+    filter: none;
+    transform: scale(1.02);
+}
+
+body.background--lose::after,
+body.background--win::after {
+    background: rgba(0, 0, 0, 0.2);
+}
 
 body::after {
     content: "";
@@ -82,8 +113,6 @@ body::after {
     pointer-events: none;
     z-index: 1;
 }
-
-/* Размытие фона на других экранах */
 
 body.background--blurred::before {
     filter: blur(10px);
@@ -103,8 +132,6 @@ button,
 input {
     font: inherit;
 }
-
-/* Экраны */
 
 .screen {
     display: none;
@@ -128,8 +155,6 @@ input {
 #lobby-screen {
     overflow: hidden;
 }
-
-/* Заголовок экрана */
 
 .screen-header {
     flex: 0 0 58px;
@@ -197,8 +222,6 @@ input {
     letter-spacing: 5px;
 }
 
-/* Главное меню */
-
 .menu-content {
     max-width: 100%;
     padding: 150px 100px;
@@ -264,8 +287,6 @@ input {
     display: flex;
     flex-direction: row;
 }
-
-/* Кнопки */
 
 .button {
     min-height: 46px;
@@ -465,8 +486,6 @@ input {
     background: transparent;
 }
 
-/* Лобби */
-
 .game-hud {
     position: absolute;
     inset: 0;
@@ -489,6 +508,48 @@ input {
     margin-left: 40px;
     width: min(550px, 40vw);
     z-index: 101;
+}
+
+.match-timer {
+    position: absolute;
+    top: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 30px;
+
+    min-width: 150px;
+    padding: 8px 24px;
+
+    border: 1px solid #1da294;
+    border-radius: 10px;
+    opacity: 0.8;
+
+    background: rgba(0, 15, 20, 0.75);
+    box-shadow: 0 0 12px rgba(0, 220, 220, 0.25);
+    color: #1da294;
+    font-family: 'SpaceObs', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-align: center;
+
+    pointer-events: none;
+    z-index: 102;
+}
+
+#lose-screen .menu,
+#win-screen .menu {
+    width: auto;
+    align-items: center; /* чтобы кнопка не растягивалась на всю flex-ширину */
+}
+
+#lose-screen .button,
+#win-screen .button {
+    white-space: nowrap;
+    width: auto;
+    font-size: clamp(20px, 2vw, 32px);
+    letter-spacing: clamp(2px, 0.3vw, 5px);
+    padding: 15px 40px; /* достаточный запас по бокам */
 }
 
 .lobby-header {
@@ -732,8 +793,6 @@ input {
     width: min(1100px, calc(100% - 48px));
     margin: 18px auto;
 }
-
-/* Игровой экран */
 
 #game-screen {
     width: 100%;

@@ -104,33 +104,19 @@ func (s *CosmoAlienSystem) Update(dt float32) error {
 
 	aliens := s.getter.GetEntitiesByComponent("cosmoAlien")
 	for id := range aliens {
-		transfromRaw, ok := s.getter.GetComponent(id, "transform")
-		if !ok {
-			continue
-		}
-		transform := transfromRaw.(*components.TransformComponent)
+		transformRaw, _ := s.getter.GetComponent(id, "transform")
+		transform := transformRaw.(*components.TransformComponent)
 
-		moveRaw, ok := s.getter.GetComponent(id, "movement")
-		if !ok {
-			continue
-		}
+		moveRaw, _ := s.getter.GetComponent(id, "movement")
 		move := moveRaw.(*components.MovementComponent)
 
-		alienComp, ok := s.getter.GetComponent(id, "cosmoAlien")
-		if !ok {
-			continue
+		toCenter := geometry.Vec3{X: 0, Y: 0, Z: 0}.Sub(transform.Position)
+		if toCenter.Length() > 1 {
+			move.Direction = toCenter.Normalize()
 		}
-		alien := alienComp.(*components.CosmoAlienComponent)
-
-		move.Direction = transform.Position.Scale(-1).Normalize()
-
-		x, y := transform.Position.X, transform.Position.Y
-		halfW, halfH := float64(displayWidth)/2, float64(displayHeight)/2
-		alien.Visible = x >= -halfW && x <= halfW && y >= -halfH && y <= halfH
 	}
 
 	s.spawnCosmoAliens()
-
 	return nil
 }
 

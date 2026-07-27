@@ -29,10 +29,11 @@ const (
 	shipBaggage     = 10
 	shupWeaponSpeed = 10
 	shipAmmo        = 30
+	shipDirX        = 1
+	shipDirY        = 0
 
-	asteroidRadius = 30
-
-	cosmoAlienRadius = 30
+	cosmoAlienRadius = 15
+	cosmoAlienSpeed  = 25
 
 	alienHalfHeight = 1
 	alienRadius     = 0.3
@@ -99,7 +100,7 @@ func NewShip(adder entityAdder) types.Entity {
 			geometry.GetZeroVector(),
 		),
 		components.NewHealthComponent(shipHealth),
-		components.NewMovementComponent(shipSpeed, geometry.GetZeroVector()),
+		components.NewMovementComponent(shipSpeed, geometry.Vec3{X: shipDirX, Y: shipDirY, Z: 0}),
 		components.NewVelocityComponent(),
 		components.NewShipComponent(shipBaggage),
 		components.NewWeaponComponent(geometry.GetZeroVector(), shupWeaponSpeed, shipAmmo),
@@ -126,7 +127,7 @@ func NewAsteroid(adder entityAdder, pos geometry.Vec3, radius float64, dir geome
 		components.NewAsteroidComponent(),
 		components.NewColliderComponent(geometry.NewCircleCollider(
 			pos,
-			asteroidRadius,
+			radius,
 		)),
 	)
 	return e
@@ -138,7 +139,7 @@ func NewCosmoAlien(adder entityAdder, pos geometry.Vec3) types.Entity {
 			pos,
 			geometry.GetZeroVector(),
 		),
-		components.NewMovementComponent(100, geometry.GetZeroVector()),
+		components.NewMovementComponent(cosmoAlienSpeed, geometry.GetZeroVector()),
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
 		components.NewUpdateComponent(),
@@ -354,16 +355,14 @@ func SendShip(id types.Entity, getter componentsGetter, broadcaster Sendler) err
 }
 
 func IsAsteroid(id types.Entity, getter componentsGetter) bool {
-	return getter.HasComponents(id, "asteroid") //&& isVisibleAsteroid(id, getter)
-}
-
-func isVisibleAsteroid(id types.Entity, getter componentsGetter) bool {
-	c, _ := getter.GetComponent(id, "asteroid")
-	aster := c.(*components.AsteroidComponent)
-	return aster.Visible
+	return getter.HasComponents(id, "asteroid")
 }
 
 func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
+	/*shipPos, err := getShipPosition(getter)
+	if err != nil {
+		return err
+	}*/
 
 	c, ok := getter.GetComponent(id, "asteroid")
 	if !ok {
@@ -383,6 +382,11 @@ func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Sendler)
 	}
 	col := c.(*components.ColliderComponent)
 
+	/*relPos := geometry.Vec3{
+		X: transform.Position.X - shipPos.X,
+		Y: transform.Position.Y - shipPos.Y,
+	}*/
+
 	broadcaster(ecs.EntityInfo{
 		ID:   id,
 		Type: "asteroid",
@@ -397,13 +401,7 @@ func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Sendler)
 }
 
 func IsCosmoAlien(id types.Entity, getter componentsGetter) bool {
-	return getter.HasComponents(id, "cosmoAlien") //&& isVisibleCosmoAlien(id, getter)
-}
-
-func isVisibleCosmoAlien(id types.Entity, getter componentsGetter) bool {
-	c, _ := getter.GetComponent(id, "cosmoAlien")
-	alien := c.(*components.CosmoAlienComponent)
-	return alien.Visible
+	return getter.HasComponents(id, "cosmoAlien")
 }
 
 func SendCosmoAlien(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
