@@ -16,7 +16,6 @@ func NewRoomsSystem(getter componentsGetter) *RoomsSystem {
 	s := &RoomsSystem{
 		getter: getter,
 	}
-	s.players = s.getPlayers()
 	s.rooms = s.getRooms()
 	return s
 }
@@ -50,6 +49,7 @@ func (s *RoomsSystem) getPlayersPos() map[types.Entity]geometry.Vec3 {
 }
 
 func (s *RoomsSystem) Update(dt float32) error {
+	s.players = s.getPlayers()
 	playersPos := s.getPlayersPos()
 	for pl, pos := range playersPos {
 		for id, room := range s.rooms {
@@ -57,9 +57,6 @@ func (s *RoomsSystem) Update(dt float32) error {
 				c, _ := s.getter.GetComponent(pl, "player")
 				player := c.(*components.PlayerComponent)
 				player.RoomID = id
-				room.Players[pl] = true
-			} else {
-				room.Players[pl] = false
 			}
 		}
 	}
@@ -67,7 +64,7 @@ func (s *RoomsSystem) Update(dt float32) error {
 }
 
 func (s *RoomsSystem) playerInRoom(pos geometry.Vec3, room *components.RoomComponent) bool {
-	return s.floatInTheRange(pos.X, room.MinX, room.MaxX) && s.floatInTheRange(pos.Y, room.MinY, room.MaxY)
+	return s.floatInTheRange(pos.X, room.MinX, room.MaxX) && s.floatInTheRange(pos.Z, room.MinY, room.MaxY)
 }
 
 func (s *RoomsSystem) floatInTheRange(num, min, max float64) bool {

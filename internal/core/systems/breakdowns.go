@@ -46,7 +46,14 @@ func (s *BreakdownSystem) Update(dt float32) error {
 		case e := <-s.eventQueue:
 			ev := e.(*events.BreakdownEvent)
 			wallID, pos, normal := s.generateBreakdown()
-			s.rooms[wallID].HasBreakdown = true
+
+			// ПРОВЕРЯЕМ СУЩЕСТВОВАНИЕ
+			room := s.rooms[wallID]
+			if room == nil {
+				continue // если комнаты нет - пропускаем
+			}
+
+			room.HasBreakdown = true
 			s.publisher.Publish(events.NewCreateBreakdownEvent(wallID, pos))
 			s.publisher.Publish(events.NewVacuumRecalculateEvent())
 			if ev.SpawnAlien {
@@ -78,7 +85,7 @@ const alienShift = 0.5
 
 func getAlienPos(pos, normal geometry.Vec3) geometry.Vec3 {
 	posRaw := pos.Add(normal.Scale(alienShift))
-	posRaw.Z = -1
+	posRaw.Y = 2
 	return posRaw
 }
 

@@ -1,6 +1,8 @@
 package systems
 
 import (
+	"log"
+
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/types"
@@ -38,7 +40,10 @@ func (s *VacuumSystem) getRooms() map[types.Entity]*components.RoomComponent {
 	rooms := make(map[types.Entity]*components.RoomComponent)
 	rs := s.getter.GetEntitiesByComponent("room")
 	for id, room := range rs {
-		rooms[id] = room.(*components.RoomComponent)
+		r, ok := room.(*components.RoomComponent)
+		if ok && r != nil {
+			rooms[id] = r
+		}
 	}
 	return rooms
 }
@@ -47,12 +52,16 @@ func (s *VacuumSystem) getDoors() map[types.Entity]*components.DoorComponent {
 	doors := make(map[types.Entity]*components.DoorComponent)
 	ds := s.getter.GetEntitiesByComponent("door")
 	for id, door := range ds {
-		doors[id] = door.(*components.DoorComponent)
+		d, ok := door.(*components.DoorComponent)
+		if ok && d != nil {
+			doors[id] = d
+		}
 	}
 	return doors
 }
 
 func (s *VacuumSystem) Update(dt float32) error {
+	s.recalculateZones()
 	for i := range s.zones {
 		zone := &s.zones[i]
 		leakAmount := float64(zone.breakdowns) * leak * float64(dt)
@@ -79,6 +88,8 @@ func (s *VacuumSystem) Update(dt float32) error {
 				room.Vacuum = (room.Oxygen < 0.001)
 			}
 		}
+
+		log.Println("кислород на корабле в зоне ", i, " - ", zone.totalOxygen)
 	}
 	return nil
 }
@@ -127,13 +138,20 @@ func (s *VacuumSystem) findZones(graph map[types.Entity][]types.Entity) []zone {
 		for len(queue) > 0 {
 			current := queue[0]
 			queue = queue[1:]
-			zone.rooms[current] = s.rooms[current]
-			if zone.rooms[current].HasBreakdown {
+
+			// ПРОВЕРКА: существует ли комната
+			room, exists := s.rooms[current]
+			if !exists || room == nil {
+				continue
+			}
+
+			zone.rooms[current] = room
+			if room.HasBreakdown {
 				s.hasBreakdown = true
 				zone.breakdowns++
 			}
 
-			zone.totalOxygen = zone.totalOxygen + zone.rooms[current].Oxygen
+			zone.totalOxygen = zone.totalOxygen + room.Oxygen
 
 			for _, neighbor := range graph[current] {
 				if !visited[neighbor] {
@@ -143,7 +161,9 @@ func (s *VacuumSystem) findZones(graph map[types.Entity][]types.Entity) []zone {
 			}
 		}
 
-		zones = append(zones, zone)
+		if len(zone.rooms) > 0 {
+			zones = append(zones, zone)
+		}
 	}
 
 	return zones

@@ -41,14 +41,16 @@ type componentsworld interface {
 
 func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	w := ecs.CreateWorld(broadcaster)
-	initSystems(w)
 	config.CreateWalls(w)
 	config.CreateDoors(w)
-
-	createEntities(w)
+	config.CreateRooms(w)
+	initSystems(w)
 
 	go w.EventBus.ProcessEvents()
 	go ecs.HandleWorld(w)
+
+	createEntities(w)
+
 	w.Timer.StartTimer(99999*time.Second, func() { timerIsOver(w.EventBus) })
 	return w
 }
@@ -74,13 +76,46 @@ func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewCosmoAlienSystem(world, world.EventBus))
 	world.AddSystem(systems.NewGameOverSystem(world, world.EventBus, world.Broadcaster, world))
 	world.AddSystem(systems.NewDeadSystem(world, world, world.EventBus))
+	world.AddSystem(systems.NewBreakdownSystem(world, world.EventBus, world.EventBus, config.GetExternalWalls()))
 	world.AddSystem(systems.NewTimerSystem(world, world.Broadcaster, &world.Timer))
+	world.AddSystem(systems.NewDoorsSystem(world, world.EventBus))
+	world.AddSystem(systems.NewRoomsSystem(world))
+	world.AddSystem(systems.NewVacuumSystem(world, world.EventBus))
+	world.AddSystem(systems.NewOxygenSystem(world, world.EventBus))
 }
 
 func createEntities(world *ecs.World) {
 	world.EventBus.Publish(events.NewCreateShipEvent())
 	//world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
 	world.EventBus.Publish(events.NewMeteoriteZoneEvent())
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(true))
 }
 
 func timerIsOver(publisher transfer.EventPublisher) {

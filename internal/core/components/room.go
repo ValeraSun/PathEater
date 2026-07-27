@@ -3,7 +3,6 @@ package components
 import "github.com/ValeraSun/PathEater/internal/core/types"
 
 type RoomComponent struct {
-	Players      map[types.Entity]bool
 	ExternalWall types.Entity
 	HasBreakdown bool
 	Oxygen       float64
@@ -20,7 +19,6 @@ func (*RoomComponent) Type() string {
 
 func NewRoomComponent(minX, maxX, minY, maxY float64, externalWall types.Entity) *RoomComponent {
 	return &RoomComponent{
-		Players:      make(map[types.Entity]bool),
 		ExternalWall: externalWall,
 		HasBreakdown: false,
 		Oxygen:       100.0,
