@@ -25,6 +25,10 @@ type entityAdder interface {
 // 	return e
 // }
 
+const startPosPlayerX = 26.65
+const startPosPlayerY = 1
+const startPosPlayerZ = -3
+
 func NewPlayer(adder entityAdder, clientID string) types.Entity {
 	adder.AddEntityByID(
 		types.Entity(clientID),
@@ -46,9 +50,9 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 		components.NewMovableComponent(),
 		components.NewTransformComponent(
 			geometry.Vec3{
-				X: 2,
-				Y: 1,
-				Z: 0,
+				X: startPosPlayerX,
+				Y: startPosPlayerY,
+				Z: startPosPlayerZ,
 			},
 			geometry.GetZeroVector(),
 		),

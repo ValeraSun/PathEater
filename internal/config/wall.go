@@ -25,6 +25,16 @@ type Wall struct {
 	Quaternion  geometry.Quaternion `json:"rotation"`
 }
 
+type Door struct {
+	ID          string              `json:"id"`
+	RoomA       string              `json:"roomA"`
+	RoomB       string              `json:"roomB"`
+	Shape       string              `json:"shape"`
+	Center      geometry.Vec3       `json:"center"`
+	HalfExtents geometry.Vec3       `json:"halfExtents"`
+	Quaternion  geometry.Quaternion `json:"rotation"`
+}
+
 func getWalls(path string) []Wall {
 	jsonData, err := os.ReadFile(path)
 
@@ -69,6 +79,7 @@ func getWallsConfigPath() string {
 }
 
 var ExternalWallEntities []types.Entity
+var Rooms []types.Entity
 
 func CreateWalls(adder entityAdder) {
 	path := getWallsConfigPath()
@@ -84,12 +95,44 @@ func CreateWalls(adder entityAdder) {
 			log.Printf("Ошибка создания стены %s: %v", wall.ID, err)
 			continue
 		}
+		if wall.Room != "" {
+			r, err := adder.AddEntity(
+				components.NewRoomComponent(),
+			)
+			if err != nil {
+				log.Printf("Ошибка создания комнаты %s: %v", wall.ID, err)
+				continue
+			}
+			NewRoom(r)
+		}
 		if wall.Type == "hull" {
 			ExternalWallEntities = append(ExternalWallEntities, w)
 		}
 	}
 }
 
+//func CreateDoors(adder entityAdder)
+
 func GetExternalWalls() []types.Entity {
 	return ExternalWallEntities
+}
+
+func GetRooms() []types.Entity {
+	return ExternalWallEntities
+}
+
+func NewRoom(roomID types.Entity) {
+	if contains(Rooms, roomID) {
+		return
+	}
+	Rooms = append(Rooms, roomID)
+}
+
+func contains(slice []types.Entity, item types.Entity) bool {
+	for _, v := range slice {
+		if v == item {
+			return true
+		}
+	}
+	return false
 }

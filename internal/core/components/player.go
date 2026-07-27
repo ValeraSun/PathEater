@@ -1,7 +1,10 @@
 package components
 
+import "github.com/ValeraSun/PathEater/internal/core/types"
+
 type PlayerComponent struct {
-	Died bool
+	RoomID types.Entity
+	Died   bool
 }
 
 func (*PlayerComponent) Type() string {
@@ -10,6 +13,7 @@ func (*PlayerComponent) Type() string {
 
 func NewPlayerComponent() *PlayerComponent {
 	return &PlayerComponent{
-		Died: false,
+		RoomID: "louge",
+		Died:   false,
 	}
 }
