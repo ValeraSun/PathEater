@@ -29,8 +29,11 @@ const (
 	shipBaggage     = 10
 	shupWeaponSpeed = 10
 	shipAmmo        = 30
+	shipDirX        = 1
+	shipDirY        = 0
 
 	cosmoAlienRadius = 15
+	cosmoAlienSpeed  = 25
 
 	alienHalfHeight = 1
 	alienRadius     = 0.3
@@ -97,7 +100,7 @@ func NewShip(adder entityAdder) types.Entity {
 			geometry.GetZeroVector(),
 		),
 		components.NewHealthComponent(shipHealth),
-		components.NewMovementComponent(shipSpeed, geometry.GetZeroVector()),
+		components.NewMovementComponent(shipSpeed, geometry.Vec3{X: shipDirX, Y: shipDirY, Z: 0}),
 		components.NewVelocityComponent(),
 		components.NewShipComponent(shipBaggage),
 		components.NewWeaponComponent(geometry.GetZeroVector(), shupWeaponSpeed, shipAmmo),
@@ -136,7 +139,7 @@ func NewCosmoAlien(adder entityAdder, pos geometry.Vec3) types.Entity {
 			pos,
 			geometry.GetZeroVector(),
 		),
-		components.NewMovementComponent(20, geometry.GetZeroVector()),
+		components.NewMovementComponent(cosmoAlienSpeed, geometry.GetZeroVector()),
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
 		components.NewUpdateComponent(),
@@ -356,6 +359,10 @@ func IsAsteroid(id types.Entity, getter componentsGetter) bool {
 }
 
 func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Sendler) error {
+	/*shipPos, err := getShipPosition(getter)
+	if err != nil {
+		return err
+	}*/
 
 	c, ok := getter.GetComponent(id, "asteroid")
 	if !ok {
@@ -374,6 +381,11 @@ func SendAsteroid(id types.Entity, getter componentsGetter, broadcaster Sendler)
 		return errors.New("не найден компонент collider")
 	}
 	col := c.(*components.ColliderComponent)
+
+	/*relPos := geometry.Vec3{
+		X: transform.Position.X - shipPos.X,
+		Y: transform.Position.Y - shipPos.Y,
+	}*/
 
 	broadcaster(ecs.EntityInfo{
 		ID:   id,

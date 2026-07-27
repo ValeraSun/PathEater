@@ -22,9 +22,9 @@ const (
 	maxSpawnAttempts    = 50
 	minAsteroidDist     = 40
 	asteroidSpawnChance = 0.015
-	maxAsteroids        = 30
+	maxAsteroids        = 50
 	maxSpeed            = 50
-	minSpeed            = 1
+	minSpeed            = 10
 	maxRadius           = 30
 	minRadius           = 5
 )
@@ -32,7 +32,7 @@ const (
 type AsteroidSystem struct {
 	getter     componentsGetter
 	publisher  publisher
-	subscriber subscriber // добавлен для подписки
+	subscriber subscriber
 	rng        *rand.Rand
 	active     bool
 }
