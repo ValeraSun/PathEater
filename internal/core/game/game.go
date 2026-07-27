@@ -3,7 +3,7 @@ package game
 import (
 	"time"
 
-	"github.com/ValeraSun/PathEater/internal/config"
+	//"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/systems"
@@ -42,7 +42,7 @@ type componentsworld interface {
 func CreateGame(broadcaster ecs.Broadcaster) *ecs.World {
 	w := ecs.CreateWorld(broadcaster)
 	initSystems(w)
-	config.CreateWalls(w)
+	//config.CreateWalls(w)
 
 	createEntities(w)
 
