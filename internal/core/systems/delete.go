@@ -24,6 +24,7 @@ func NewDeleteSystem(getter componentsGetter, broadcaster Broadcaster, remover e
 		eventQueue:  make(chan events.Event, 100),
 	}
 	subscriber.Subscribe("deletePlayer", s.OnEvent)
+	subscriber.Subscribe("deleteAlien", s.OnEvent)
 	subscriber.Subscribe("deleteShip", s.OnEvent)
 	subscriber.Subscribe("deleteAsteroid", s.OnEvent)
 	subscriber.Subscribe("deleteCosmoAlien", s.OnEvent)
@@ -62,6 +63,16 @@ func (s *DeleteSystem) handle(e events.Event) {
 		}
 		s.remover.RemoveEntity(ev.ID)
 
+	case "deleteAlien":
+		ev, ok := e.(*events.DeleteAlienEvent)
+		if !ok {
+			logBadType(typ, e)
+			return
+		}
+		if err := entities.SendAlien(ev.ID, s.getter, s.broadcaster.SendEntityDelete); err != nil {
+			logSendFail(typ, err)
+		}
+		s.remover.RemoveEntity(ev.ID)
 	case "deleteShip":
 		ev, ok := e.(*events.DeleteShipEvent)
 		if !ok {

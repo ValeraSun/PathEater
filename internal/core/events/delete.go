@@ -63,3 +63,15 @@ func NewDeleteBulletEvent(id types.Entity) *DeleteBulletEvent {
 		ID: id,
 	}
 }
+
+type DeleteAlienEvent struct {
+	ID types.Entity
+}
+
+func (*DeleteAlienEvent) Type() string { return "deleteAlien" }
+
+func NewDeleteAlienEvent(id types.Entity) *DeleteAlienEvent {
+	return &DeleteAlienEvent{
+		ID: id,
+	}
+}

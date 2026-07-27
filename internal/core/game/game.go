@@ -93,13 +93,8 @@ func initSystems(world *ecs.World) {
 func createEntities(world *ecs.World) {
 	entities.NewTerminal(world)
 	world.EventBus.Publish(events.NewCreateShipEvent())
-<<<<<<< HEAD
 	world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
 	world.EventBus.Publish(events.NewMeteoriteZoneEvent())
-=======
-	//world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
-	//world.EventBus.Publish(events.NewMeteoriteZoneEvent())
->>>>>>> 715bcfb4a36a25e7dba60ff51e3f0ba474168125
 }
 
 func timerIsOver(publisher transfer.EventPublisher) {

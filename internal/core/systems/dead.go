@@ -47,7 +47,7 @@ func (s *DeadSystem) drainEvents() {
 				}
 				s.publisher.Publish(e)
 			case s.getter.HasComponents(e.ID, "ai"):
-				e := events.NewDeleteCosmoAlienEvent(e.ID)
+				e := events.NewDeleteAlienEvent(e.ID)
 				if e == nil {
 					return
 				}
