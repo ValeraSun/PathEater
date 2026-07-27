@@ -25,7 +25,7 @@ const (
 	playerDamage         = 50
 
 	shipHealth      = 100
-	shipSpeed       = 40
+	shipSpeed       = 120
 	shipBaggage     = 10
 	shupWeaponSpeed = 10
 	shipAmmo        = 30
@@ -33,7 +33,7 @@ const (
 	shipDirY        = 0
 
 	cosmoAlienRadius = 15
-	cosmoAlienSpeed  = 25
+	cosmoAlienSpeed  = 160
 
 	alienHalfHeight       = 1
 	alienRadius           = 0.6
