@@ -17,7 +17,7 @@ type BreakdownSystem struct {
 	eventQueue    chan events.Event
 }
 
-func NewBreakSystem(getter componentsGetter, publisher publisher, subscriber subscriber, externalWalls []types.Entity) *BreakdownSystem {
+func NewBreakdownSystem(getter componentsGetter, publisher publisher, subscriber subscriber, externalWalls []types.Entity) *BreakdownSystem {
 	s := &BreakdownSystem{
 		getter:        getter,
 		publisher:     publisher,

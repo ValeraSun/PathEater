@@ -5,6 +5,7 @@ import (
 )
 
 type ColliderComponent struct {
+	Enable   bool
 	Collider geometry.Collider
 	PrivMTV  geometry.Vec3
 }
@@ -15,6 +16,7 @@ func (*ColliderComponent) Type() string {
 
 func NewColliderComponent(collider geometry.Collider) *ColliderComponent {
 	return &ColliderComponent{
+		Enable:   true,
 		Collider: collider,
 	}
 }

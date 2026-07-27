@@ -4,4 +4,4 @@ server:
 walls_path_dev: "web/public/data/ship_wall_colliders_v3.json"
 walls_path: "web/dist/data/ship_wall_colliders_v3.json"
 doors_path_dev: "web/public/data/ship_door_colliders_v3.json"
-walls_path: "web/dist/data/ship_door_colliders_v3.json"
+doors_path: "web/dist/data/ship_door_colliders_v3.json"
