@@ -168,7 +168,7 @@
                     </div>
                 </div>
             </div>
-</section>
+        </section>
 
         <section class="screen" id="game-screen">
             <div id="game-container"></div>
@@ -176,12 +176,54 @@
                 <div id="game-hud" class="game-hud">
                     <img class="game-hud_frame" src="/images/camera.png">
                     <div id="healthbar-container" class="healthbar-container"></div>
+                    <div class="match-timer" id="match-timer">08:32</div>
                 </div>
 
             <div class="hud"> 
                 БОРТ
             </div>
         </section>
+
+        <section class="screen" id="lose-screen">
+            <div class="menu-content">
+                <h1 class="game-title">МИССИЯ ПРОВАЛЕНА</h1>
+
+                <p class="game-subtitle">
+                    ПРИШЕЛЬЦЫ УКРАЛИ ВЕСЬ ГРУЗ
+                </p>
+
+                <nav class="menu">
+                    <button
+                        class="button button--primary"
+                        id="lose-retry-button"
+                        type="button"
+                    >
+                        ПОПРОБОВАТЬ СНОВА
+                    </button>
+                </nav>
+            </div>
+        </section>
+
+        <section class="screen" id="win-screen">
+            <div class="menu-content">
+                <h1 class="game-title">МИССИЯ ВЫПОЛНЕНА</h1>
+
+                <p class="game-subtitle">
+                    ГРУЗ ДОСТАВЛЕН! ПЛАНЕТА БУДЕТ ЖИТЬ!
+                </p>
+
+                <nav class="menu">
+                    <button
+                        class="button button--primary"
+                        id="win-retry-button"
+                        type="button"
+                    >
+                        ИГРАТЬ СНОВА
+                    </button>
+                </nav>
+            </div>
+        </section>
+
     </main>
 
     <script type="module" src="/src/Main.ts"></script>

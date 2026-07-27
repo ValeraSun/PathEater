@@ -143,7 +143,6 @@ export class ComputerView
 
         const centerX = width / 2;
         const centerY = height / 2 + 25;
-        const mapScale = 8;
 
         this.DrawShip(centerX, centerY, state.ship.rotationY);
 
