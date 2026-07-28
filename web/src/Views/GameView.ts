@@ -5,6 +5,7 @@ import { HealthbarView } from "./HealthbarView";
 import { PlayerView } from "./PlayerView";
 import { ShipView } from "./ShipView";
 import { SpaceView } from "./SpaceView";
+import {ButtonView} from "./ButtonView"
 
 export class GameView {
     private scene: THREE.Scene;
@@ -13,6 +14,7 @@ export class GameView {
     private shipView: ShipView;
     private spaceView: SpaceView;
     private computerView: ComputerView;
+    
 
     private healthBarView: HealthbarView | null = null;
     private initialized = false;
@@ -42,6 +44,11 @@ export class GameView {
         this.camera.lookAt(0, 0, 1);
 
         this.AddLights();
+        const buttons = this.InitButtons()
+        
+        buttons.forEach(element => {
+             this.scene.add(element.GetObject());
+        });
 
         this.scene.add(this.spaceView.GetObject());
         this.scene.add(this.shipView.GetObject());
@@ -103,4 +110,15 @@ export class GameView {
         this.scene.add(hemisphereLight);
         this.scene.add(directionalLight);
     }
+
+    private InitButtons(): ButtonView[] {
+        const buttons: ButtonView[] = [
+            new ButtonView(23.4, 2.7, -17.5),
+            new ButtonView(26.59, 2.7, -17.5),
+            new ButtonView(29.8, 2.7, -17.5),
+        ];
+
+        return buttons;
+    }
 }
+

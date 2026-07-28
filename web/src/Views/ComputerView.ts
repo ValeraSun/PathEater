@@ -155,7 +155,6 @@ export class ComputerView
         this.context.save();
 
         this.context.translate(x, y);
-        this.context.rotate(-rotationY);
 
         this.context.fillStyle = "#45ff88";
         this.context.strokeStyle = "#ffffff";
@@ -172,6 +171,26 @@ export class ComputerView
         this.context.stroke();
 
         this.context.restore();
+
+        this.DrawWeapon(x, y, rotationY)
+    }
+
+     private DrawWeapon(x: number, y: number, rotationY: number): void 
+    {
+
+        const long = 42
+
+        this.context.strokeStyle = "#800000";
+        this.context.lineWidth = 8;
+
+        console.log(x, y, rotationY)
+       
+        this.context.beginPath()
+        this.context.moveTo(x, y);
+
+        this.context.lineTo(x + Math.cos(rotationY) * long, y + Math.sin(rotationY) * long);
+        this.context.stroke();
+        this.context.closePath();
     }
 
     private DrawAsteroid(x: number, y: number, rad: number): void 
