@@ -2,6 +2,7 @@ package systems
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -25,13 +26,39 @@ func (s *DoorsSystem) Update(dt float32) error {
 	for {
 		select {
 		case e := <-s.eventQueue:
-			ev := e.(*events.DoorEvent)
-			d, _ := s.getter.GetComponent(ev.ID, "door")
-			door := d.(*components.DoorComponent)
-			c, _ := s.getter.GetComponent(ev.ID, "collider")
-			col := c.(*components.ColliderComponent)
+			ev, ok := e.(*events.DoorEvent)
+			log.Println("DOOR")
+			if !ok || ev == nil {
+				continue
+			}
+			log.Println("DOOR EVENT")
+
+			// Получаем компонент door
+			doorComp, err := s.getter.GetComponent(ev.ID, "door")
+			if err != true {
+				continue
+			}
+			log.Println("DOOR COMPONENT")
+			door, ok := doorComp.(*components.DoorComponent)
+			if !ok || door == nil {
+				continue
+			}
+
+			// Получаем компонент collider
+			colliderComp, err := s.getter.GetComponent(ev.ID, "collider")
+			if err != true {
+				continue
+			}
+			collider, ok := colliderComp.(*components.ColliderComponent)
+			if !ok || collider == nil {
+				continue
+			}
+
+			// Переключаем состояние двери
 			door.IsOpen = !door.IsOpen
-			col.Enable = !col.Enable
+			collider.Enable = !collider.Enable
+
+			log.Println("DOOR OPEN")
 		default:
 			return nil
 		}
@@ -41,10 +68,8 @@ func (s *DoorsSystem) Update(dt float32) error {
 func (s *DoorsSystem) OnEvent(event events.Event) error {
 	select {
 	case s.eventQueue <- event:
-
 	default:
 		fmt.Printf("Преполена очередь %v\n", *s)
 	}
-
 	return nil
 }

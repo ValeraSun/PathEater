@@ -37,3 +37,8 @@ func InteractTerminal(id types.Entity, publisher publisher) {
 	e := events.NewInteractTerminalEvent(id)
 	publisher.Publish(e)
 }
+
+func InteractDoor(id types.Entity, publisher publisher) {
+	e := events.NewDoorEvent(id)
+	publisher.Publish(e)
+}
