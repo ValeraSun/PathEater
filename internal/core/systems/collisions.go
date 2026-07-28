@@ -108,26 +108,26 @@ func (s *CollisionsSystem) OnEvent(event events.Event) error {
 	return nil
 }
 
-func shipAsteroidCollision(shipID, asteroidID types.Entity) (e1 *events.DamageDealEvent, e2 *events.DeleteEvent) {
+func shipAsteroidCollision(shipID, asteroidID types.Entity) (e1 events.Event, e2 events.Event) {
 	return events.NewDamageDealEvent(shipID, 20), events.NewDeleteEvent(asteroidID)
 }
 
-func shipCosmoAlienCollision(shipID, alienID types.Entity) (e1 *events.DamageDealEvent, e2 *events.DeleteEvent) {
-	return events.NewDamageDealEvent(shipID, 10), events.NewDeleteEvent(alienID)
+func shipCosmoAlienCollision(shipID, alienID types.Entity) (e1 events.Event, e2 events.Event) {
+	return events.NewDamageDealEvent(shipID, 10), events.NewBoardingEvent(alienID)
 }
 
-func asteroidAsteroidCollision(asteroid1ID, asteroid2ID types.Entity) (e1 *events.DeleteEvent, e2 *events.DeleteEvent) {
+func asteroidAsteroidCollision(asteroid1ID, asteroid2ID types.Entity) (e1 events.Event, e2 events.Event) {
 	return events.NewDeleteEvent(asteroid1ID), events.NewDeleteEvent(asteroid2ID)
 }
 
-func asteroidCosmoAlienCollision(asteroidID, alienID types.Entity) (e1 *events.DeleteEvent, e2 *events.DamageDealEvent) {
+func asteroidCosmoAlienCollision(asteroidID, alienID types.Entity) (e1 events.Event, e2 events.Event) {
 	return events.NewDeleteEvent(asteroidID), events.NewDamageDealEvent(alienID, 5)
 }
 
-func asteroidBulletCollision(asteroidID, bulletID types.Entity) (e1 *events.DeleteEvent, e2 *events.DeleteEvent) {
+func asteroidBulletCollision(asteroidID, bulletID types.Entity) (e1 events.Event, e2 events.Event) {
 	return events.NewDeleteEvent(asteroidID), events.NewDeleteEvent(bulletID)
 }
 
-func cosmoAlienBulletCollision(alienID, bulletID types.Entity) (e1 *events.DamageDealEvent, e2 *events.DeleteEvent) {
+func cosmoAlienBulletCollision(alienID, bulletID types.Entity) (e1 events.Event, e2 events.Event) {
 	return events.NewDamageDealEvent(alienID, 5), events.NewDeleteEvent(bulletID)
 }

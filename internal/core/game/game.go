@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	timeGame = 30
+	timeGame = 9999
 )
 
 type entitySendler interface {
@@ -55,6 +55,7 @@ func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewInteractionSystem(world, world.EventBus))
 	world.AddSystem(systems.NewRayAttackComponent(world, world.EventBus)) //игрок
 
+	world.AddSystem(systems.NewBoardingSystem(world, world.EventBus, world.EventBus))
 	world.AddSystem(systems.NewAsteroidSystem(world, world.EventBus, world.EventBus))
 	world.AddSystem(systems.NewCosmoAlienSystem(world, world.EventBus))
 	//	world.AddSystem(systems.NewWeaponSystem(world, world.EventBus, world.EventBus))
