@@ -14,10 +14,6 @@ type bulletData struct {
 }
 
 func (s *sendler) sendBullet(id types.Entity, broadcaster func(EntityInfo) error) error {
-	shipPos, err := getShipPosition(s)
-	if err != nil {
-		return err
-	}
 
 	c, ok := s.GetComponent(id, "transform")
 	if !ok {
@@ -25,17 +21,11 @@ func (s *sendler) sendBullet(id types.Entity, broadcaster func(EntityInfo) error
 	}
 	transform := c.(*components.TransformComponent)
 
-	relPos := geometry.Vec3{
-		X: transform.Position.X - shipPos.X,
-		Y: transform.Position.Y - shipPos.Y,
-		Z: transform.Position.Z - shipPos.Z,
-	}
-
 	broadcaster(EntityInfo{
 		ID:   id,
 		Type: "bullet",
 		Data: bulletData{
-			Position: relPos,
+			Position: transform.Position,
 		},
 	})
 

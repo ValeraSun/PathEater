@@ -28,6 +28,10 @@ export interface AsteroidStateData {
     destroyed?: boolean;
 }
 
+export interface BulletStateData {
+    position?: Vector3D;
+}
+
 export interface MonsterStateData {
     position?: Vector3D;
     rotation?: Vector3D;

@@ -139,6 +139,14 @@ export class ComputerView
             this.DrawMonster(screenX, screenY);
         }
 
+        for (const bullet of state.bullets) 
+        {
+            const screenX = centerX + bullet.x 
+            const screenY = centerY + bullet.y
+
+            this.DrawBullet(screenX, screenY);
+        }
+
         this.context.font = "22px monospace";
 
         this.context.fillStyle = "#ffad33";
@@ -177,7 +185,9 @@ export class ComputerView
 
      private DrawWeapon(x: number, y: number, rotationY: number): void 
     {
-
+        rotationY -= Math.PI /2
+        rotationY = -rotationY
+        
         const long = 42
 
         this.context.strokeStyle = "#800000";
@@ -220,6 +230,23 @@ export class ComputerView
         
         this.context.beginPath();
         this.context.arc(x, y, 15, 0, Math.PI * 2);
+        this.context.fill();
+        this.context.stroke();
+    }
+
+    private DrawBullet(x: number, y: number): void 
+    {
+        if (!this.IsInsideScreen(x, y)) 
+        {
+            return;
+        }
+
+        const radius = 4
+
+        this.context.fillStyle = "#5d0363";
+
+        this.context.beginPath();
+        this.context.arc(x, y, radius, 0, Math.PI * 2);
         this.context.fill();
         this.context.stroke();
     }

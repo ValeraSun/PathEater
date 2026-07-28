@@ -9,8 +9,8 @@ const (
 	weaponSpeed  = 0.5
 	weaponAmmo   = 30
 	turningSpeed = 360
-	cooldown     = 0
-	length       = 2
+	cooldown     = 1
+	length       = 42
 )
 
 func NewWeapon(adder entityAdder) types.Entity {

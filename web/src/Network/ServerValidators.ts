@@ -3,6 +3,7 @@ import type {
     DeleteEntityPayload,
     EntityCreateInfo,
     EntityTransformData,
+    BulletStateData,
     GameOverPayload,
     GameStartedPayload,
     MatchTimerPayload,
@@ -60,6 +61,12 @@ export function IsAsteroidStateData(value: unknown): value is AsteroidStateData 
         position: IsVector3D,
         radius: IsFiniteNumber,
         destroyed: IsBoolean
+    });
+}
+
+export function IsBulletData(value: unknown): value is BulletStateData {
+    return HasValidOptionalFields(value, {
+        position: IsVector3D,
     });
 }
 
