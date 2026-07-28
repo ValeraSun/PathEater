@@ -11,8 +11,8 @@ import (
 )
 
 type BreakdownSystem struct {
-	getter        componentsGetter
-	publisher     publisher
+	componentsGetter
+	publisher
 	externalWalls []types.Entity
 	rooms         map[types.Entity]*components.RoomComponent
 	eventQueue    chan events.Event
@@ -20,24 +20,24 @@ type BreakdownSystem struct {
 
 func NewBreakdownSystem(getter componentsGetter, publisher publisher, subscriber subscriber, externalWalls []types.Entity) *BreakdownSystem {
 	s := &BreakdownSystem{
-		getter:        getter,
-		publisher:     publisher,
-		externalWalls: externalWalls,
-		eventQueue:    make(chan events.Event, 100),
+		getter,
+		publisher,
+		externalWalls,
+		make(map[types.Entity]*components.RoomComponent),
+		make(chan events.Event, 100),
 	}
-	s.rooms = s.getRooms()
+	s.setRooms()
 	subscriber.Subscribe("breakdown", s.OnEvent)
 	return s
 }
 
-func (s *BreakdownSystem) getRooms() map[types.Entity]*components.RoomComponent {
-	rooms := make(map[types.Entity]*components.RoomComponent)
-	rs := s.getter.GetEntitiesByComponent("room")
+func (s *BreakdownSystem) setRooms() {
+	rs := s.GetEntitiesByComponent("room")
 	for _, r := range rs {
 		room := r.(*components.RoomComponent)
-		rooms[room.ExternalWall] = room
+		s.rooms[room.ExternalWall] = room
 	}
-	return rooms
+	return
 }
 
 func (s *BreakdownSystem) Update(dt float32) error {
@@ -69,10 +69,17 @@ func (s *BreakdownSystem) Update(dt float32) error {
 var shipCenter geometry.Vec3 = geometry.Vec3{X: 24.67, Y: 2.8, Z: -9.0}
 
 func (s *BreakdownSystem) generateBreakdown() (types.Entity, geometry.Vec3, geometry.Vec3) {
+	if len(s.externalWalls) == 0 {
+		return "", geometry.Vec3{}, geometry.Vec3{}
+	}
 	idx := rand.Intn(len(s.externalWalls))
 	wallEntity := s.externalWalls[idx]
 
-	colliderComp, _ := s.getter.GetComponent(wallEntity, "collider")
+	if !s.HasComponents(s.externalWalls[idx], "collider") {
+		return "", geometry.Vec3{}, geometry.Vec3{}
+	}
+
+	colliderComp, _ := s.GetComponent(wallEntity, "collider")
 	collider := colliderComp.(*components.ColliderComponent)
 	center := collider.Collider.GetCenter()
 	box, _ := collider.Collider.(*geometry.BoxCollider)

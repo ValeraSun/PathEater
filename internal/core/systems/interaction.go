@@ -60,7 +60,7 @@ func (s *InteractionSystem) Update(dt float32) error {
 				c, _ = s.GetComponent(source, "control")
 				control := c.(*components.ControlComponent)
 
-				if control.Interact {
+				if control.InteractDown {
 					s.Publish(inter.Interaction(source, inter.Entity))
 				}
 			}

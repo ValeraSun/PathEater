@@ -54,8 +54,6 @@ func (s *CollisionSystem) Update(dt float32) error {
 
 			col, _ := collider.(*components.ColliderComponent)
 
-			col.Collider.ChangeCenter(t.Position) //Сразу меняем центр коллайдера
-
 			if !col.Enable {
 				continue
 			}

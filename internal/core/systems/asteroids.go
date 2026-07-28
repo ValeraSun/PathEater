@@ -30,20 +30,18 @@ const (
 )
 
 type AsteroidSystem struct {
-	getter     componentsGetter
-	publisher  publisher
-	subscriber subscriber
-	rng        *rand.Rand
-	active     bool
+	getter    componentsGetter
+	publisher publisher
+	rng       *rand.Rand
+	active    bool
 }
 
 func NewAsteroidSystem(getter componentsGetter, publisher publisher, subscriber subscriber) *AsteroidSystem {
 	s := &AsteroidSystem{
-		getter:     getter,
-		publisher:  publisher,
-		subscriber: subscriber,
-		rng:        rand.New(rand.NewSource(time.Now().UnixNano())),
-		active:     false,
+		getter:    getter,
+		publisher: publisher,
+		rng:       rand.New(rand.NewSource(time.Now().UnixNano())),
+		active:    false,
 	}
 	subscriber.Subscribe("meteoriteZone", s.OnEvent)
 	return s

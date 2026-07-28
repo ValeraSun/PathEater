@@ -6,14 +6,16 @@ import (
 )
 
 type ControlComponent struct {
-	MoveFront bool
-	MoveLeft  bool
-	MoveRight bool
-	MoveBack  bool
-	Interact  bool
-	Attack    bool
-	Direction geometry.Vec3
-	ClientID  string
+	MoveFront    bool
+	MoveLeft     bool
+	MoveRight    bool
+	MoveBack     bool
+	Interact     bool
+	InteractUp   bool
+	InteractDown bool
+	Attack       bool
+	Direction    geometry.Vec3
+	ClientID     string
 }
 
 func (*ControlComponent) Type() string {
@@ -25,20 +27,13 @@ func NewControlComponent(clientID string) *ControlComponent {
 		ClientID: clientID,
 	}
 }
-
-func (c *ControlComponent) Reset() {
-	c.MoveFront = false
-	c.MoveLeft = false
-	c.MoveRight = false
-	c.MoveBack = false
-	c.Interact = false
-	c.Attack = false
-}
 func (c *ControlComponent) Superimpose(state *events.PlayerState) {
 	c.MoveFront = state.MoveFront
 	c.MoveLeft = state.MoveLeft
 	c.MoveRight = state.MoveRight
 	c.MoveBack = state.MoveBack
+	c.InteractDown = state.Interact && !c.Interact
+	c.InteractUp = !state.Interact && c.Interact
 	c.Interact = state.Interact
 	c.Attack = state.Attack
 	c.Direction = state.Direction

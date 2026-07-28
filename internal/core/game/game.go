@@ -39,7 +39,7 @@ func CreateGame(broadcasterFunc broadcasterFunc) *ecs.World {
 	config.CreateWalls(w)
 	config.CreateDoors(w)
 	config.CreateRooms(w)
-	initSystems(w)
+	createEntities(w)
 
 	go w.EventBus.ProcessEvents()
 	go ecs.HandleWorld(w)

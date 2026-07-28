@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	cameraDistant = 2
+	cameraDistant = 3
 	cameraHeight  = 1.9
 	cameraOffset  = 0.5
 
-	playerSpeed          = 4
+	playerSpeed          = 10
 	playerMaxHealth      = 100
 	playerHalfHeight     = 1
 	playerRadius         = 0.7
