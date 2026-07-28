@@ -79,3 +79,10 @@ func AngleBetween(a, b Vec3) float64 {
 func AngleBetweenDegrees(a, b Vec3) float64 {
 	return AngleBetween(a, b) * 180 / math.Pi
 }
+
+func AngleToVec(angle float64) *Vec3 {
+	return &Vec3{
+		X: math.Cos(angle * math.Pi / 180),
+		Y: math.Sin(angle * math.Pi / 180),
+	}
+}

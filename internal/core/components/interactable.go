@@ -6,14 +6,12 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
-type Interactionor func(types.Entity, types.Entity) events.Event
-
 type InteractableComponent struct {
 	Collider    geometry.BoxCollider
-	Interaction Interactionor
+	Interaction func(types.Entity, types.Entity) events.Event
 }
 
-func NewInteractableComponent(center, halfExtents geometry.Vec3, interaction Interactionor) *InteractableComponent {
+func NewInteractableComponent(center, halfExtents geometry.Vec3, interaction func(types.Entity, types.Entity) events.Event) *InteractableComponent {
 	return &InteractableComponent{
 		Collider: *geometry.NewBoxCollider(
 			center,

@@ -3,12 +3,12 @@ package geometry
 import "math"
 
 //модуль числа
-func abs(f float64) float64 {
-	if f < 0 {
-		return -f
-	}
-	return f
-}
+// func abs(f float64) float64 {
+// 	if f < 0 {
+// 		return -f
+// 	}
+// 	return f
+// }
 
 //минимальное из двух чисел
 func min(a, b float64) float64 {

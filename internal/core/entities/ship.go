@@ -30,7 +30,6 @@ func NewShip(adder entityAdder) types.Entity {
 		components.NewMovementComponent(shipSpeed, geometry.Vec3{X: shipDirX, Y: shipDirY, Z: 0}),
 		components.NewVelocityComponent(),
 		components.NewShipComponent(shipBaggage),
-		components.NewWeaponComponent(geometry.GetZeroVector(), shipWeaponSpeed, shipAmmo),
 		components.NewColliderComponent(geometry.NewTriangleCollider(
 			geometry.Vec3{X: 20, Y: 0, Z: 0},
 			geometry.Vec3{X: -20, Y: 20, Z: 0},

@@ -51,8 +51,8 @@ func (s *sendler) sendShip(id types.Entity, broadcaster func(EntityInfo) error) 
 		Type: "ship",
 		Data: shipData{
 			Collider:        col.Collider,
-			WeaponDirection: weap.Direction,
-			ShootSuccess:    weap.ShootSuccess,
+			WeaponDirection: *geometry.AngleToVec(weap.Direction),
+			ShootSuccess:    false,
 			BaggageStatus:   ship.BaggageStatus,
 			Health:          hp.Health,
 		}})
