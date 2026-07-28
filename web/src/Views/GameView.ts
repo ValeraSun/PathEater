@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { WindowResize } from "../Utils/WindowResize";
 import { ComputerView } from "./ComputerView";
+import { DamageGlitchEffect } from "./DamageGlitchEffect";
 import { HealthbarView } from "./HealthbarView";
 import { PlayerView } from "./PlayerView";
 import { ShipView } from "./ShipView";
@@ -15,6 +16,7 @@ export class GameView {
     private computerView: ComputerView;
 
     private healthBarView: HealthbarView | null = null;
+    private damageGlitchEffect: DamageGlitchEffect | null = null;
     private initialized = false;
 
     public constructor() {
@@ -47,11 +49,18 @@ export class GameView {
         this.scene.add(this.shipView.GetObject());
         this.scene.add(this.computerView.GetObject());
 
+        this.damageGlitchEffect = new DamageGlitchEffect(this.renderer, this.scene, this.camera);
+
         WindowResize.Handle(this.camera, this.renderer);
+        window.addEventListener("resize", this.HandleResize);
     }
 
-    public Render(): void {
-        this.renderer.render(this.scene, this.camera);
+    public Render(deltaTime: number): void {
+        this.damageGlitchEffect?.Render(deltaTime);
+    }
+
+    public TriggerPlayerDamage(strength: number): void {
+        this.damageGlitchEffect?.TriggerDamage(strength);
     }
 
     public AttachPlayerView(playerView: PlayerView): void {
@@ -103,4 +112,8 @@ export class GameView {
         this.scene.add(hemisphereLight);
         this.scene.add(directionalLight);
     }
+
+    private readonly HandleResize = (): void => {
+        this.damageGlitchEffect?.SetSize(window.innerWidth, window.innerHeight);
+    };
 }
