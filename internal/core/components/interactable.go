@@ -8,10 +8,11 @@ import (
 
 type InteractableComponent struct {
 	Collider    geometry.BoxCollider
+	OnKey       string
 	Interaction func(types.Entity, types.Entity) events.Event
 }
 
-func NewInteractableComponent(center, halfExtents geometry.Vec3, interaction func(types.Entity, types.Entity) events.Event) *InteractableComponent {
+func NewInteractableComponent(center, halfExtents geometry.Vec3, onKey string, interaction func(types.Entity, types.Entity) events.Event) *InteractableComponent {
 	return &InteractableComponent{
 		Collider: *geometry.NewBoxCollider(
 			center,
@@ -22,6 +23,7 @@ func NewInteractableComponent(center, halfExtents geometry.Vec3, interaction fun
 				{Z: 1},
 			},
 		),
+		OnKey:       onKey,
 		Interaction: interaction,
 	}
 }

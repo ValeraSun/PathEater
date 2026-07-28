@@ -24,10 +24,19 @@ func NewControlSystem(getter componentsGetter, subscriber subscriber) *ControlSy
 
 func (s *ControlSystem) Update(dt float32) error {
 	comps := s.getter.GetEntitiesByComponent("control")
+	s.resetAll(comps)
 
 	s.drainEvents(comps)
 
 	return nil
+}
+
+func (s *ControlSystem) resetAll(comps map[types.Entity]types.Component) {
+	for _, c := range comps {
+		control := c.(*components.ControlComponent)
+
+		control.Reset()
+	}
 }
 
 func (s *ControlSystem) drainEvents(comps map[types.Entity]types.Component) {

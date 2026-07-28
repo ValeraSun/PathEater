@@ -7,11 +7,14 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
-func InitWeapon(adder entityAdder) {
-	weapon := NewWeapon(adder, -60, 60)
+func InitWeapon(adder entityAdder) types.Entity {
+	weapon := NewWeapon(adder)
+
 	NewButtonWeaponRight(adder, weapon)
 	NewButtonWeaponShoot(adder, weapon)
 	NewButtonWeaponLeft(adder, weapon)
+
+	return weapon
 }
 
 func NewButtonWeaponRight(adder entityAdder, weapon types.Entity) types.Entity {
@@ -43,7 +46,7 @@ func NewButtonWeaponLeft(adder entityAdder, weapon types.Entity) types.Entity {
 
 func NewButton(adder entityAdder, center, halfExtents geometry.Vec3, weapon types.Entity, interactor func(types.Entity, types.Entity) events.Event) types.Entity {
 	e, _ := adder.AddEntity(
-		components.NewInteractableComponent(center, halfExtents, interactor),
+		components.NewInteractableComponent(center, halfExtents, "always", interactor),
 		components.NewButtonComponent(weapon),
 	)
 	return e

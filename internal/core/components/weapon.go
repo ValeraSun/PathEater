@@ -6,8 +6,6 @@ import (
 )
 
 type WeaponComponent struct {
-	StartAngle      float64
-	EndAngle        float64
 	Direction       float64
 	Speed           float64
 	TurningSpeed    float64
@@ -21,7 +19,7 @@ func (*WeaponComponent) Type() string {
 	return "weapon"
 }
 
-func (w *WeaponComponent) ApplyState(state *events.WeaponEvent, dt float32) {
+func (w *WeaponComponent) ApplyState(state *events.WeaponEvent, dt float32) events.Event {
 	if w.currentCooldown-dt > 0 {
 		w.currentCooldown -= dt
 	} else {
@@ -29,27 +27,20 @@ func (w *WeaponComponent) ApplyState(state *events.WeaponEvent, dt float32) {
 	}
 
 	if state.Left {
-		if w.Direction-w.TurningSpeed*float64(dt) > w.StartAngle {
-			w.Direction -= w.TurningSpeed * float64(dt)
-		} else {
-			w.Direction = w.StartAngle
-		}
+		w.Direction -= w.TurningSpeed * float64(dt)
 	}
 
 	if state.Right {
-		if w.Direction+w.TurningSpeed*float64(dt) < w.EndAngle {
-			w.Direction += w.TurningSpeed * float64(dt)
-		} else {
-			w.Direction = w.EndAngle
-		}
+		w.Direction += w.TurningSpeed * float64(dt)
 	}
 
 	if state.Shooting && w.currentCooldown == 0 {
 		w.currentCooldown = w.Cooldown
-		events.NewCreateBulletEvent(
+		e := events.NewCreateBulletEvent(
 			geometry.AngleToVec(w.Direction).Scale(w.Length),
 			*geometry.AngleToVec(w.Direction),
 		)
+		return e
 	}
-
+	return nil
 }

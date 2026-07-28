@@ -39,8 +39,15 @@ func (s *sendler) sendShip(id types.Entity, broadcaster func(EntityInfo) error) 
 		return errors.New("Не найден необходимый компнонент")
 	}
 
-	c, ok = s.GetComponent(id, "weapon")
-	weap := c.(*components.WeaponComponent)
+	c, ok = s.GetComponent(id, "hasWeapon")
+	has := c.(*components.HasWeaponComponent)
+
+	if !ok {
+		return errors.New("Не найден необходимый компнонент")
+	}
+
+	c, ok = s.GetComponent(has.Entity, "weapon")
+	weapon := c.(*components.WeaponComponent)
 
 	if !ok {
 		return errors.New("Не найден необходимый компнонент")
@@ -51,7 +58,7 @@ func (s *sendler) sendShip(id types.Entity, broadcaster func(EntityInfo) error) 
 		Type: "ship",
 		Data: shipData{
 			Collider:        col.Collider,
-			WeaponDirection: *geometry.AngleToVec(weap.Direction),
+			WeaponDirection: *geometry.AngleToVec(weapon.Direction),
 			ShootSuccess:    false,
 			BaggageStatus:   ship.BaggageStatus,
 			Health:          hp.Health,

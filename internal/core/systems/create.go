@@ -52,7 +52,8 @@ func (s *CreateSystem) drainEvents() error {
 				c, _ := e.(*events.CreateAlienEvent)
 				entity = entities.NewAlien(s, c.Position)
 			case "createShip":
-				entity = entities.NewShip(s)
+				weapon := entities.InitWeapon(s)
+				entity = entities.NewShip(s, weapon)
 			case "createAsteroid":
 				event := e.(*events.CreateAsteroidEvent)
 				entity = entities.NewAsteroid(s, event.Position, event.Radius, event.Direction, event.Speed)

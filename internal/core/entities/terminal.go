@@ -11,6 +11,7 @@ func NewTerminal(adder entityAdder) types.Entity {
 		components.NewInteractableComponent(
 			geometry.Vec3{X: 39.85, Y: 1.075, Z: -9},
 			geometry.Vec3{X: 0.5, Y: 10, Z: 3},
+			"down",
 			components.InteractTerminal,
 		),
 	)

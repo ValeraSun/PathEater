@@ -35,6 +35,7 @@ func NewAlien(adder entityAdder, position geometry.Vec3) types.Entity {
 				alienAttackRadius,
 			),
 		),
+		components.NewAnimationComponent("base"),
 		components.NewMovementComponent(2, geometry.GetZeroVector()),
 		components.NewMovableComponent(),
 		components.NewVelocityComponent(),

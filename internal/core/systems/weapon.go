@@ -1,7 +1,6 @@
 package systems
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/ValeraSun/PathEater/internal/core/components"
@@ -22,33 +21,32 @@ func NewWeaponSystem(getter componentsGetter, publisher transfer.EventPublisher,
 		publisher,
 		make(chan *events.WeaponEvent, 100),
 	}
-	subscriber.Subscribe("setWeaponState", s.OnEvent)
+	subscriber.Subscribe("weapon", s.OnEvent)
 	return s
 }
 
 func (s *WeaponSystem) Update(dt float32) error {
+	comps := s.GetEntitiesByComponent("weapon")
+	for _, c := range comps {
+		weapon := c.(*components.WeaponComponent)
+		s.handleEvents(weapon, dt)
+	}
+	return nil
+}
 
+func (s *WeaponSystem) handleEvents(weapon *components.WeaponComponent, dt float32) {
 	for {
 		select {
 		case e := <-s.eventQueue:
-			if !s.HasComponents(e.ID, "weapon") {
-				return errors.New("weapon system error")
+
+			event := weapon.ApplyState(e, dt)
+			if event != nil {
+				s.Publish(event)
 			}
-
-			c, _ := s.GetComponent(e.ID, "weapon")
-			weapon := c.(*components.WeaponComponent)
-
-			weapon.ApplyState(e, dt)
-
 		default:
-			return nil
+			return
 		}
 	}
-
-}
-
-func (s *WeaponSystem) handleEvents() {
-
 }
 
 func BulletPos(dir geometry.Vec3) geometry.Vec3 {

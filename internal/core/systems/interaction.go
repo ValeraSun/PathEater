@@ -60,9 +60,14 @@ func (s *InteractionSystem) Update(dt float32) error {
 				c, _ = s.GetComponent(source, "control")
 				control := c.(*components.ControlComponent)
 
-				if control.InteractDown {
+				if inter.OnKey == "down" && control.InteractDown {
 					s.Publish(inter.Interaction(source, inter.Entity))
 				}
+
+				if inter.OnKey == "always" && control.Interact {
+					s.Publish(inter.Interaction(source, inter.Entity))
+				}
+
 			}
 		}
 

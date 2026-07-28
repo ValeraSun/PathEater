@@ -84,6 +84,8 @@ func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewTimerSystem(world, world.Broadcaster, &world.Timer))
 	world.AddSystem(systems.NewGameOverSystem(world, world.EventBus, world.Broadcaster, world)) // конец игры
 
+	world.AddSystem(systems.NewAnimationSystem(world, world.EventBus, world.EventBus)) // анимация
+
 	world.AddSystem(systems.NewRenderSystem(world, world.Broadcaster))
 	world.AddSystem(systems.NewCreateSystem(world, world, world.EventBus, world.Broadcaster))
 	world.AddSystem(systems.NewDeleteSystem(world, world, world.EventBus, world.EventBus, world.Broadcaster)) // база
@@ -93,7 +95,6 @@ func initSystems(world *ecs.World) {
 func createEntities(world *ecs.World) {
 	entities.NewTerminal(world)
 	world.EventBus.Publish(events.NewCreateShipEvent())
-	entities.InitWeapon(world)
 	//world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
 	//world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
 	world.EventBus.Publish(events.NewMeteoriteZoneEvent())

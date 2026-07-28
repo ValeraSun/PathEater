@@ -27,13 +27,17 @@ func NewControlComponent(clientID string) *ControlComponent {
 		ClientID: clientID,
 	}
 }
+func (c *ControlComponent) Reset() {
+	c.InteractDown = false
+	c.InteractUp = false
+}
 func (c *ControlComponent) Superimpose(state *events.PlayerState) {
 	c.MoveFront = state.MoveFront
 	c.MoveLeft = state.MoveLeft
 	c.MoveRight = state.MoveRight
 	c.MoveBack = state.MoveBack
-	c.InteractDown = state.Interact && !c.Interact
-	c.InteractUp = !state.Interact && c.Interact
+	c.InteractDown = c.InteractDown || (state.Interact && !c.Interact)
+	c.InteractUp = c.InteractUp || (!state.Interact && c.Interact)
 	c.Interact = state.Interact
 	c.Attack = state.Attack
 	c.Direction = state.Direction

@@ -234,7 +234,7 @@ func CreateDoors(adder entityAdder) {
 				door.HalfExtents,
 				door.Quaternion.ToRotationMatrix())),
 			components.NewDoorComponent(types.Entity(door.RoomA), types.Entity(door.RoomB), tminx, tmaxx, tminy, tmaxy),
-			components.NewInteractableComponent(door.Center, door.HalfExtents, components.InteractDoor),
+			components.NewInteractableComponent(door.Center, door.HalfExtents, "down", components.InteractDoor),
 		)
 		if err != nil {
 			log.Printf("Ошибка создания двери %s: %v", door.ID, err)

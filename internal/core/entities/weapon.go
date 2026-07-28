@@ -8,17 +8,15 @@ import (
 const (
 	weaponSpeed  = 0.5
 	weaponAmmo   = 30
-	turningSpeed = 10
-	cooldown     = 3
+	turningSpeed = 360
+	cooldown     = 0
 	length       = 2
 )
 
-func NewWeapon(adder entityAdder, startAngle, endAngle float64) types.Entity {
+func NewWeapon(adder entityAdder) types.Entity {
 	e, _ := adder.AddEntity(
 		&components.WeaponComponent{
-			StartAngle:   startAngle,
-			EndAngle:     endAngle,
-			Direction:    startAngle,
+			Direction:    0,
 			Speed:        weaponSpeed,
 			Ammo:         weaponAmmo,
 			Cooldown:     cooldown,

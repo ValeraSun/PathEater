@@ -20,12 +20,14 @@ func IsShip(id types.Entity, getter componentsGetter) bool {
 	return getter.HasComponents(id, "ship")
 }
 
-func NewShip(adder entityAdder) types.Entity {
+func NewShip(adder entityAdder, weapon types.Entity) types.Entity {
 	e, _ := adder.AddEntity(
 		components.NewTransformComponent(
 			geometry.GetZeroVector(),
 			geometry.GetZeroVector(),
 		),
+		components.NewHasWeaponComponent(weapon),
+		components.NewUpdateComponent(),
 		components.NewHealthComponent(shipHealth),
 		components.NewMovementComponent(shipSpeed, geometry.Vec3{X: shipDirX, Y: shipDirY, Z: 0}),
 		components.NewVelocityComponent(),
