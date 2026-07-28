@@ -1,31 +1,8 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-
-export type NavigationDisplayState = {
-    ship: {
-        x: number;
-        y: number;
-        rotationY: number;
-        hp: number;
-    };
-
-    asteroids: Array<{
-        id: string;
-        x: number;
-        y: number;
-        radius: number;
-    }>;
-
-    monsters: Array<{
-        id: string;
-        x: number;
-        y: number;
-    }>;
-};
-
+import { type RadarDisplayState } from "../Models/RadarModel";
 export class ComputerView 
 {
-    private id = "bridge_computer_1";
     private group = new THREE.Group();
     private canvas: HTMLCanvasElement;
     private context: CanvasRenderingContext2D;
@@ -123,7 +100,7 @@ export class ComputerView
         this.texture.needsUpdate = true;
     }
 
-    public UpdateDisplay(state: NavigationDisplayState): void 
+    public UpdateDisplay(state: RadarDisplayState): void 
     {
         const width = this.canvas.width;
         const height = this.canvas.height;
@@ -236,36 +213,6 @@ export class ComputerView
             y >= 120 &&
             y <= this.canvas.height - 75
         );
-    }
-
-    public SetLockedBy(playerId: string | null): void 
-    {
-        this.lockedBy = playerId;
-    }
-
-    public IsFree(): boolean 
-    {
-        return this.lockedBy === null;
-    }
-
-    public IsOwnedBy(playerId: string): boolean 
-    {
-        return this.lockedBy === playerId;
-    }
-
-    public GetLockedBy(): string | null 
-    {
-        return this.lockedBy;
-    }
-
-    public GetId(): string 
-    {
-        return this.id;
-    }
-
-    public GetInteractionPosition(): THREE.Vector3 
-    {
-        return new THREE.Vector3(39, 1, -9);
     }
 
     public GetObject(): THREE.Group 

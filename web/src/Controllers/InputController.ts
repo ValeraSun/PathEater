@@ -1,35 +1,48 @@
-export class InputController
-{
-    keys = new Set<string>();
+export class InputController {
+    private heldKeys = new Set<string>();
+    private pressedKeys = new Set<string>();
 
-    constructor()
-    { 
-        window.addEventListener("keydown", (event) => {
-            if (!this.keys.has(event.code)) 
-            {
-                this.pressedOnce.add(event.code);
-            }
-
-            this.keys.add(event.code);
-        });
-        window.addEventListener("keyup",(e)=>{ this.keys.delete(e.code); }); 
+    public constructor() {
+        window.addEventListener("keydown", this.HandleKeyDown);
+        window.addEventListener("keyup", this.HandleKeyUp);
+        window.addEventListener("blur", this.HandleWindowBlur);
     }
 
-    public IsKeyDown(code: string): boolean 
-    {
-        return this.keys.has(code);
+    public IsKeyDown(keyCode: string): boolean {
+        return this.heldKeys.has(keyCode);
     }
 
-    public WasPressedOnce(code: string): boolean 
-    {
-        if (!this.pressedOnce.has(code)) 
-        {
-            return false;
+    public WasPressedOnce(keyCode: string): boolean {
+        return this.pressedKeys.has(keyCode);
+    }
+
+    public FinishFrame(): void {
+        this.pressedKeys.clear();
+    }
+
+    public Dispose(): void {
+        window.removeEventListener("keydown", this.HandleKeyDown);
+        window.removeEventListener("keyup", this.HandleKeyUp);
+        window.removeEventListener("blur", this.HandleWindowBlur);
+
+        this.heldKeys.clear();
+        this.pressedKeys.clear();
+    }
+
+    private HandleKeyDown = (event: KeyboardEvent): void => {
+        if (!this.heldKeys.has(event.code)) {
+            this.pressedKeys.add(event.code);
         }
 
-        this.pressedOnce.delete(code);
-        return true;
-    }
+        this.heldKeys.add(event.code);
+    };
 
-    private pressedOnce = new Set<string>();
+    private HandleKeyUp = (event: KeyboardEvent): void => {
+        this.heldKeys.delete(event.code);
+    };
+
+    private HandleWindowBlur = (): void => {
+        this.heldKeys.clear();
+        this.pressedKeys.clear();
+    };
 }

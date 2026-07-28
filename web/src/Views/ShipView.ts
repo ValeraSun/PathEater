@@ -1,13 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { CargoView } from "./CargoView";
-import type { ShipWireData } from "../Services/ShipWireData";
-
-export interface ShipStateData
-{
-    baggage_status?: number;
-    health?: number;
-}
+import type { ShipWireData } from "../Network/ServerContracts";
 
 export class ShipView
 {

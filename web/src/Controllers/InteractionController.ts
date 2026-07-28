@@ -1,39 +1,34 @@
+import { ComputerModel } from "../Models/ComputerModel";
 import { PlayerModel } from "../Models/PlayerModel";
-import { ComputerView } from "../Views/ComputerView";
 import { InteractionView } from "../Views/InteractionView";
 
-export class InteractionController {
-    private readonly interactionDistance = 2.5;
+const COMPUTER_INTERACTION_DISTANCE = 2.5;
 
+export class InteractionController {
     private playerModel: PlayerModel;
-    private computerView: ComputerView;
+    private computerModel: ComputerModel;
     private interactionView: InteractionView;
 
-    public constructor(playerModel: PlayerModel,computerView: ComputerView,interactionView: InteractionView) {
+    public constructor(playerModel: PlayerModel, computerModel: ComputerModel, interactionView: InteractionView) {
         this.playerModel = playerModel;
-        this.computerView = computerView;
+        this.computerModel = computerModel;
         this.interactionView = interactionView;
     }
 
     public Update(): void {
-        const distance = this.playerModel.position.distanceTo(
-            this.computerView.GetInteractionPosition()
-        );
+        const distanceToComputer = this.playerModel.position.distanceTo(this.computerModel.interactionPosition);
+        const playerIsCloseEnough = distanceToComputer <= COMPUTER_INTERACTION_DISTANCE;
+        const computerIsAvailable = this.computerModel.IsAvailable();
 
-        const isNear = distance <= this.interactionDistance;
-
-        const isFree = this.computerView.IsFree();
-        
-        if (!isNear || !isFree) {
+        if (!playerIsCloseEnough || !computerIsAvailable) {
             this.interactionView.Hide();
             return;
         }
 
-        this.interactionView.Show();
+        this.interactionView.Show("Нажмите E, чтобы управлять кораблём");
+    }
 
-        // if (this.input.WasPressedOnce("KeyE")) {
-        //     this.interactionView.Hide();
-        //     this.onInteract();
-        // }
+    public Dispose(): void {
+        this.interactionView.Hide();
     }
 }

@@ -2,17 +2,8 @@ import * as THREE from "three";
 import { PlayerModel } from "../Models/PlayerModel";
 import { PlayerView } from "../Views/PlayerView";
 import { InputController } from "./InputController";
-import { GameServerGateway } from "../Services/GameServerGateway";
-
-export interface PlayerStatePayload {
-    move_front: boolean;
-    move_left: boolean;
-    move_right: boolean;
-    move_back: boolean;
-    interact: boolean;
-    attack: boolean;
-    direction: { x: number; y: number; z: number };
-}
+import { GameServerGateway } from "../Network/GameServerGateway";
+import { type PlayerStatePayload } from "../Network/ServerContracts";
 
 export class PlayerController {
     private playerModel: PlayerModel;

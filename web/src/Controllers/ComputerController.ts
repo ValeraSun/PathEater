@@ -1,21 +1,22 @@
 import { InputController } from "./InputController";
 
 export class ComputerController {
-    private active = false;
-    private input: InputController;
+    private inputController: InputController;
 
-    public constructor(input: InputController) {
-        this.input = input;
+    private active = false;
+
+    public constructor(inputController: InputController) {
+        this.inputController = inputController;
     }
 
-    public Enter(): void {
+    public EnterControlMode(): void {
         if (this.active) {
             return;
         }
         this.active = true;
     }
 
-    public Exit(): void {
+    public ExitControlMode(): void {
         if (!this.active) {
             return;
         }
@@ -27,13 +28,16 @@ export class ComputerController {
             return;
         }
 
-        if (this.input.WasPressedOnce("Escape")) {
-            this.Exit();
-            return;
+        if (this.inputController.WasPressedOnce("Escape")) {
+            this.ExitControlMode();
         }
     }
 
-    public IsActive(): boolean {
+    public IsControlModeActive(): boolean {
         return this.active;
+    }
+
+    public Dispose(): void {
+        this.active = false;
     }
 }

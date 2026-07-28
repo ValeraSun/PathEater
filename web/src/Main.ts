@@ -1,315 +1,43 @@
-import { Game } from "./Core/Game";
+import { LobbyController } from "./Controllers/LobbyController";
+import { MatchController } from "./Controllers/MatchController";
+import { MenuController } from "./Controllers/MenuController";
+import { RoomController } from "./Controllers/RoomController";
+import { CreateApplication } from "./Core/createApp";
+import { AppView } from "./Views/AppView";
+import { LobbyView } from "./Views/LobbyView";
+import { MenuView } from "./Views/MenuView";
+import { RoomView } from "./Views/RoomView";
 
-type ScreenName = "menu" | "room" | "lobby" | "game" | "lose"| "win";
+const application = CreateApplication();
 
-const screens: Record<ScreenName, HTMLElement> = {
-    menu: getElement("menu-screen"),
-    room: getElement("room-screen"),
-    lobby: getElement("lobby-screen"),
-    game: getElement("game-screen"),
-    lose: getElement("lose-screen"),
-    win: getElement("win-screen")
-};
+const appView = new AppView();
+const menuView = new MenuView();
+const roomView = new RoomView();
+const lobbyView = new LobbyView();
 
-const playButton = getButton("play-button");
-const createRoomButton = getButton("create-room-button");
-const joinRoomButton = getButton("join-room-button");
-const roomBackButton = getButton("room-back-button");
-const leaveLobbyButton = getButton("leave-lobby-button");
-const startGameButton = getButton("start-game-button");
-const loseRetryButton = getButton("lose-retry-button");
-const winRetryButton = getButton("win-retry-button");
+const gameServerGateway = application.GetGameServerGateway();
+const musicManager = application.GetMusicManager();
 
-const roomCodeInput = getInput("room-code-input");
+application.InitializeView(appView.GetGameContainer(), appView.GetHealthBarContainer());
 
-const menuStatus = getElement("menu-status");
-const roomStatus = getElement("room-status");
-const lobbyStatus = getElement("lobby-status");
-const gameContainer = getElement("game-container");
-const matchTimer = getElement("match-timer");
+const menuController = new MenuController(application, appView, menuView);
+const roomController = new RoomController(gameServerGateway, musicManager, appView, roomView, lobbyView);
+const lobbyController = new LobbyController(gameServerGateway, musicManager, appView, roomView, lobbyView);
+const matchController = new MatchController(application, gameServerGateway,musicManager, appView);
 
-const game = Game.GetInstance();
-const gateway = game.GetGateway();
-const musicManager = game.GetMusicManager();
+menuController.Initialize();
+roomController.Initialize();
+lobbyController.Initialize();
+matchController.Initialize();
 
 document.addEventListener(
     "click",
-    () => {
+    (): void => {
         void musicManager.PlayMusic("menu");
     },
-    { once: true }
+    {
+        once: true
+    }
 );
 
-loseRetryButton.addEventListener("click", () => {
-    showScreen("room");
-});
-
-winRetryButton.addEventListener("click", () => {
-    showScreen("room");
-});
-
-let connected = false;
-let isHost = false;
-let roomId: string | null = null;
-const playerList = getElement("player-list");
-
-const MAX_PLAYERS = 4;
-
-gateway.SetRoomPlayersHandler(playerIds => {
-    renderPlayers(playerIds);
-});
-
-function renderPlayers(playerIds: string[]): void {
-    playerList.replaceChildren();
-
-    playerIds.forEach((playerId, index) => {
-        const isLocal = playerId === gateway.localPlayerId;
-
-        const item = document.createElement("li");
-        item.className = "player";
-
-        const avatar = document.createElement("div");
-        avatar.className = "player-avatar";
-
-        const image = document.createElement("img");
-        image.src = "/images/avatar.png";
-        image.alt = "Аватар игрока";
-        avatar.appendChild(image);
-
-        const info = document.createElement("div");
-        info.className = "player-info";
-
-        const name = document.createElement("strong");
-        name.textContent = isLocal ? "Вы" : `Игрок ${index + 1}`;
-
-        const ready = document.createElement("span");
-        ready.className = "ready";
-        ready.textContent = "Готов";
-
-        info.append(name, ready);
-
-        const role = document.createElement("span");
-        role.className = "player-role";
-        role.textContent = isLocal && isHost ? "Капитан" : "Игрок";
-
-        item.append(avatar, info, role);
-        playerList.appendChild(item);
-    });
-
-    for (let index = playerIds.length; index < MAX_PLAYERS; index++) {
-        const empty = document.createElement("li");
-        empty.className = "empty-player";
-        empty.textContent = "Ожидание игрока";
-
-        playerList.appendChild(empty);
-    }
-}
-
-function showScreen(name: ScreenName): void {
-    for (const screen of Object.values(screens)) {
-        screen.classList.remove("screen--active");
-    }
-
-    screens[name].classList.add("screen--active");
-
-    document.body.classList.remove(
-        "background--menu",
-        "background--room",
-        "background--lobby",
-        "background--game",
-        "background--lose",
-        "background--win",
-        "background--blurred"
-    );
-
-    document.body.classList.add(`background--${name}`);
-    const shouldBlur = name === "room" || name === "lobby";
-    document.body.classList.toggle("background--blurred", shouldBlur);
-}
-
-playButton.addEventListener("click", async () => {
-    if (connected) {
-        showScreen("room");
-        return;
-    }
-
-    playButton.disabled = true;
-    menuStatus.textContent = "Идет подключение к серверу";
-
-    try {
-        await game.Connect();
-
-        connected = true;
-        menuStatus.textContent = "";
-        playButton.disabled = false;
-        showScreen("room");
-    } catch (error) {
-        menuStatus.textContent = error instanceof Error ? error.message : "Сервер недоступен";
-        playButton.disabled = false;
-    }
-});
-
-createRoomButton.addEventListener("click", async () => {
-    setRoomButtonsDisabled(true);
-    roomStatus.textContent = "Создаем комнату";
-
-    try {
-        const room = await gateway.CreateRoom();
-
-        roomId = room.roomId;
-        isHost = true;
-
-        startGameButton.hidden = false;
-        lobbyStatus.textContent = `Код комнаты: ${roomId}`;
-
-        showScreen("lobby");
-    } catch (error) {
-        roomStatus.textContent = error instanceof Error ? error.message : "Не удалось создать комнату";
-        setRoomButtonsDisabled(false);
-    }
-});
-
-joinRoomButton.addEventListener("click", async () => {
-    const code = roomCodeInput.value.trim();
-
-    if (!code) {
-        roomStatus.textContent = "Введите код комнаты";
-        roomCodeInput.focus();
-        return;
-    }
-
-    setRoomButtonsDisabled(true);
-    roomStatus.textContent = `Подключение к комнате ${code}…`;
-
-    try {
-        const room = await gateway.JoinRoom(code);
-
-        roomId = room.roomId;
-        isHost = false;
-
-        startGameButton.hidden = true;
-        lobbyStatus.textContent = "Ожидание запуска игры командиром…";
-        showScreen("lobby");
-    } catch (error) {
-        roomStatus.textContent = error instanceof Error ? error.message : "Комната не найдена";
-        setRoomButtonsDisabled(false);
-    }
-});
-
-roomBackButton.addEventListener("click", () => {
-    void musicManager.PlayMusic("menu");
-    showScreen("menu");
-});
-
-leaveLobbyButton.addEventListener("click", () => {
-    gateway.ExitRoom();
-
-    roomId = null;
-    isHost = false;
-
-    roomStatus.textContent = "";
-    lobbyStatus.textContent = "";
-
-    startGameButton.hidden = true;
-    startGameButton.disabled = false;
-
-    setRoomButtonsDisabled(false);
-    void musicManager.PlayMusic("menu");
-
-    showScreen("room");
-});
-
-startGameButton.addEventListener("click", () => {
-    if (!isHost) {
-        return;
-    }
-
-    startGameButton.disabled = true;
-    lobbyStatus.textContent = "Запуск игры…";
-
-    gateway.StartGame();
-});
-
-gateway.onGameStarted = async payload => {
-    matchTimer.textContent = "00:00";
-    await musicManager.PlayMusic("game");
-    await game.StartMatch(payload);
-
-    showScreen("game");
-    game.MountTo(gameContainer);
-};
-
-gateway.onGameOver = payload => {
-    console.log("Игра завершена:", payload.status);
-
-    if (payload.win) {
-        showVictory();
-    } else {
-        showDefeat();
-    }
-
-    void musicManager.PlayMusic("menu");
-};
-
-gateway.onMatchTimerChanged = seconds => {
-    matchTimer.textContent = formatMatchTime(seconds);
-};
-
-roomCodeInput.addEventListener("input", () => {
-    roomCodeInput.value = roomCodeInput.value;
-});
-
-function formatMatchTime(totalSeconds: number): string {
-    const safeSeconds = Math.max(0, Math.floor(totalSeconds));
-
-    const minutes = Math.floor(safeSeconds / 60);
-    const seconds = safeSeconds % 60;
-
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
-
-function setRoomButtonsDisabled(disabled: boolean): void {
-    createRoomButton.disabled = disabled;
-    joinRoomButton.disabled = disabled;
-    roomCodeInput.disabled = disabled;
-}
-
-function getElement(id: string): HTMLElement {
-    const element = document.getElementById(id);
-
-    if (!element) {
-        throw new Error(`Не найден элемент #${id}`);
-    }
-
-    return element;
-}
-
-function getButton(id: string): HTMLButtonElement {
-    const element = document.getElementById(id);
-
-    if (!(element instanceof HTMLButtonElement)) {
-        throw new Error(`Не найдена кнопка #${id}`);
-    }
-
-    return element;
-}
-
-function getInput(id: string): HTMLInputElement {
-    const element = document.getElementById(id);
-
-    if (!(element instanceof HTMLInputElement)) {
-        throw new Error(`Не найден input #${id}`);
-    }
-
-    return element;
-}
-
-showScreen("menu");
-
-export function showVictory(): void {
-    showScreen("win");
-}
-
-export function showDefeat(): void {
-    showScreen("lose");
-}
+appView.ShowScreen("menu");
