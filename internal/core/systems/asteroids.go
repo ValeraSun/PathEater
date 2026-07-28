@@ -21,10 +21,10 @@ const (
 	halfFieldWidth      = (displayWidth + spawnZoneSize) / 2
 	maxSpawnAttempts    = 50
 	minAsteroidDist     = 40
-	asteroidSpawnChance = 0.07
+	asteroidSpawnChance = 0.03
 	maxAsteroids        = 50
-	maxSpeed            = 100
-	minSpeed            = 70
+	maxSpeed            = 50
+	minSpeed            = 20
 	maxRadius           = 30
 	minRadius           = 5
 )

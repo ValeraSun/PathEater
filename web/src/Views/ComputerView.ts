@@ -139,6 +139,14 @@ export class ComputerView
             this.DrawMonster(screenX, screenY);
         }
 
+        for (const bullet of state.bullets) 
+        {
+            const screenX = centerX + bullet.x 
+            const screenY = centerY + bullet.y
+
+            this.DrawBullet(screenX, screenY);
+        }
+
         this.context.font = "22px monospace";
 
         this.context.fillStyle = "#ffad33";
@@ -155,7 +163,6 @@ export class ComputerView
         this.context.save();
 
         this.context.translate(x, y);
-        this.context.rotate(-rotationY);
 
         this.context.fillStyle = "#45ff88";
         this.context.strokeStyle = "#ffffff";
@@ -172,6 +179,28 @@ export class ComputerView
         this.context.stroke();
 
         this.context.restore();
+
+        this.DrawWeapon(x, y, rotationY)
+    }
+
+     private DrawWeapon(x: number, y: number, rotationY: number): void 
+    {
+        rotationY -= Math.PI /2
+        rotationY = -rotationY
+        
+        const long = 42
+
+        this.context.strokeStyle = "#800000";
+        this.context.lineWidth = 8;
+
+        console.log(x, y, rotationY)
+       
+        this.context.beginPath()
+        this.context.moveTo(x, y);
+
+        this.context.lineTo(x + Math.cos(rotationY) * long, y + Math.sin(rotationY) * long);
+        this.context.stroke();
+        this.context.closePath();
     }
 
     private DrawAsteroid(x: number, y: number, rad: number): void 
@@ -201,6 +230,23 @@ export class ComputerView
         
         this.context.beginPath();
         this.context.arc(x, y, 15, 0, Math.PI * 2);
+        this.context.fill();
+        this.context.stroke();
+    }
+
+    private DrawBullet(x: number, y: number): void 
+    {
+        if (!this.IsInsideScreen(x, y)) 
+        {
+            return;
+        }
+
+        const radius = 4
+
+        this.context.fillStyle = "#5d0363";
+
+        this.context.beginPath();
+        this.context.arc(x, y, radius, 0, Math.PI * 2);
         this.context.fill();
         this.context.stroke();
     }

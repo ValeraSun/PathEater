@@ -10,6 +10,11 @@ func IsBullet(id types.Entity, getter componentsGetter) bool {
 	return getter.HasComponents(id, "bullet")
 }
 
+const (
+	bulletRadius = 4
+	bulletSpeed  = 250
+)
+
 func NewBullet(adder entityAdder, pos, dir geometry.Vec3) types.Entity {
 	e, _ := adder.AddEntity(
 		components.NewTransformComponent(
@@ -17,13 +22,14 @@ func NewBullet(adder entityAdder, pos, dir geometry.Vec3) types.Entity {
 			dir,
 		),
 		components.NewBulletComponent(),
+		components.NewUpdateComponent(),
 		components.NewNavigationEntityComponent(),
-		components.NewMovementComponent(10, dir),
+		components.NewMovementComponent(bulletSpeed, dir),
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
 		components.NewColliderComponent(geometry.NewCircleCollider(
 			pos,
-			2,
+			bulletRadius,
 		)),
 	)
 	return e

@@ -87,13 +87,13 @@ func (s *CollisionsSystem) OnEvent(event events.Event) error {
 }
 
 func (s *CollisionsSystem) shipAsteroidCollision(shipID, asteroidID types.Entity) {
-	s.publisher.Publish(events.NewDamageDealEvent(shipID, 20))
+	s.publisher.Publish(events.NewDamageDealEvent(shipID, 10))
 	s.publisher.Publish(events.NewDeleteEvent(asteroidID))
 	s.publisher.Publish(events.NewBreakdownEvent(false))
 }
 
 func (s *CollisionsSystem) shipCosmoAlienCollision(shipID, alienID types.Entity) {
-	s.publisher.Publish(events.NewDamageDealEvent(shipID, 10))
+	s.publisher.Publish(events.NewDamageDealEvent(shipID, 4))
 	s.publisher.Publish(events.NewBoardingEvent(alienID))
 	s.publisher.Publish(events.NewBreakdownEvent(true))
 }
@@ -114,6 +114,6 @@ func (s *CollisionsSystem) asteroidBulletCollision(asteroidID, bulletID types.En
 }
 
 func (s *CollisionsSystem) cosmoAlienBulletCollision(alienID, bulletID types.Entity) {
-	s.publisher.Publish(events.NewDamageDealEvent(alienID, 5))
+	s.publisher.Publish(events.NewDamageDealEvent(alienID, 10))
 	s.publisher.Publish(events.NewDeleteEvent(bulletID))
 }

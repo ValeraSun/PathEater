@@ -19,8 +19,8 @@ func InitWeapon(adder entityAdder) types.Entity {
 
 func NewButtonWeaponRight(adder entityAdder, weapon types.Entity) types.Entity {
 	return NewButton(adder,
-		geometry.Vec3{X: 30, Y: 2.3, Z: -17.4},
-		geometry.Vec3{X: 0.4, Y: 1.1, Z: 0.5},
+		geometry.Vec3{X: 29.8, Y: 2.7, Z: -17.5},
+		geometry.Vec3{X: 0.52, Y: 0.5, Z: 0.3},
 		weapon,
 		weaponRight,
 	)
@@ -28,8 +28,8 @@ func NewButtonWeaponRight(adder entityAdder, weapon types.Entity) types.Entity {
 
 func NewButtonWeaponShoot(adder entityAdder, weapon types.Entity) types.Entity {
 	return NewButton(adder,
-		geometry.Vec3{X: 27, Y: 2.3, Z: -17.4},
-		geometry.Vec3{X: 0.4, Y: 1.1, Z: 0.5},
+		geometry.Vec3{X: 26.59, Y: 2.7, Z: -17.5},
+		geometry.Vec3{X: 0.52, Y: 0.5, Z: 0.3},
 		weapon,
 		weaponShoot,
 	)
@@ -37,8 +37,8 @@ func NewButtonWeaponShoot(adder entityAdder, weapon types.Entity) types.Entity {
 
 func NewButtonWeaponLeft(adder entityAdder, weapon types.Entity) types.Entity {
 	return NewButton(adder,
-		geometry.Vec3{X: 23.7, Y: 2.3, Z: -17.4},
-		geometry.Vec3{X: 0.4, Y: 1.1, Z: 0.5},
+		geometry.Vec3{X: 23.4, Y: 2.7, Z: -17.5},
+		geometry.Vec3{X: 0.52, Y: 0.5, Z: 0.3},
 		weapon,
 		weaponLeft,
 	)

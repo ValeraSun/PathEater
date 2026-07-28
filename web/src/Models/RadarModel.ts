@@ -26,6 +26,11 @@ export interface RadarDisplayState {
         x: number;
         y: number;
     }>;
+    bullets: Array<{
+        id: string;
+        x: number;
+        y: number;
+    }>;
 }
 
 const DEFAULT_ASTEROID_RADIUS = 90;
@@ -36,6 +41,8 @@ export class RadarModel {
 
     private asteroidsById = new Map<string, AsteroidRadarEntry>();
     private monstersById = new Map<string, Vector2D>();
+    private bulletsById = new Map<string, Vector2D>();
+    
 
     private changedHandler: ((radarState: RadarDisplayState) => void) | null = null;
 
@@ -65,6 +72,11 @@ export class RadarModel {
         this.EmitChanged();
     }
 
+    public UpdateBullet(entityId: string, position: Vector2D): void {
+        this.bulletsById.set(entityId, { ...position });
+        this.EmitChanged();
+    }
+
     public RemoveAsteroid(entityId: string): boolean {
         const removed = this.asteroidsById.delete(entityId);
 
@@ -82,6 +94,16 @@ export class RadarModel {
 
     public RemoveMonster(entityId: string): boolean {
         const removed = this.monstersById.delete(entityId);
+
+        if (removed) {
+            this.EmitChanged();
+        }
+
+        return removed;
+    }
+
+    public RemoveBullet(entityId: string): boolean {
+        const removed = this.bulletsById.delete(entityId);
 
         if (removed) {
             this.EmitChanged();
@@ -122,7 +144,13 @@ export class RadarModel {
                 id,
                 x: position.x,
                 y: position.y
+            })),
+            bullets: Array.from(this.bulletsById, ([id, position]) => ({
+                id,
+                x: position.x,
+                y: position.y
             }))
+
         });
     }
 }

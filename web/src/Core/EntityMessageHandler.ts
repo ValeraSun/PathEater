@@ -1,7 +1,7 @@
 import { EntityStore } from "../Models/EntityStore";
 import { RadarModel } from "../Models/RadarModel";
 import type { EntityCreateInfo, EntityTransformData, EntityUpdateInfo } from "../Network/ServerContracts";
-import { IsAsteroidStateData, IsEntityTransformData, IsMonsterStateData, IsShipWireData} from "../Network/ServerValidators";
+import { IsAsteroidStateData, IsEntityTransformData, IsMonsterStateData, IsShipWireData, IsBulletData} from "../Network/ServerValidators";
 import { EntityViewManager } from "../Views/EntityViewManager";
 import { ShipView } from "../Views/ShipView";
 
@@ -41,6 +41,11 @@ export class EntityMessageHandler {
             return;
         }
 
+        if (entityInformation.type === "bullet") {
+            this.UpdateBullet(entityInformation.id, entityInformation.data);
+            return;
+        }
+
         if (entityInformation.type === "cosmoAlien") {
             this.UpdateRadarMonster(entityInformation.id, entityInformation.data);
             return;
@@ -76,6 +81,11 @@ export class EntityMessageHandler {
             return;
         }
 
+        if (entityInformation.type === "bullet") {
+            this.UpdateBullet(entityInformation.id, entityInformation.data);
+            return;
+        }
+
         if (entityInformation.type === "cosmoAlien") {
             this.UpdateRadarMonster(entityInformation.id, entityInformation.data);
             return;
@@ -100,6 +110,7 @@ export class EntityMessageHandler {
 
     public RemoveEntity(entityId: string): void {
         this.radarModel.RemoveAsteroid(entityId);
+        this.radarModel.RemoveBullet(entityId)
         this.radarModel.RemoveMonster(entityId);
         this.entityViewManager.RemoveEntity(entityId);
         this.entityStore.RemoveEntity(entityId);
@@ -148,6 +159,25 @@ export class EntityMessageHandler {
                 y: data.position.y
             },
             data.radius
+        );
+    }
+
+    private UpdateBullet(entityId: string, data: unknown): void {
+        if (!IsBulletData(data)) {
+            console.warn("Получено некорректное состояние астероида:", data);
+            return;
+        }
+
+        if (!data.position) {
+            return;
+        }
+
+        this.radarModel.UpdateBullet(
+            entityId,
+            {
+                x: data.position.x,
+                y: data.position.y
+            },
         );
     }
 
