@@ -8,7 +8,9 @@ type TriangleCollider struct {
 }
 
 func NewTriangleCollider(v1, v2, v3 Vec3) *TriangleCollider {
-	return &TriangleCollider{Vertex1: v1, Vertex2: v2, Vertex3: v3}
+	c := &TriangleCollider{Vertex1: v1, Vertex2: v2, Vertex3: v3}
+	c.Center = c.GetCenter()
+	return c
 }
 
 func (b *TriangleCollider) Collide(other Collider) CollisionResult {
@@ -69,6 +71,10 @@ func (c *CircleCollider) Collide(other Collider) CollisionResult {
 
 func (c *CircleCollider) ChangeCenter(center Vec3) {
 	c.Center = center
+}
+
+func (c *CircleCollider) GetCenter() Vec3 {
+	return c.Center
 }
 
 func triangleCircleCollide(triangle *TriangleCollider, circle *CircleCollider) CollisionResult {

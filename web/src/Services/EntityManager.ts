@@ -3,6 +3,7 @@ import { PlayerView } from "../Views/PlayerView";
 import { type NavigationDisplayState } from "../Views/ComputerView";
 import { ShipView, type ShipStateData } from "../Views/ShipView";
 import { AlienView } from "../Views/AlienView";
+import { CreateHole } from "../Views/BreakdownView";
 
 export interface EntityTransformData {
     position?: {
@@ -137,6 +138,11 @@ export class EntityManager
         {
             this.UpdateMonster(id, data);
             return;
+        }
+
+        if (type === "breakdown")
+        {
+            console.log("CreateEntity breakdown:", id, data);
         }
 
         if (id === this.localPlayerId)
@@ -548,6 +554,13 @@ export class EntityManager
             {
                 return {
                     object: this.CreateBox(0xffaa00),
+                    animatedView: null
+                };
+            }
+            case "breakdown":
+            {
+                return {
+                    object: CreateHole(),
                     animatedView: null
                 };
             }

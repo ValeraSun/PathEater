@@ -1,0 +1,218 @@
+{
+  "meta": {
+    "source": "ship_hull_detailed_v8.glb",
+    "space": "world",
+    "up": "Y",
+    "units": "m",
+    "shape": "obb: center + halfExtents + rotation(quat xyzw)"
+  },
+  "colliders": [
+    {
+      "id": "Lounge_Nose_Door",
+      "roomA": "lounge",
+      "roomB": "nose",
+      "shape": "obb",
+      "center": {
+        "x": 32.0,
+        "y": 2.8,
+        "z": -3.5
+      },
+      "halfExtents": {
+        "x": 2.5,
+        "y": 1.013,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 0.5,
+        "y": 0.5,
+        "z": 0.5,
+        "w": 0.5
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Lounge_Hall_Door",
+      "roomA": "lounge",
+      "roomB": "hall",
+      "shape": "obb",
+      "center": {
+        "x": 26.67,
+        "y": 2.8,
+        "z": -7.0
+      },
+      "halfExtents": {
+        "x": 1.013,
+        "y": 2.5,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Cafeteria_Hall_Door",
+      "roomA": "cafeteria",
+      "roomB": "hall",
+      "shape": "obb",
+      "center": {
+        "x": 16.0,
+        "y": 2.8,
+        "z": -7.0
+      },
+      "halfExtents": {
+        "x": 1.013,
+        "y": 2.5,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Cargo_Hall_Door",
+      "roomA": "cargo",
+      "roomB": "hall",
+      "shape": "obb",
+      "center": {
+        "x": 5.33,
+        "y": 2.8,
+        "z": -7.0
+      },
+      "halfExtents": {
+        "x": 1.013,
+        "y": 2.5,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Hall_Nose_Door",
+      "roomA": "hall",
+      "roomB": "nose",
+      "shape": "obb",
+      "center": {
+        "x": 32.0,
+        "y": 2.8,
+        "z": -9.0
+      },
+      "halfExtents": {
+        "x": 2.5,
+        "y": 1.013,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 0.5,
+        "y": 0.5,
+        "z": 0.5,
+        "w": 0.5
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Armory_Nose_Door",
+      "roomA": "armory",
+      "roomB": "nose",
+      "shape": "obb",
+      "center": {
+        "x": 32.0,
+        "y": 2.8,
+        "z": -14.5
+      },
+      "halfExtents": {
+        "x": 2.5,
+        "y": 1.013,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 0.5,
+        "y": 0.5,
+        "z": 0.5,
+        "w": 0.5
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Armory_Hall_Door",
+      "roomA": "armory",
+      "roomB": "hall",
+      "shape": "obb",
+      "center": {
+        "x": 26.67,
+        "y": 2.8,
+        "z": -11.0
+      },
+      "halfExtents": {
+        "x": 1.013,
+        "y": 2.5,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Medical_Hall_Door",
+      "roomA": "medical",
+      "roomB": "hall",
+      "shape": "obb",
+      "center": {
+        "x": 16.0,
+        "y": 2.8,
+        "z": -11.0
+      },
+      "halfExtents": {
+        "x": 1.013,
+        "y": 2.5,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "layer": "static"
+    },
+    {
+      "id": "Engine_Hall_Door",
+      "roomA": "engine",
+      "roomB": "hall",
+      "shape": "obb",
+      "center": {
+        "x": 5.33,
+        "y": 2.8,
+        "z": -11.0
+      },
+      "halfExtents": {
+        "x": 1.013,
+        "y": 2.5,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+      },
+      "layer": "static"
+    }
+  ]
+}

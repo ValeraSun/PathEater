@@ -26,20 +26,52 @@ func (s *ShootSystem) Update(dt float32) error {
 		shipId = id
 	}
 
-	c, _ := s.getter.GetComponent(shipId, "transform")
-	trShip := c.(*components.TransformComponent)
+	// ПРОВЕРКА: есть ли корабль
+	if shipId == "" {
+		return nil
+	}
 
-	c, _ = s.getter.GetComponent(shipId, "ship")
-	ship := c.(*components.ShipComponent)
+	c, err := s.getter.GetComponent(shipId, "transform")
+	if err != true {
+		return nil
+	}
+	trShip, ok := c.(*components.TransformComponent)
+	if !ok || trShip == nil {
+		return nil
+	}
+
+	c, err = s.getter.GetComponent(shipId, "ship")
+	if err != true {
+		return nil
+	}
+	ship, ok := c.(*components.ShipComponent)
+	if !ok || ship == nil {
+		return nil
+	}
 
 	for id, comp := range comps {
-		bul := comp.(*components.BulletComponent)
+		bul, ok := comp.(*components.BulletComponent)
+		if !ok || bul == nil {
+			continue
+		}
 
-		c, _ := s.getter.GetComponent(id, "transform")
-		transform := c.(*components.TransformComponent)
+		c, err := s.getter.GetComponent(id, "transform")
+		if err != true {
+			continue
+		}
+		transform, ok := c.(*components.TransformComponent)
+		if !ok || transform == nil {
+			continue
+		}
 
-		c, _ = s.getter.GetComponent(id, "externalVelocity")
-		ext, _ := comp.(*components.ExternalVelocityComponent)
+		c, err = s.getter.GetComponent(id, "externalVelocity")
+		if err != true {
+			continue
+		}
+		ext, ok := c.(*components.ExternalVelocityComponent)
+		if !ok || ext == nil {
+			continue
+		}
 
 		ext.Direction = geometry.GetZeroVector().Sub(trShip.Direction.Scale(ship.Speed)).Normalize()
 
