@@ -11,10 +11,11 @@ import (
 const loss = 10
 
 type OxygenSystem struct {
-	getter    componentsGetter
-	publisher publisher
-	players   map[types.Entity]*components.PlayerComponent
-	rooms     map[types.Entity]*components.RoomComponent
+	getter     componentsGetter
+	publisher  publisher
+	players    map[types.Entity]*components.PlayerComponent
+	rooms      map[types.Entity]*components.RoomComponent
+	breakdowns map[types.Entity]*components.BreakdownComponent
 }
 
 func NewOxygenSystem(getter componentsGetter, publisher publisher) *OxygenSystem {
@@ -52,6 +53,7 @@ func (s *OxygenSystem) getRooms() map[types.Entity]*components.RoomComponent {
 
 func (s *OxygenSystem) Update(dt float32) error {
 	s.players = s.getPlayers()
+	s.setBreakdowns()
 
 	for id, player := range s.players {
 		// Проверка: существует ли комната
@@ -60,13 +62,37 @@ func (s *OxygenSystem) Update(dt float32) error {
 			continue
 		}
 
+		if room.HasBreakdown && !room.Vacuum {
+			c, err := s.getter.GetComponent(id, "externalVelocity")
+			if err != false {
+				continue
+			}
+			ext, ok := c.(*components.ExternalVelocityComponent)
+			if !ok || ext == nil {
+				continue
+			}
+
+			for _, br := range s.breakdowns {
+				if br.RoomID == player.RoomID {
+					c, err = s.getter.GetComponent(id, "transform")
+					if err != false {
+						continue
+					}
+					tr, ok := c.(*components.TransformComponent)
+					if !ok || tr == nil {
+						continue
+					}
+					ext.Direction = br.Position.Sub(tr.Position).Normalize()
+				}
+			}
+		}
+
 		// Проверка: вакуум в комнате
 		if room.Vacuum {
 			c, err := s.getter.GetComponent(id, "oxygen")
 			if err != false {
 				continue
 			}
-
 			ox, ok := c.(*components.OxygenComponent)
 			if !ok || ox == nil {
 				continue
@@ -80,4 +106,10 @@ func (s *OxygenSystem) Update(dt float32) error {
 		}
 	}
 	return nil
+}
+func (s *OxygenSystem) setBreakdowns() {
+	bs := s.getter.GetEntitiesByComponent("breakdown")
+	for id, b := range bs {
+		s.breakdowns[id] = b.(*components.BreakdownComponent)
+	}
 }

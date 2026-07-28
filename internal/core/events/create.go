@@ -86,13 +86,15 @@ func NewCreateBulletEvent(pos, dir geometry.Vec3) *CreateBulletEvent {
 type CreateBreakdownEvent struct {
 	Position geometry.Vec3
 	WallID   types.Entity
+	RoomID   types.Entity
 }
 
 func (*CreateBreakdownEvent) Type() string { return "createBreakdown" }
 
-func NewCreateBreakdownEvent(wallID types.Entity, pos geometry.Vec3) *CreateBreakdownEvent {
+func NewCreateBreakdownEvent(wallID, roomID types.Entity, pos geometry.Vec3) *CreateBreakdownEvent {
 	return &CreateBreakdownEvent{
 		Position: pos,
 		WallID:   wallID,
+		RoomID:   roomID,
 	}
 }

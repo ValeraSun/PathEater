@@ -8,15 +8,17 @@ import (
 type BreakdownComponent struct {
 	Position geometry.Vec3
 	WallID   types.Entity
+	RoomID   types.Entity
 }
 
 func (*BreakdownComponent) Type() string {
 	return "breakdown"
 }
 
-func NewBreakdownComponent(pos geometry.Vec3, wallID types.Entity) *BreakdownComponent {
+func NewBreakdownComponent(pos geometry.Vec3, wallID, roomID types.Entity) *BreakdownComponent {
 	return &BreakdownComponent{
 		Position: pos,
 		WallID:   wallID,
+		RoomID:   roomID,
 	}
 }

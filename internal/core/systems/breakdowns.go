@@ -2,6 +2,7 @@ package systems
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 
 	"github.com/ValeraSun/PathEater/internal/core/components"
@@ -14,7 +15,7 @@ type BreakdownSystem struct {
 	componentsGetter
 	publisher
 	externalWalls []types.Entity
-	rooms         map[types.Entity]*components.RoomComponent
+	rooms         map[types.Entity]types.Entity
 	eventQueue    chan events.Event
 }
 
@@ -23,7 +24,7 @@ func NewBreakdownSystem(getter componentsGetter, publisher publisher, subscriber
 		getter,
 		publisher,
 		externalWalls,
-		make(map[types.Entity]*components.RoomComponent),
+		make(map[types.Entity]types.Entity),
 		make(chan events.Event, 100),
 	}
 	s.setRooms()
@@ -33,11 +34,10 @@ func NewBreakdownSystem(getter componentsGetter, publisher publisher, subscriber
 
 func (s *BreakdownSystem) setRooms() {
 	rs := s.GetEntitiesByComponent("room")
-	for _, r := range rs {
+	for id, r := range rs {
 		room := r.(*components.RoomComponent)
-		s.rooms[room.ExternalWall] = room
+		s.rooms[room.ExternalWall] = id
 	}
-	return
 }
 
 func (s *BreakdownSystem) Update(dt float32) error {
@@ -49,12 +49,16 @@ func (s *BreakdownSystem) Update(dt float32) error {
 
 			// ПРОВЕРЯЕМ СУЩЕСТВОВАНИЕ
 			room := s.rooms[wallID]
-			if room == nil {
+			if room == "" {
+				log.Println("КОМНАТЫ НЕТ")
 				continue // если комнаты нет - пропускаем
 			}
+			log.Println("КОМНАТА: ", room)
 
-			room.HasBreakdown = true
-			s.publisher.Publish(events.NewCreateBreakdownEvent(wallID, pos))
+			c, _ := s.GetComponent(room, "room")
+			roomComp := c.(*components.RoomComponent)
+			roomComp.HasBreakdown = true
+			s.publisher.Publish(events.NewCreateBreakdownEvent(wallID, room, pos))
 			s.publisher.Publish(events.NewVacuumRecalculateEvent())
 			if ev.SpawnAlien {
 				alienPos := getAlienPos(pos, normal)
