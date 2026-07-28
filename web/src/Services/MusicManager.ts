@@ -21,7 +21,7 @@ const FADE_STEP_MS = 40;
 const FADE_STEP_VOLUME = 0.04;
 
 export class MusicManager {
-    private readonly music: HTMLAudioElement;
+    private music: HTMLAudioElement;
 
     private currentTrack: MusicTrack | null = null;
     private fadeTimer: number | null = null;
@@ -50,7 +50,6 @@ export class MusicManager {
         this.music.currentTime = 0;
         this.music.src = config.src;
         this.music.volume = config.volume;
-
         this.currentTrack = track;
 
         await this.TryPlay();

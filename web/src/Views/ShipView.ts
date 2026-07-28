@@ -1,12 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { CargoView } from "./CargoView";
-
-export interface ShipStateData
-{
-    baggage_status?: number;
-    health?: number;
-}
+import type { ShipWireData } from "../Network/ServerContracts";
 
 export class ShipView
 {
@@ -22,15 +17,11 @@ export class ShipView
         this.group.add(cargoObject);
     }
 
-    public UpdateState(data: ShipStateData): void
-    {
-        if (typeof data.baggage_status === "number")
-        {
+    public UpdateState(data: ShipWireData): void {
+        if (typeof data.baggage_status === "number") {
             this.cargoView.SetBaggageStatus(data.baggage_status);
         }
-
-        if (typeof data.health === "number")
-        {
+        if (typeof data.health === "number") {
             this.health = data.health;
         }
     }

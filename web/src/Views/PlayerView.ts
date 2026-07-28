@@ -60,10 +60,7 @@ export class PlayerView
     }
 
     public SetMoving(isMoving: boolean): void {
-        this.playAnimation(
-            isMoving ? "moon_walk" : "idle",
-            isMoving ? 2.3 : 1
-        );
+        this.playAnimation(isMoving ? "moon_walk" : "idle", isMoving ? 2.3 : 1);
     }
 
     private playAnimation(name: string, speed = 1): void {

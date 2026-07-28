@@ -1,23 +1,23 @@
 import * as THREE from "three";
-import { ShipView } from "./ShipView";
-import { SpaceView } from "./SpaceView";
 import { WindowResize } from "../Utils/WindowResize";
-import { PlayerView } from "./PlayerView";
 import { ComputerView } from "./ComputerView";
 import { HealthbarView } from "./HealthbarView";
+import { PlayerView } from "./PlayerView";
+import { ShipView } from "./ShipView";
+import { SpaceView } from "./SpaceView";
 
-export class GameView
-{
+export class GameView {
     private scene: THREE.Scene;
     private camera: THREE.PerspectiveCamera;
     private renderer: THREE.WebGLRenderer;
-    private healthView!: HealthbarView;
     private shipView: ShipView;
     private spaceView: SpaceView;
     private computerView: ComputerView;
 
-    public constructor()
-    {
+    private healthBarView: HealthbarView | null = null;
+    private initialized = false;
+
+    public constructor() {
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({antialias: true});
@@ -26,26 +26,21 @@ export class GameView
         this.computerView = new ComputerView();
     }
 
-    public Init(): void
-    {
+    public Initialize(gameContainer: HTMLElement, healthBarContainer: HTMLElement): void {
+        if (this.initialized) {
+            return;
+        }
+
+        this.initialized = true;
+
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-       const container = document.getElementById("app");
+        gameContainer.appendChild(this.renderer.domElement);
 
-        if (!container) {
-            throw new Error("Элемент #app не найден");
-        }
+        this.healthBarView = new HealthbarView(healthBarContainer);
 
-        container.appendChild(this.renderer.domElement);
-
-        const healthContainer = document.getElementById("healthbar-container");
-
-        if (!healthContainer) {
-            throw new Error("Элемент #healthbar-container не найден");
-        }
-
-        this.healthView = new HealthbarView(healthContainer);
         this.camera.position.set(0, 5, 12);
         this.camera.lookAt(0, 0, 1);
+
         this.AddLights();
 
         this.scene.add(this.spaceView.GetObject());
@@ -55,66 +50,57 @@ export class GameView
         WindowResize.Handle(this.camera, this.renderer);
     }
 
-    public Render(): void
-    {
+    public Render(): void {
         this.renderer.render(this.scene, this.camera);
     }
 
-    public AttachPlayerView(playerView: PlayerView): void
-    {
+    public AttachPlayerView(playerView: PlayerView): void {
         this.scene.add(playerView.mesh);
     }
 
-    public GetCamera(): THREE.PerspectiveCamera
-    {
-        return this.camera;
+    public RemovePlayerView(playerView: PlayerView): void {
+        this.scene.remove(playerView.mesh);
     }
 
-    public GetScene(): THREE.Scene
-    {
+    public SetPlayerHealth(health: number): void {
+        this.healthBarView?.SetHealth(health);
+    }
+
+    public ShowPlayerHealth(): void {
+        this.healthBarView?.Show();
+    }
+
+    public HidePlayerHealth(): void {
+        this.healthBarView?.Hide();
+    }
+
+    public GetScene(): THREE.Scene {
         return this.scene;
     }
 
-    public GetRendererDomElement(): HTMLCanvasElement
-    {
+    public GetCamera(): THREE.PerspectiveCamera {
+        return this.camera;
+    }
+
+    public GetRendererDomElement(): HTMLCanvasElement {
         return this.renderer.domElement;
     }
 
-    public GetComputerView(): ComputerView
-    {
-        return this.computerView;
-    }
-
-    public GetShipView(): ShipView
-    {
+    public GetShipView(): ShipView {
         return this.shipView;
     }
 
-    public SetPlayerHealth(health: number): void
-    {
-        this.healthView.SetHealth(health);
+    public GetComputerView(): ComputerView {
+        return this.computerView;
     }
 
-    public ShowPlayerHealth(): void
-    {
-        this.healthView.Show();
-    }
-
-    public HidePlayerHealth(): void
-    {
-        this.healthView.Hide();
-    }
-
-    private AddLights(): void
-    {
+    private AddLights(): void {
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        this.scene.add(ambientLight);
-
-        const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444466, 1.0);
-        this.scene.add(hemisphereLight);
-
+        const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444466, 1);
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
         directionalLight.position.set(10, 10, 10);
+        this.scene.add(ambientLight);
+        this.scene.add(hemisphereLight);
         this.scene.add(directionalLight);
     }
 }

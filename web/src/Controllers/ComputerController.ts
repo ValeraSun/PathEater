@@ -1,45 +1,26 @@
 import { InputController } from "./InputController";
-import { PlayerController } from "./PlayerController";
 
 export class ComputerController {
+    private inputController: InputController;
+
     private active = false;
 
-    private input: InputController;
-    private playerController: PlayerController;
-    private computerId: string;
-
-    public constructor(
-        input: InputController,
-        playerController: PlayerController,
-        computerId: string
-    ) {
-        this.input = input;
-        this.playerController = playerController;
-        this.computerId = computerId;
+    public constructor(inputController: InputController) {
+        this.inputController = inputController;
     }
 
-    public Enter(): void {
+    public EnterControlMode(): void {
         if (this.active) {
             return;
         }
-
         this.active = true;
-
-        console.log(
-            `Управление компьютером ${this.computerId} включено`
-        );
     }
 
-    public Exit(): void {
+    public ExitControlMode(): void {
         if (!this.active) {
             return;
         }
-
         this.active = false;
-
-        console.log(
-            `Управление компьютером ${this.computerId} выключено`
-        );
     }
 
     public Update(): void {
@@ -47,13 +28,16 @@ export class ComputerController {
             return;
         }
 
-        if (this.input.WasPressedOnce("Escape")) {
-            this.Exit();
-            return;
+        if (this.inputController.WasPressedOnce("Escape")) {
+            this.ExitControlMode();
         }
     }
 
-    public IsActive(): boolean {
+    public IsControlModeActive(): boolean {
         return this.active;
+    }
+
+    public Dispose(): void {
+        this.active = false;
     }
 }
