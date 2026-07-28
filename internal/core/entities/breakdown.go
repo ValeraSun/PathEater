@@ -6,13 +6,13 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
-func NewBreakdown(adder entityAdder, pos geometry.Vec3, wallID types.Entity) types.Entity {
+func NewBreakdown(adder entityAdder, pos geometry.Vec3, wallID, roomID types.Entity) types.Entity {
 	e, _ := adder.AddEntity(
 		components.NewTransformComponent(
 			pos,
 			geometry.GetZeroVector(),
 		),
-		components.NewBreakdownComponent(pos, wallID),
+		components.NewBreakdownComponent(pos, wallID, roomID),
 	)
 	return e
 }

@@ -65,7 +65,7 @@ func (s *CreateSystem) drainEvents() error {
 				entity = entities.NewBullet(s, event.Position, event.Direction)
 			case "createBreakdown":
 				event := e.(*events.CreateBreakdownEvent)
-				entity = entities.NewBreakdown(s, event.Position, event.WallID)
+				entity = entities.NewBreakdown(s, event.Position, event.WallID, event.RoomID)
 			}
 
 			err := s.Send(entity, s.SendEntityCreate)
