@@ -38,7 +38,6 @@ const DEFAULT_ASTEROID_RADIUS = 90;
 export class RadarModel {
     private shipHealth = 100;
     private shipWeaponDirection: Vector2D = { x: 0, y: -1 };
-
     private asteroidsById = new Map<string, AsteroidRadarEntry>();
     private monstersById = new Map<string, Vector2D>();
     private bulletsById = new Map<string, Vector2D>();
