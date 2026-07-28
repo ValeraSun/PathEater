@@ -11,7 +11,7 @@ const (
 	cameraHeight  = 1.9
 	cameraOffset  = 0.5
 
-	playerSpeed          = 10
+	playerSpeed          = 4
 	playerMaxHealth      = 100
 	playerHalfHeight     = 1
 	playerRadius         = 0.7

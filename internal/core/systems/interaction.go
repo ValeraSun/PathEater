@@ -2,57 +2,66 @@ package systems
 
 import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
-	"github.com/ValeraSun/PathEater/internal/core/events"
+	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 type InteractionSystem struct {
-	getter     componentsGetter
-	publisher  publisher
-	eventQueue chan events.Event
+	componentsGetter
+	publisher
 }
 
 func NewInteractionSystem(getter componentsGetter, publisher publisher) *InteractionSystem {
 	s := &InteractionSystem{
-		getter:    getter,
-		publisher: publisher,
+		getter,
+		publisher,
 	}
 
 	return s
 }
 
 func (s *InteractionSystem) Update(dt float32) error {
-	comps := s.getter.GetEntitiesByComponent("interactable")
-	interactables := make([]*components.InteractableComponent, 0, len(comps))
+	comps := s.GetEntitiesByComponent("interactable")
 
-	for _, c := range comps {
-		interactables = append(interactables, c.(*components.InteractableComponent))
+	type interactable struct {
+		*components.InteractableComponent
+		types.Entity
 	}
-
-	comps = s.getter.GetEntitiesByComponent("interactionDetector")
+	interactables := make([]*interactable, 0, len(comps))
 
 	for id, c := range comps {
+		inter := c.(*components.InteractableComponent)
+		interactables = append(interactables, &interactable{
+			inter,
+			id,
+		},
+		)
+	}
 
-		if !s.getter.HasComponents(id, "transform", "control") {
+	comps = s.GetEntitiesByComponent("interactionDetector")
+
+	for source, c := range comps {
+
+		if !s.HasComponents(source, "transform", "control") {
 			continue
 		}
 
 		interactor := c.(*components.InteractionDetectorComponent)
 
-		c, _ = s.getter.GetComponent(id, "transform")
+		c, _ = s.GetComponent(source, "transform")
 		transform := c.(*components.TransformComponent)
 
 		ray := interactor.GetRay(transform.Position, transform.Direction)
 
-		for _, col := range interactables {
-			r := ray.Collide(&col.Collider)
+		for _, inter := range interactables {
+			r := ray.Collide(&inter.Collider)
 
 			if r.HasCollision {
 
-				c, _ = s.getter.GetComponent(id, "control")
+				c, _ = s.GetComponent(source, "control")
 				control := c.(*components.ControlComponent)
 
 				if control.Interact {
-					col.Interaction(id, s.publisher)
+					s.Publish(inter.Interaction(source, inter.Entity))
 				}
 			}
 		}
