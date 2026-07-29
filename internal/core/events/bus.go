@@ -15,7 +15,7 @@ type EventBus struct {
 	subscribers map[string][]EventHandler
 	queue       chan Event
 	mu          sync.RWMutex
-	done        chan struct{}
+	done        bool
 	metrics     *EventMetrics
 }
 
@@ -30,7 +30,6 @@ func NewEventBus(bufferSize int) *EventBus {
 	bus := &EventBus{
 		subscribers: make(map[string][]EventHandler),
 		queue:       make(chan Event, bufferSize),
-		done:        make(chan struct{}),
 		metrics:     &EventMetrics{},
 	}
 
@@ -38,13 +37,8 @@ func NewEventBus(bufferSize int) *EventBus {
 }
 
 func (eb *EventBus) ProcessEvents() {
-	for {
-		select {
-		case event := <-eb.queue:
-			eb.handleEvent(event)
-		case <-eb.done:
-			return
-		}
+	for event := range eb.queue {
+		eb.handleEvent(event)
 	}
 }
 
@@ -106,6 +100,13 @@ func (eb *EventBus) Subscribe(eventType string, handler EventHandler) (func(), e
 }
 
 func (eb *EventBus) Publish(event Event) error {
+	eb.mu.RLock()
+	defer eb.mu.RUnlock()
+
+	if eb.done {
+		return nil
+	}
+
 	select {
 	case eb.queue <- event:
 		eb.metrics.mu.Lock()
@@ -123,6 +124,12 @@ func (eb *EventBus) PublishSync(event Event) {
 }
 
 func (eb *EventBus) Close() {
-	close(eb.done)
+	eb.mu.Lock()
+	defer eb.mu.Unlock()
+
+	if eb.done {
+		return
+	}
+	eb.done = true
 	close(eb.queue)
 }
