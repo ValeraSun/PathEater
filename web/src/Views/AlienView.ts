@@ -74,7 +74,7 @@ export class AlienView {
             return;
         }
 
-        this.PlayAnimation(actionName,this.attacking);
+        this.PlayAnimation(actionName);
     }
 
     private FindActionName(part: "walk" | "attack"): string | null {
@@ -86,7 +86,7 @@ export class AlienView {
         );
     }
 
-    private PlayAnimation(name: string,playOnce: boolean): void {
+    private PlayAnimation(name: string): void {
         const next = this.actions[name];
         if (!next || next === this.currentAction) {
             return;
@@ -96,14 +96,8 @@ export class AlienView {
         next.enabled = true;
         next.setEffectiveTimeScale(1);
         next.setEffectiveWeight(1);
-
-        if (playOnce) {
-            next.setLoop(THREE.LoopOnce, 1);
-            next.clampWhenFinished = true;
-        } else {
-            next.setLoop(THREE.LoopRepeat,Infinity);
-            next.clampWhenFinished = false;
-        }
+        next.setLoop(THREE.LoopRepeat, Infinity);
+        next.clampWhenFinished = false;
 
         next.fadeIn(FADE_DURATION).play();
         this.currentAction?.fadeOut(FADE_DURATION);
