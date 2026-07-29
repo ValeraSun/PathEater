@@ -133,4 +133,8 @@ export class GameView {
     private HandleResize = (): void => {
         this.damageGlitchEffect?.SetSize(window.innerWidth, window.innerHeight);
     };
+
+    public TriggerMonsterBloodSplatter(): void {
+        this.damageGlitchEffect?.TriggerMonsterBloodSplatter();
+    }
 }

@@ -44,7 +44,7 @@ export class EntityViewFactory {
                 const doorView = new DoorView();
                 return {
                     object: doorView.mesh,
-                    animatedView: doorView, // Если хотите обновлять анимацию через EntityViewManager
+                    animatedView: null, 
                     ownsResources: false
                 };
             }
