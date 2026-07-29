@@ -31,14 +31,3 @@ func (s *sendler) sendBullet(id types.Entity, broadcaster func(EntityInfo) error
 
 	return nil
 }
-
-func getShipPosition(getter componentsGetter) (geometry.Vec3, error) {
-	entities := getter.GetEntitiesByComponent("ship")
-	for id := range entities {
-		if comp, ok := getter.GetComponent(id, "transform"); ok {
-			trans := comp.(*components.TransformComponent)
-			return trans.Position, nil
-		}
-	}
-	return geometry.Vec3{}, errors.New("ship not found")
-}

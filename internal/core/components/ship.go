@@ -24,15 +24,3 @@ func NewShipComponent(baggageStatus int) *ShipComponent {
 type componentsGetter interface {
 	GetEntitiesByComponent(string) map[types.Entity]types.Component
 }
-
-func GetShip(getter componentsGetter) types.Entity {
-	ships := getter.GetEntitiesByComponent("ship")
-
-	var ship types.Entity
-
-	for id := range ships {
-		ship = id
-	}
-
-	return ship
-}

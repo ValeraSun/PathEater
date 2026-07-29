@@ -17,11 +17,7 @@ func NewInteractableComponent(center, halfExtents geometry.Vec3, onKey string, i
 		Collider: *geometry.NewBoxCollider(
 			center,
 			halfExtents,
-			[3]geometry.Vec3{
-				{X: 1},
-				{Y: 1},
-				{Z: 1},
-			},
+			geometry.GetStandartAxes(),
 		),
 		OnKey:       onKey,
 		Interaction: interaction,

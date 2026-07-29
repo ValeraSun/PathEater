@@ -19,17 +19,18 @@ const (
 )
 
 type CosmoAlienSystem struct {
-	getter    componentsGetter
-	publisher publisher
-	rng       *rand.Rand
-	shipID    types.Entity
+	componentsGetter
+	publisher
+	rng    *rand.Rand
+	shipID types.Entity
 }
 
 func NewCosmoAlienSystem(getter componentsGetter, publisher publisher) *CosmoAlienSystem {
 	s := &CosmoAlienSystem{
-		getter:    getter,
-		publisher: publisher,
-		rng:       rand.New(rand.NewSource(time.Now().UnixNano())),
+		getter,
+		publisher,
+		rand.New(rand.NewSource(time.Now().UnixNano())),
+		"",
 	}
 	s.findShipID()
 	return s
@@ -39,12 +40,13 @@ func (s *CosmoAlienSystem) findShipID() bool {
 	if s.shipID != "" {
 		return true
 	}
-	ships := s.getter.GetEntitiesByComponent("ship")
-	for id := range ships {
-		s.shipID = id
-		return true
+	s.shipID, _ = getShip(s)
+
+	if s.shipID == "" {
+		return false
 	}
-	return false
+
+	return true
 }
 
 func (s *CosmoAlienSystem) generateCosmoAlien() geometry.Vec3 {
@@ -72,9 +74,9 @@ func (s *CosmoAlienSystem) generateCosmoAlien() geometry.Vec3 {
 }
 
 func (s *CosmoAlienSystem) isPositionOccupied(pos geometry.Vec3) bool {
-	aliens := s.getter.GetEntitiesByComponent("cosmoAlien")
+	aliens := s.GetEntitiesByComponent("cosmoAlien")
 	for id := range aliens {
-		c, ok := s.getter.GetComponent(id, "transform")
+		c, ok := s.GetComponent(id, "transform")
 		if !ok {
 			continue
 		}
@@ -83,9 +85,9 @@ func (s *CosmoAlienSystem) isPositionOccupied(pos geometry.Vec3) bool {
 			return true
 		}
 	}
-	asteroids := s.getter.GetEntitiesByComponent("asteroid")
+	asteroids := s.GetEntitiesByComponent("asteroid")
 	for id := range asteroids {
-		c, ok := s.getter.GetComponent(id, "transform")
+		c, ok := s.GetComponent(id, "transform")
 		if !ok {
 			continue
 		}
@@ -102,12 +104,12 @@ func (s *CosmoAlienSystem) Update(dt float32) error {
 		return nil
 	}
 
-	aliens := s.getter.GetEntitiesByComponent("cosmoAlien")
+	aliens := s.GetEntitiesByComponent("cosmoAlien")
 	for id := range aliens {
-		transformRaw, _ := s.getter.GetComponent(id, "transform")
+		transformRaw, _ := s.GetComponent(id, "transform")
 		transform := transformRaw.(*components.TransformComponent)
 
-		moveRaw, _ := s.getter.GetComponent(id, "movement")
+		moveRaw, _ := s.GetComponent(id, "movement")
 		move := moveRaw.(*components.MovementComponent)
 
 		toCenter := geometry.Vec3{X: 0, Y: 0, Z: 0}.Sub(transform.Position)
@@ -121,7 +123,7 @@ func (s *CosmoAlienSystem) Update(dt float32) error {
 }
 
 func (s *CosmoAlienSystem) spawnCosmoAliens() {
-	aliens := s.getter.GetEntitiesByComponent("cosmoAlien")
+	aliens := s.GetEntitiesByComponent("cosmoAlien")
 	if len(aliens) >= maxCosmoAliens {
 		return
 	}

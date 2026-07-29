@@ -37,24 +37,24 @@ func (s *AISystem) Update(dt float32) error {
 		ai := c.(*components.AIComponent)
 
 		if s.getter.HasComponents(id, "vision", "collider", "transform", "attack") {
-			comp, _ := s.getter.GetComponent(id, "vision")
-			vision := comp.(*components.VisionComponent)
+			c, _ := s.getter.GetComponent(id, "vision")
+			vision := c.(*components.VisionComponent)
 
-			comp, _ = s.getter.GetComponent(id, "collider")
-			collider := comp.(*components.ColliderComponent)
+			c, _ = s.getter.GetComponent(id, "transform")
+			transform := c.(*components.TransformComponent)
 
-			comp, _ = s.getter.GetComponent(id, "transform")
-			transform := comp.(*components.TransformComponent)
+			c, _ = s.getter.GetComponent(id, "collider")
+			collider := c.(*components.ColliderComponent)
 
-			comp, _ = s.getter.GetComponent(id, "attack")
-			attack := comp.(*components.AttackComponent)
+			c, _ = s.getter.GetComponent(id, "attack")
+			attack := c.(*components.AttackComponent)
 
 			enemies = append(enemies, enemy{
 				ai:        ai,
 				attack:    attack,
 				vision:    vision,
-				privMtv:   collider.PrivMTV,
 				transform: transform,
+				privMtv:   collider.PrivMTV,
 				id:        id,
 			})
 		}
@@ -65,19 +65,23 @@ func (s *AISystem) Update(dt float32) error {
 
 		enemy.attack.ReduceCooldown(dt)
 
+		enemy.ai.MoveFront = false
+
 		if enemy.vision.CanSee {
-			enemy.ai.Direction = enemy.vision.Direction.Normalize()
-			enemy.ai.MoveFront = true
 
-			e, isAttack := enemy.attack.TryAttack(enemy.id, enemy.transform.Position, enemy.transform.Direction)
+			enemy.ai.Direction = enemy.vision.Distant.Normalize().Add(enemy.privMtv.Normalize())
 
-			if isAttack {
-				s.publisher.Publish(e)
+			if enemy.vision.Distant.Length() > minDistant {
+				enemy.ai.MoveFront = true
+			} else {
+				e, isAttack := enemy.attack.TryAttack(enemy.id, enemy.transform.Position, enemy.vision.Distant)
+
+				if isAttack {
+					s.publisher.Publish(e)
+				}
 			}
-
-		} else {
-			enemy.ai.MoveFront = false
 		}
+
 	}
 
 	return nil

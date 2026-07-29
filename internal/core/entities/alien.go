@@ -8,6 +8,7 @@ import (
 
 const (
 	alienHalfHeight       = 1
+	alienMaxHealth        = 100
 	alienRadius           = 0.6
 	alienAttackDamage     = 0
 	alienAttackCooldown   = 2
@@ -40,7 +41,7 @@ func NewAlien(adder entityAdder, position geometry.Vec3) types.Entity {
 		components.NewMovableComponent(),
 		components.NewVelocityComponent(),
 		components.NewUpdateComponent(),
-		components.NewHealthComponent(100),
+		components.NewHealthComponent(alienMaxHealth),
 		components.NewAIComponent(),
 		components.NewColliderComponent(geometry.NewCapsuleCollider(
 			geometry.Vec3{},

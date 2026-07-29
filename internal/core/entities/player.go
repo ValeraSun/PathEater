@@ -29,6 +29,7 @@ func IsPlayer(id types.Entity, getter componentsGetter) bool {
 func NewPlayer(adder entityAdder, clientID string) types.Entity {
 	adder.AddEntityByID(
 		types.Entity(clientID),
+		components.NewTargetComponent(),
 		components.NewInteractionDetectorComponent(cameraDistant, cameraHeight, cameraOffset),
 		components.NewControlShipComponent(),
 		components.NewPlayerComponent(),

@@ -27,9 +27,10 @@ func (s *GameOverSystem) Update(dt float32) error {
 
 func (s *GameOverSystem) OnEvent(event events.Event) error {
 	ev := event.(*events.GameOverEvent)
+	_, ship := getShip(s)
 	s.broadcaster.SendGameOverState(sendler.GameOverInfo{
 		Win:    ev.Win,
-		Status: 10,
+		Status: ship.BaggageStatus,
 	},
 	)
 	s.closer.Close()

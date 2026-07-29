@@ -58,8 +58,7 @@ func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewBoardingSystem(world, world.EventBus, world.EventBus))
 	world.AddSystem(systems.NewAsteroidSystem(world, world.EventBus, world.EventBus))
 	world.AddSystem(systems.NewCosmoAlienSystem(world, world.EventBus))
-	//	world.AddSystem(systems.NewWeaponSystem(world, world.EventBus, world.EventBus))
-	//	world.AddSystem(systems.NewShootSystem(world))
+
 	world.AddSystem(systems.NewNavigationDisplaySystem(world, world.EventBus))
 	world.AddSystem(systems.NewCollisionsSystem(world, world.EventBus, world.EventBus)) //терминал
 

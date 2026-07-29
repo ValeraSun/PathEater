@@ -13,6 +13,10 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
+const (
+	eventBusSize = 100
+)
+
 type Timer struct {
 	mu         sync.RWMutex
 	duration   time.Duration
@@ -127,7 +131,7 @@ func newWorld(eventBus *events.EventBus, broadcasterFunc broadcasterFunc) *World
 }
 
 func CreateWorld(broadcasterFunc broadcasterFunc) *World {
-	eb := events.NewEventBus(100)
+	eb := events.NewEventBus(eventBusSize)
 	w := newWorld(eb, broadcasterFunc)
 
 	return w

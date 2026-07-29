@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	shipHealth      = 100
+	shipHealth      = 9999 //изменить
 	shipSpeed       = 50
 	shipBaggage     = 10
 	shipWeaponSpeed = 10
@@ -21,6 +21,12 @@ func IsShip(id types.Entity, getter componentsGetter) bool {
 }
 
 func NewShip(adder entityAdder, weapon types.Entity) types.Entity {
+
+	NewBaggageHitbox(adder, 5.7, -2.75)
+	NewBaggageHitbox(adder, 4.4, -2.75)
+	NewBaggageHitbox(adder, 3, -2.75)
+	NewBaggageHitbox(adder, 1.7, -2.75)
+
 	e, _ := adder.AddEntity(
 		components.NewTransformComponent(
 			geometry.GetZeroVector(),
