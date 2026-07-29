@@ -16,14 +16,17 @@ import { GameLoop } from "./GameLoop";
 
 const POSITION_INTERPOLATION_SPEED = 12;
 const ROTATION_INTERPOLATION_SPEED = 12;
+const DAMAGE_GLITCH_BASE_STRENGTH = 0.35;
+const DAMAGE_GLITCH_HEALTH_SCALE = 100;
 
 export class GameSession {
-    private gameView: GameView;
-    private inputController: InputController;
-    private gameServerGateway: GameServerGateway;
-    private entityMessageHandler: EntityMessageHandler;
-    private computerModel: ComputerModel;
-    private interactionView: InteractionView;
+    private readonly gameView: GameView;
+    private readonly inputController: InputController;
+    private readonly gameServerGateway: GameServerGateway;
+    private readonly entityMessageHandler: EntityMessageHandler;
+    private readonly computerModel: ComputerModel;
+    private readonly interactionView: InteractionView;
+
     private gameLoop: GameLoop | null = null;
     private playerModel: PlayerModel | null = null;
     private playerView: PlayerView | null = null;
@@ -31,8 +34,10 @@ export class GameSession {
     private cameraController: CameraController | null = null;
     private interactionController: InteractionController | null = null;
     private computerController: ComputerController | null = null;
-    private targetPlayerPosition = new THREE.Vector3();
+
+    private readonly targetPlayerPosition = new THREE.Vector3();
     private targetPlayerRotationY = 0;
+    private lastKnownHealth: number | null = null;
 
     public constructor(
         gameView: GameView,
@@ -59,6 +64,7 @@ export class GameSession {
         this.playerView = new PlayerView();
         this.targetPlayerPosition.copy(spawnPosition);
         this.targetPlayerRotationY = 0;
+        this.lastKnownHealth = null;
         this.gameView.GetScene().add(this.playerView.mesh);
 
         this.cameraController = new CameraController(
@@ -116,8 +122,8 @@ export class GameSession {
                     }
                 }
             ],
-            (): void => {
-                this.gameView.Render();
+            (deltaTime: number): void => {
+                this.gameView.Render(deltaTime);
             },
             (): void => {
                 this.inputController.FinishFrame();
@@ -131,6 +137,7 @@ export class GameSession {
     public Stop(): void {
         this.gameLoop?.Stop();
         this.gameLoop = null;
+
         this.cameraController?.Dispose();
         this.computerController?.Dispose();
         this.interactionController?.Dispose();
@@ -167,8 +174,19 @@ export class GameSession {
         }
 
         if (typeof playerState.health === "number") {
-            this.gameView.SetPlayerHealth(playerState.health);
+            this.HandleHealthChanged(playerState.health);
         }
+    }
+
+    private HandleHealthChanged(newHealth: number): void {
+        if (this.lastKnownHealth !== null && newHealth < this.lastKnownHealth) {
+            const healthLost = this.lastKnownHealth - newHealth;
+            const strength = Math.min(1, DAMAGE_GLITCH_BASE_STRENGTH + healthLost / DAMAGE_GLITCH_HEALTH_SCALE);
+            this.gameView.TriggerPlayerDamage(strength);
+        }
+
+        this.lastKnownHealth = newHealth;
+        this.gameView.SetPlayerHealth(newHealth);
     }
 
     private UpdateLocalPlayer(deltaTime: number): void {
