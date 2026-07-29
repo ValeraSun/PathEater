@@ -51,8 +51,8 @@ func (s *sendler) Send(id types.Entity, broadcaster func(EntityInfo) error) erro
 }
 
 type GameOverInfo struct {
-	Type string `json:"type"`
-	Data any    `json:"data"`
+	Win    bool `json:"win"`
+	Status int  `json:"status"`
 }
 
 type TimeInfo struct {

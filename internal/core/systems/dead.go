@@ -47,7 +47,6 @@ func (s *DeadSystem) drainEvents() error {
 			} else {
 				s.Publish(events.NewDeleteEvent(ev.ID))
 			}
-			//s.Publish(events.NewDeleteEvent(ev.ID))
 		default:
 			return nil
 		}

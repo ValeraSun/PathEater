@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	timeGame = 9999
+	timeGame = 1
 )
 
 type entitySendler interface {

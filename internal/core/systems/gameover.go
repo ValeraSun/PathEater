@@ -25,20 +25,13 @@ func (s *GameOverSystem) Update(dt float32) error {
 	return nil
 }
 
-type GameOverData struct {
-	Win    bool `json:"win"`
-	Status int  `json:"status"`
-}
-
 func (s *GameOverSystem) OnEvent(event events.Event) error {
-	ev := event.(*events.GameOverEvent)
+	//	ev := event.(*events.GameOverEvent)
 	s.broadcaster.SendGameOverState(sendler.GameOverInfo{
-		Type: "gameOver",
-		Data: GameOverData{
-			Win: ev.Win,
-			//Status: s.status,
-		},
-	})
+		Win:    true,
+		Status: 10,
+	},
+	)
 	s.closer.Close()
 	return nil
 }

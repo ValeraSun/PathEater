@@ -161,17 +161,8 @@ type Sendler struct {
 }
 
 func (s Sendler) SendEntityCreate(entityInfo sendler.EntityInfo) error {
-	var info struct {
-		ID   types.Entity `json:"id"`
-		Type string       `json:"type"`
-		Data any          `json:"data"`
-	}
 
-	info.ID = entityInfo.ID
-	info.Type = entityInfo.Type
-	info.Data = entityInfo.Data
-
-	payload, err := json.Marshal(info)
+	payload, err := json.Marshal(entityInfo)
 	if err != nil {
 		return err
 	}
@@ -197,17 +188,8 @@ func (s Sendler) SendEntityCreate(entityInfo sendler.EntityInfo) error {
 // }
 
 func (s Sendler) SendEntityUpdate(entityInfo sendler.EntityInfo) error {
-	var info struct {
-		ID   types.Entity `json:"id"`
-		Type string       `json:"type"`
-		Data any          `json:"data"`
-	}
 
-	info.ID = entityInfo.ID
-	info.Type = entityInfo.Type
-	info.Data = entityInfo.Data
-
-	payload, err := json.Marshal(info)
+	payload, err := json.Marshal(entityInfo)
 	if err != nil {
 		return err
 	}
@@ -244,14 +226,8 @@ func (s Sendler) SendSnapshotToAll(entities []sendler.EntityInfo) error {
 }
 
 func (s Sendler) SendGameOverState(gameOverInfo sendler.GameOverInfo) error {
-	var info struct {
-		Type string `json:"type"`
-		Data any    `json:"data"`
-	}
-	info.Type = "GameOver"
-	info.Data = gameOverInfo.Data
 
-	payload, err := json.Marshal(info)
+	payload, err := json.Marshal(gameOverInfo)
 	if err != nil {
 		return err
 	}
