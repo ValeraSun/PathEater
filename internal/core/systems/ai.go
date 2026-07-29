@@ -2,32 +2,33 @@ package systems
 
 import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
+	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 type AISystem struct {
-	getter    componentsGetter
-	publisher publisher
+	componentsGetter
+	publisher
 }
 
 func NewAISystem(getter componentsGetter, publisher publisher) *AISystem {
 	return &AISystem{
-		getter:    getter,
-		publisher: publisher,
+		getter,
+		publisher,
 	}
 }
 
 func (s *AISystem) Update(dt float32) error {
-	aisRaw := s.getter.GetEntitiesByComponent("ai")
+	aisRaw := s.GetEntitiesByComponent("ai")
 
 	type enemy struct {
-		ai        *components.AIComponent
-		attack    *components.AttackComponent
-		vision    *components.VisionComponent
-		transform *components.TransformComponent
-		id        types.Entity
-		privMtv   geometry.Vec3
+		ai *components.AIComponent
+		*components.AttackComponent
+		*components.VisionComponent
+		*components.TransformComponent
+		privMtv geometry.Vec3
+		id      types.Entity
 	}
 
 	enemies := make([]enemy, 0, len(aisRaw))
@@ -36,26 +37,26 @@ func (s *AISystem) Update(dt float32) error {
 
 		ai := c.(*components.AIComponent)
 
-		if s.getter.HasComponents(id, "vision", "collider", "transform", "attack") {
-			c, _ := s.getter.GetComponent(id, "vision")
+		if s.HasComponents(id, "vision", "collider", "transform", "attack") {
+			c, _ := s.GetComponent(id, "vision")
 			vision := c.(*components.VisionComponent)
 
-			c, _ = s.getter.GetComponent(id, "transform")
+			c, _ = s.GetComponent(id, "transform")
 			transform := c.(*components.TransformComponent)
 
-			c, _ = s.getter.GetComponent(id, "collider")
+			c, _ = s.GetComponent(id, "collider")
 			collider := c.(*components.ColliderComponent)
 
-			c, _ = s.getter.GetComponent(id, "attack")
+			c, _ = s.GetComponent(id, "attack")
 			attack := c.(*components.AttackComponent)
 
 			enemies = append(enemies, enemy{
-				ai:        ai,
-				attack:    attack,
-				vision:    vision,
-				transform: transform,
-				privMtv:   collider.PrivMTV,
-				id:        id,
+				ai,
+				attack,
+				vision,
+				transform,
+				collider.PrivMTV,
+				id,
 			})
 		}
 
@@ -63,24 +64,33 @@ func (s *AISystem) Update(dt float32) error {
 
 	for _, enemy := range enemies {
 
-		enemy.attack.ReduceCooldown(dt)
+		enemy.ReduceCooldown(dt)
 
 		enemy.ai.MoveFront = false
+		distant := enemy.WantPossition.Sub(enemy.Position)
+		distant.Y = 0
 
-		if enemy.vision.CanSee {
-
-			enemy.ai.Direction = enemy.vision.Distant.Normalize().Add(enemy.privMtv.Normalize())
-
-			if enemy.vision.Distant.Length() > minDistant {
+		if enemy.GoingToLastSee {
+			if distant.Length() > cameDistant {
 				enemy.ai.MoveFront = true
-			} else {
-				e, isAttack := enemy.attack.TryAttack(enemy.id, enemy.transform.Position, enemy.vision.Distant)
+			}
+		} else {
+
+			if distant.Length() > walkDistant {
+				enemy.ai.MoveFront = true
+			}
+
+			if distant.Length() <= attackDistant {
+				e, isAttack := enemy.Attack(enemy.id, enemy.Position, distant.Normalize())
 
 				if isAttack {
-					s.publisher.Publish(e)
+					anime := events.NewAlienAttackAnimationEvent(enemy.id)
+					s.Publish(anime)
+					s.Publish(e)
 				}
 			}
 		}
+		enemy.ai.Direction = distant.Normalize().Add(enemy.privMtv.Normalize()).Normalize()
 
 	}
 

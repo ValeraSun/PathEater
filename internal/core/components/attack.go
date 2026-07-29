@@ -35,10 +35,9 @@ func (c *AttackComponent) ReduceCooldown(dt float32) {
 	}
 }
 
-func (c *AttackComponent) TryAttack(id types.Entity, pos, distant geometry.Vec3) (*events.AttackEvent, bool) {
-	isAttack := distant.Length() < 2 && c.currentAttackCooldown == 0
-	if isAttack {
-		c.hitbox.ChangeCenter(pos.Add(distant.Normalize().Scale(c.attackRange)))
+func (c *AttackComponent) Attack(id types.Entity, pos, direction geometry.Vec3) (*events.AttackEvent, bool) {
+	if c.currentAttackCooldown == 0 {
+		c.hitbox.ChangeCenter(pos.Add(direction.Scale(c.attackRange)))
 		c.currentAttackCooldown = c.attackCooldown
 
 		e := events.NewAttackEvent(
@@ -46,7 +45,8 @@ func (c *AttackComponent) TryAttack(id types.Entity, pos, distant geometry.Vec3)
 			c.hitbox,
 			id,
 		)
-		return e, isAttack
+
+		return e, true
 	}
-	return nil, isAttack
+	return nil, false
 }

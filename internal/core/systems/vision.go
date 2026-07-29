@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	minDistant      = 0.6
-	minCoord        = 0.2
+	walkDistant     = 2.5
+	cameDistant     = 0.2
+	attackDistant   = 2.8
 	alienAttackView = 120
-	unreachableMTV  = 0.4
+	unreachableMTV  = 0.3
 )
 
 type VisionSystem struct {
@@ -44,9 +45,9 @@ func (s *VisionSystem) Update(dt float32) error {
 	visionRaw := s.GetEntitiesByComponent("vision")
 
 	type enemy struct {
-		transform *components.TransformComponent
-		vision    *components.VisionComponent
-		privMTV   geometry.Vec3
+		*components.TransformComponent
+		*components.VisionComponent
+		privMTV geometry.Vec3
 	}
 
 	enemies := make([]enemy, 0, len(visionRaw))
@@ -55,7 +56,6 @@ func (s *VisionSystem) Update(dt float32) error {
 
 		if s.HasComponents(id, "transform") {
 			v := v.(*components.VisionComponent)
-			v.CanSee = false
 
 			c, _ := s.GetComponent(id, "transform")
 			t := c.(*components.TransformComponent)
@@ -64,9 +64,9 @@ func (s *VisionSystem) Update(dt float32) error {
 			collider := c.(*components.ColliderComponent)
 
 			enemies = append(enemies, enemy{
-				transform: t,
-				vision:    v,
-				privMTV:   collider.PrivMTV,
+				t,
+				v,
+				collider.PrivMTV,
 			})
 		}
 
@@ -75,8 +75,9 @@ func (s *VisionSystem) Update(dt float32) error {
 	targetsRaw := s.GetEntitiesByComponent("target")
 
 	type target struct {
-		hitbox *components.HitboxComponent
-		id     types.Entity
+		*components.HitboxComponent
+		id  types.Entity
+		typ components.Target
 	}
 
 	targets := make([]*target, 0, len(targetsRaw))
@@ -86,36 +87,38 @@ func (s *VisionSystem) Update(dt float32) error {
 			c, _ := s.GetComponent(id, "hitbox")
 			hitbox := c.(*components.HitboxComponent)
 
+			var typ components.Target
+
+			if s.HasComponents(id, "baggage") {
+				typ = components.Baggage
+			} else {
+				typ = components.Player
+			}
+
 			targets = append(targets,
 				&target{
 					hitbox,
 					id,
+					typ,
 				},
 			)
 		}
 	}
 
 	ray := geometry.NewRayCollider(geometry.Vec3{}, geometry.Vec3{}, 0)
-	var canSee bool
 
 	for _, enemy := range enemies {
 
-		enemy.vision.CanSee = false
-		enemy.vision.Distant = geometry.Vec3{X: math.MaxFloat64}
+		wantDistant := geometry.Vec3{X: math.MaxFloat64}
+		var bestTarget *target
 
 		for _, target := range targets {
-			targetPos := target.hitbox.Collider.GetCenter()
-			ray.Change(enemy.transform.Position, targetPos)
 
-			canSee = true
-			var enemyTarget components.Target
-			if s.HasComponents(target.id, "baggage") {
-				enemyTarget = components.Baggage
-			} else {
-				enemyTarget = components.Player
-			}
+			canSee := true
+			targetPos := target.Collider.GetCenter()
+			ray.Change(enemy.Position, targetPos)
 
-			if enemyTarget == components.Player {
+			if target.typ == components.Player {
 				for _, collider := range colliders {
 
 					result := ray.Collide(collider.Collider)
@@ -128,42 +131,69 @@ func (s *VisionSystem) Update(dt float32) error {
 				}
 			}
 
-			targetDistant := targetPos.Sub(enemy.transform.Position)
-			angle := geometry.AngleBetweenDegrees(enemy.vision.Distant.Normalize(), targetDistant.Normalize())
-			canSee = canSee && angle <= alienAttackView
-			lastSeenDistant := enemy.vision.LastSeen.Sub(enemy.transform.Position)
-			lastSeenDistant.Y = 0
-
-			switch {
-			case canSee && enemyTarget == components.Player && enemy.vision.Target == components.Player:
-				if targetDistant.Length() < enemy.vision.Distant.Length() {
-					enemy.vision.CanSee = true
-					enemy.vision.Distant = targetDistant
-					enemy.vision.LastSeen = targetPos
-					enemy.vision.Target = enemyTarget
-				}
-
-			case enemy.vision.Target == components.Player:
-
-				if lastSeenDistant.Length() > minCoord && lastSeenDistant.Normalize().Add(enemy.privMTV.Normalize()).Length() > unreachableMTV {
-					enemy.vision.CanSee = true
-					enemy.vision.Distant = lastSeenDistant
-				} else {
-					enemy.vision.CanSee = false
-					enemy.vision.Target = components.Nothing
-				}
-			default:
-				enemy.vision.CanSee = true
-				enemy.vision.Distant = targetDistant
-				enemy.vision.LastSeen = targetPos
-				enemy.vision.Target = enemyTarget
+			if !canSee {
+				continue
 			}
 
-			enemy.vision.Distant.Y = 0
-			enemy.vision.Distant = enemy.vision.Distant
+			targetDistant := targetPos.Sub(enemy.Position)
+			angle := geometry.AngleBetweenDegrees(wantDistant.Normalize(), targetDistant.Normalize())
+			canSee = canSee && angle <= alienAttackView
 
+			switch {
+			case canSee && bestTarget == nil:
+				bestTarget = target
+			case canSee && target.typ == components.Player && target.typ == components.Player:
+
+				bestDistant := bestTarget.Collider.GetCenter().Sub(enemy.Position).Length()
+				currDistant := targetDistant.Length()
+
+				if currDistant < bestDistant {
+					wantDistant = bestTarget.Collider.GetCenter().Sub(enemy.Position)
+					wantDistant.Y = 0
+
+					bestTarget = target
+				}
+
+			case canSee && target.typ == components.Player && (bestTarget.typ == components.Nothing || bestTarget.typ == components.Baggage):
+				wantDistant = targetDistant
+				wantDistant.Y = 0
+
+				bestTarget = target
+
+			case target.typ == components.Baggage && bestTarget.typ == components.Nothing:
+
+				bestDistant := bestTarget.Collider.GetCenter().Sub(enemy.Position).Length()
+				currDistant := targetDistant.Length()
+
+				if currDistant < bestDistant {
+					bestTarget = target
+
+				}
+			}
 		}
 
+		switch {
+
+		case bestTarget.typ == components.Player:
+			enemy.GoingToLastSee = false
+			enemy.WantPossition = bestTarget.Collider.GetCenter()
+			enemy.Target = components.Player
+
+		case enemy.Target == components.Player:
+			wantDistant = bestTarget.Collider.GetCenter().Sub(enemy.Position)
+			wantDistant.Y = 0
+
+			if enemy.WantPossition.Sub(enemy.Position).Length() > cameDistant && wantDistant.Normalize().Sub(enemy.privMTV.Normalize()).Length() > unreachableMTV {
+				enemy.GoingToLastSee = true
+			} else {
+				enemy.GoingToLastSee = false
+				enemy.Target = components.Nothing
+			}
+		default:
+			enemy.GoingToLastSee = false
+			enemy.WantPossition = bestTarget.Collider.GetCenter()
+			enemy.Target = bestTarget.typ
+		}
 	}
 
 	return nil

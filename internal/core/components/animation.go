@@ -23,6 +23,7 @@ func (c *AnimationComponent) ResetCooldown(dt float32) {
 		c.cooldown -= dt
 	} else {
 		c.cooldown = 0
+		c.state = "base"
 	}
 }
 

@@ -15,6 +15,7 @@ const (
 	alienAttackDistant    = 1
 	alienAttackHalfHeight = 1
 	alienAttackRadius     = 1
+	alienSpeed            = 2
 )
 
 func IsAlien(id types.Entity, getter componentsGetter) bool {
@@ -37,7 +38,7 @@ func NewAlien(adder entityAdder, position geometry.Vec3) types.Entity {
 			),
 		),
 		components.NewAnimationComponent("base"),
-		components.NewMovementComponent(2, geometry.GetZeroVector()),
+		components.NewMovementComponent(alienSpeed, geometry.GetZeroVector()),
 		components.NewMovableComponent(),
 		components.NewVelocityComponent(),
 		components.NewUpdateComponent(),

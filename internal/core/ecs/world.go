@@ -15,6 +15,7 @@ import (
 
 const (
 	eventBusSize = 100
+	maxDT        = 0.2
 )
 
 type Timer struct {
@@ -154,6 +155,9 @@ func HandleWorld(world *World) {
 			return
 		case now := <-ticker.C:
 			dt := time.Since(lastTick).Seconds()
+			if dt > maxDT {
+				dt = maxDT
+			}
 			lastTick = now
 			if err := world.Update(float32(dt)); err != nil {
 				log.Printf("Ошибка обновления мира: %v", err)
