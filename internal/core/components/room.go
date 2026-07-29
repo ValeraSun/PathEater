@@ -1,9 +1,6 @@
 package components
 
-import "github.com/ValeraSun/PathEater/internal/core/types"
-
 type RoomComponent struct {
-	ExternalWall types.Entity
 	HasBreakdown bool
 	Oxygen       float64
 	Vacuum       bool
@@ -17,9 +14,8 @@ func (*RoomComponent) Type() string {
 	return "room"
 }
 
-func NewRoomComponent(minX, maxX, minY, maxY float64, externalWall types.Entity) *RoomComponent {
+func NewRoomComponent(minX, maxX, minY, maxY float64) *RoomComponent {
 	return &RoomComponent{
-		ExternalWall: externalWall,
 		HasBreakdown: false,
 		Oxygen:       100.0,
 		Vacuum:       false,

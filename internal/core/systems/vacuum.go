@@ -61,6 +61,7 @@ func (s *VacuumSystem) getDoors() map[types.Entity]*components.DoorComponent {
 }
 
 func (s *VacuumSystem) Update(dt float32) error {
+	//log.Println("Зашёл в UPDATE")
 	s.recalculateZones()
 	for i := range s.zones {
 		zone := &s.zones[i]
@@ -100,8 +101,11 @@ func (s *VacuumSystem) OnEvent(event events.Event) error {
 }
 
 func (s *VacuumSystem) recalculateZones() {
+	//log.Println("Зашёл в RECALCULATE")
 	graph := s.makeGraph()
+	//log.Println("ГРАФ: ", graph)
 	s.zones = s.findZones(graph)
+	//log.Println("ЗОНЫ: ", s.zones)
 }
 
 func (s *VacuumSystem) makeGraph() map[types.Entity][]types.Entity {

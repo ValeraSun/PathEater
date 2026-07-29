@@ -9,7 +9,7 @@
   "colliders": [
       {
       "id": "Baggage",
-      "type": "hull",
+      "type": "cargo",
       "shape": "obb",
       "center": {
         "x": 3.95,

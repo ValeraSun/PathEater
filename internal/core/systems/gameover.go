@@ -39,6 +39,6 @@ func (s *GameOverSystem) OnEvent(event events.Event) error {
 			//Status: s.status,
 		},
 	})
-	//s.closer.Close()
+	s.closer.Close()
 	return nil
 }

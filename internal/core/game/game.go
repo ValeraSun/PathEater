@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	timeGame = 9999
+	timeGame = 30
 )
 
 type entitySendler interface {
@@ -35,9 +35,7 @@ type broadcaster interface {
 
 func CreateGame(broadcasterFunc broadcasterFunc) *ecs.World {
 	w := ecs.CreateWorld(broadcasterFunc)
-	config.CreateWalls(w)
-	config.CreateDoors(w)
-	config.CreateRooms(w)
+	config.CreateWorldColliders(w, w)
 	initSystems(w)
 	createEntities(w)
 
@@ -72,14 +70,14 @@ func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewCollisionSystem(world, world.EventBus)) //передвижение
 
 	world.AddSystem(systems.NewBreakdownSystem(world, world.EventBus, world.EventBus, config.GetExternalWalls()))
-	world.AddSystem(systems.NewTimerSystem(world, world.Broadcaster, &world.Timer))
 	world.AddSystem(systems.NewDoorsSystem(world, world.EventBus))
 	world.AddSystem(systems.NewRoomsSystem(world))
 	world.AddSystem(systems.NewVacuumSystem(world, world.EventBus))
 	world.AddSystem(systems.NewOxygenSystem(world, world.EventBus))
 	world.AddSystem(systems.NewWeaponSystem(world, world.EventBus, world.EventBus))
 
-	world.AddSystem(systems.NewHealthSystem(world, world.EventBus, world.EventBus)) // здоровье
+	world.AddSystem(systems.NewHealthSystem(world, world.EventBus, world.EventBus))
+	world.AddSystem(systems.NewDeadSystem(world, world.EventBus, world.EventBus, world.Broadcaster)) // здоровье
 
 	world.AddSystem(systems.NewTimerSystem(world, world.Broadcaster, &world.Timer))
 	world.AddSystem(systems.NewGameOverSystem(world, world.EventBus, world.Broadcaster, world)) // конец игры
@@ -98,14 +96,7 @@ func createEntities(world *ecs.World) {
 	//world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
 	//world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
 	world.EventBus.Publish(events.NewMeteoriteZoneEvent())
-	world.EventBus.Publish(events.NewBreakdownEvent(true))
-	world.EventBus.Publish(events.NewBreakdownEvent(true))
-	world.EventBus.Publish(events.NewBreakdownEvent(true))
-	world.EventBus.Publish(events.NewBreakdownEvent(true))
-	world.EventBus.Publish(events.NewBreakdownEvent(true))
-	world.EventBus.Publish(events.NewBreakdownEvent(true))
-	world.EventBus.Publish(events.NewBreakdownEvent(true))
-	world.EventBus.Publish(events.NewBreakdownEvent(true))
+	world.EventBus.Publish(events.NewBreakdownEvent(false))
 }
 
 func timerIsOver(publisher transfer.EventPublisher) {

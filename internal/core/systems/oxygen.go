@@ -20,8 +20,9 @@ type OxygenSystem struct {
 
 func NewOxygenSystem(getter componentsGetter, publisher publisher) *OxygenSystem {
 	s := &OxygenSystem{
-		getter:    getter,
-		publisher: publisher,
+		getter:     getter,
+		publisher:  publisher,
+		breakdowns: make(map[types.Entity]*components.BreakdownComponent),
 	}
 	s.rooms = s.getRooms()
 	return s
@@ -56,7 +57,6 @@ func (s *OxygenSystem) Update(dt float32) error {
 	s.setBreakdowns()
 
 	for id, player := range s.players {
-		// Проверка: существует ли комната
 		room, exists := s.rooms[player.RoomID]
 		if !exists || room == nil {
 			continue
@@ -87,7 +87,6 @@ func (s *OxygenSystem) Update(dt float32) error {
 			}
 		}
 
-		// Проверка: вакуум в комнате
 		if room.Vacuum {
 			c, err := s.getter.GetComponent(id, "oxygen")
 			if err != false {

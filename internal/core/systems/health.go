@@ -2,6 +2,7 @@ package systems
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
@@ -35,8 +36,10 @@ func (s *HealthSystem) Update(dt float32) error {
 
 			hp := c.(*components.HealthComponent)
 			isDead := hp.Damage(ev.Damage)
-			if isDead && !s.getter.HasComponents(ev.ID, "ship") {
-				e := events.NewDeleteEvent(ev.ID)
+			log.Println("ПОРАНИЛСЯ, КАК ЛОХ: ", hp.Health)
+			if isDead {
+				log.Println("СДОХ, КАК ЛОХ")
+				e := events.NewDeadEvent(ev.ID)
 				s.publisher.Publish(e)
 			}
 		default:

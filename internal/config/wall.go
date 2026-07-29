@@ -15,6 +15,12 @@ type entityAdder interface {
 	AddEntity(components ...types.Component) (types.Entity, error)
 }
 
+type componentsGetter interface {
+	GetEntitiesByComponent(componentType string) map[types.Entity]types.Component
+	HasComponents(entity types.Entity, componentTypes ...string) bool
+	GetComponent(entity types.Entity, componentType string) (types.Component, bool)
+}
+
 type Wall struct {
 	ID          string              `json:"id"`
 	Room        string              `json:"room"`
@@ -182,16 +188,21 @@ func getRoomsConfigPath() string {
 	return prodPath
 }
 
+func CreateWorldColliders(adder entityAdder, getter componentsGetter) {
+	createWalls(adder)
+	createRooms(adder, getter)
+	createDoors(adder)
+}
+
 var ExternalWallEntities []types.Entity
-var roomToWallMap = make(map[string]types.Entity)
+var ExternalWalls = make(map[types.Entity]Wall)
+var Rooms = make(map[types.Entity]types.Entity)
 var DoorsEntities []types.Entity
 var RoomEntities []types.Entity
 
-func CreateWalls(adder entityAdder) {
+func createWalls(adder entityAdder) {
 	path := getWallsConfigPath()
 	walls := getWalls(path)
-
-	log.Printf("CreateWalls: loaded %d walls", len(walls))
 
 	for _, wall := range walls {
 		w, err := adder.AddEntity(
@@ -199,28 +210,21 @@ func CreateWalls(adder entityAdder) {
 				wall.Center,
 				wall.HalfExtents,
 				wall.Quaternion.ToRotationMatrix())),
+			components.NewWallComponent(),
 		)
 		if err != nil {
 			log.Printf("Ошибка создания стены %s: %v", wall.ID, err)
 			continue
 		}
 
-		log.Printf("CreateWalls: wall ID=%s, Room=%s, Type=%s", wall.ID, wall.Room, wall.Type)
-
-		if wall.Room != "" {
-			roomToWallMap[wall.Room] = w
-			log.Printf("CreateWalls: added to map: room=%s -> wall=%v", wall.Room, w)
-		}
-
 		if wall.Type == "hull" {
+			ExternalWalls[w] = wall
 			ExternalWallEntities = append(ExternalWallEntities, w)
 		}
 	}
-
-	log.Printf("CreateWalls: map has %d entries", len(roomToWallMap))
 }
 
-func CreateDoors(adder entityAdder) {
+func createDoors(adder entityAdder) {
 	path := getDoorsConfigPath()
 	doors := getDoors(path)
 	for _, door := range doors {
@@ -244,30 +248,27 @@ func CreateDoors(adder entityAdder) {
 	}
 }
 
-func CreateRooms(adder entityAdder) {
+func createRooms(adder entityAdder, getter componentsGetter) {
 	path := getRoomsConfigPath()
 	rooms := getRooms(path)
 
-	log.Printf("CreateRooms: loaded %d rooms", len(rooms))
-	log.Printf("CreateRooms: map has %d entries before processing", len(roomToWallMap))
-
 	for _, room := range rooms {
-		log.Printf("CreateRooms: looking for room %s in map", room.ID)
-
-		wallEntity, exists := roomToWallMap[room.ID]
-		if !exists {
-			log.Printf("WARNING: room %s has no wall in map!", room.ID)
-			continue
-		}
-
-		log.Printf("CreateRooms: room %s -> wall %v", room.ID, wallEntity)
-
 		r, err := adder.AddEntity(
-			components.NewRoomComponent(room.MinX, room.MaxX, room.MinZ, room.MaxZ, wallEntity),
+			components.NewRoomComponent(room.MinX, room.MaxX, room.MinZ, room.MaxZ),
 		)
+
 		if err != nil {
 			log.Printf("Ошибка создания комнаты %s: %v", room.ID, err)
 			continue
+		}
+
+		for w, wall := range ExternalWalls {
+			if wall.Room == room.ID {
+				Rooms[w] = r
+				c, _ := getter.GetComponent(w, "wall")
+				wallComp := c.(*components.WallComponent)
+				wallComp.Room = r
+			}
 		}
 		RoomEntities = append(RoomEntities, r)
 	}
@@ -279,8 +280,8 @@ func GetExternalWalls() []types.Entity {
 	return ExternalWallEntities
 }
 
-func GetRooms() []types.Entity {
-	return RoomEntities
+func GetRooms() map[types.Entity]types.Entity {
+	return Rooms
 }
 
 func GetDoors() []types.Entity {

@@ -2,9 +2,9 @@ package systems
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 
+	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
@@ -27,17 +27,9 @@ func NewBreakdownSystem(getter componentsGetter, publisher publisher, subscriber
 		make(map[types.Entity]types.Entity),
 		make(chan events.Event, 100),
 	}
-	s.setRooms()
+	s.rooms = config.GetRooms()
 	subscriber.Subscribe("breakdown", s.OnEvent)
 	return s
-}
-
-func (s *BreakdownSystem) setRooms() {
-	rs := s.GetEntitiesByComponent("room")
-	for id, r := range rs {
-		room := r.(*components.RoomComponent)
-		s.rooms[room.ExternalWall] = id
-	}
 }
 
 func (s *BreakdownSystem) Update(dt float32) error {
@@ -50,10 +42,8 @@ func (s *BreakdownSystem) Update(dt float32) error {
 			// ПРОВЕРЯЕМ СУЩЕСТВОВАНИЕ
 			room := s.rooms[wallID]
 			if room == "" {
-				log.Println("КОМНАТЫ НЕТ")
 				continue // если комнаты нет - пропускаем
 			}
-			log.Println("КОМНАТА: ", room)
 
 			c, _ := s.GetComponent(room, "room")
 			roomComp := c.(*components.RoomComponent)
