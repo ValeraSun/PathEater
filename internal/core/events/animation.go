@@ -4,7 +4,7 @@ import "github.com/ValeraSun/PathEater/internal/core/types"
 
 const (
 	attackState    = "attack"
-	attackCooldown = 1
+	attackCooldown = 0.7
 )
 
 type AnimationEvent struct {
