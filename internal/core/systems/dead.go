@@ -12,7 +12,6 @@ type DeadSystem struct {
 	publisher
 	broadcaster
 	eventQueue chan events.Event
-	ship       types.Entity
 }
 
 func NewDeadSystem(getter componentsGetter, publisher publisher, subscriber subscriber, broadcaster broadcaster) *DeadSystem {
@@ -21,19 +20,17 @@ func NewDeadSystem(getter componentsGetter, publisher publisher, subscriber subs
 		publisher,
 		broadcaster,
 		make(chan events.Event, 100),
-		"",
 	}
-	s.SetShip()
 	subscriber.Subscribe("dead", s.OnEvent)
 	return s
 }
 
-func (s *DeadSystem) SetShip() {
+func (s *DeadSystem) GetShip() types.Entity {
 	ships := s.GetEntitiesByComponent("ship")
 	for sh := range ships {
-		s.ship = sh
-		break
+		return sh
 	}
+	return ""
 }
 
 func (s *DeadSystem) Update(dt float32) error {
@@ -45,8 +42,10 @@ func (s *DeadSystem) drainEvents() error {
 		select {
 		case e := <-s.eventQueue:
 			ev := e.(*events.DeadEvent)
-			if ev.ID == s.ship {
+			if ev.ID == s.GetShip() {
 				s.Publish(events.NewGameOverEvent(true))
+			} else {
+				s.Publish(events.NewDeleteEvent(ev.ID))
 			}
 			//s.Publish(events.NewDeleteEvent(ev.ID))
 		default:

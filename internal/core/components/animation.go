@@ -30,3 +30,7 @@ func (c *AnimationComponent) ChangeState(event *events.AnimationEvent) {
 	c.state = event.State
 	c.cooldown = event.Cooldown
 }
+
+func (c *AnimationComponent) CurrentAnimation() string {
+	return c.state
+}

@@ -7,10 +7,11 @@ import (
 )
 
 type alienData struct {
-	Position geometry.Vec3 `json:"position"`
-	Rotation geometry.Vec3 `json:"rotation"`
-	Health   int           `json:"health"`
-	Dead     bool          `json:"dead"`
+	Position  geometry.Vec3 `json:"position"`
+	Rotation  geometry.Vec3 `json:"rotation"`
+	Health    int           `json:"health"`
+	Attacking bool          `json:"attacking"`
+	Dead      bool          `json:"dead"`
 }
 
 func (s *sendler) sendAlien(id types.Entity, broadcaster func(EntityInfo) error) error {
@@ -24,14 +25,18 @@ func (s *sendler) sendAlien(id types.Entity, broadcaster func(EntityInfo) error)
 	c, _ = s.GetComponent(id, "health")
 	hp := c.(*components.HealthComponent)
 
+	c, _ = s.GetComponent(id, "animation")
+	anime := c.(*components.AnimationComponent)
+
 	broadcaster(EntityInfo{
 		ID:   id,
 		Type: "alien",
 		Data: alienData{
-			Position: transform.Position,
-			Rotation: ai.Direction,
-			Health:   hp.Health,
-			Dead:     hp.Health == 0,
+			Position:  transform.Position,
+			Rotation:  ai.Direction,
+			Health:    hp.Health,
+			Attacking: anime.CurrentAnimation() == "attack",
+			Dead:      hp.Health == 0,
 		},
 	},
 	)
