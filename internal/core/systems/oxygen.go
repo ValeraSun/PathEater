@@ -11,8 +11,8 @@ import (
 const loss = 10
 
 type OxygenSystem struct {
-	getter     componentsGetter
-	publisher  publisher
+	componentsGetter
+	publisher
 	players    map[types.Entity]*components.PlayerComponent
 	rooms      map[types.Entity]*components.RoomComponent
 	breakdowns map[types.Entity]*components.BreakdownComponent
@@ -20,9 +20,11 @@ type OxygenSystem struct {
 
 func NewOxygenSystem(getter componentsGetter, publisher publisher) *OxygenSystem {
 	s := &OxygenSystem{
-		getter:     getter,
-		publisher:  publisher,
-		breakdowns: make(map[types.Entity]*components.BreakdownComponent),
+		getter,
+		publisher,
+		make(map[types.Entity]*components.PlayerComponent),
+		make(map[types.Entity]*components.RoomComponent),
+		make(map[types.Entity]*components.BreakdownComponent),
 	}
 	s.rooms = s.getRooms()
 	return s
@@ -30,7 +32,7 @@ func NewOxygenSystem(getter componentsGetter, publisher publisher) *OxygenSystem
 
 func (s *OxygenSystem) getPlayers() map[types.Entity]*components.PlayerComponent {
 	players := make(map[types.Entity]*components.PlayerComponent)
-	ps := s.getter.GetEntitiesByComponent("player")
+	ps := s.GetEntitiesByComponent("player")
 	for id, p := range ps {
 		player, ok := p.(*components.PlayerComponent)
 		if ok && player != nil {
@@ -42,7 +44,7 @@ func (s *OxygenSystem) getPlayers() map[types.Entity]*components.PlayerComponent
 
 func (s *OxygenSystem) getRooms() map[types.Entity]*components.RoomComponent {
 	rooms := make(map[types.Entity]*components.RoomComponent)
-	rs := s.getter.GetEntitiesByComponent("room")
+	rs := s.GetEntitiesByComponent("room")
 	for id, room := range rs {
 		r, ok := room.(*components.RoomComponent)
 		if ok && r != nil {
@@ -63,7 +65,7 @@ func (s *OxygenSystem) Update(dt float32) error {
 		}
 
 		if room.HasBreakdown && !room.Vacuum {
-			c, err := s.getter.GetComponent(id, "externalVelocity")
+			c, err := s.GetComponent(id, "externalVelocity")
 			if err != false {
 				continue
 			}
@@ -74,7 +76,7 @@ func (s *OxygenSystem) Update(dt float32) error {
 
 			for _, br := range s.breakdowns {
 				if br.RoomID == player.RoomID {
-					c, err = s.getter.GetComponent(id, "transform")
+					c, err = s.GetComponent(id, "transform")
 					if err != false {
 						continue
 					}
@@ -88,7 +90,7 @@ func (s *OxygenSystem) Update(dt float32) error {
 		}
 
 		if room.Vacuum {
-			c, err := s.getter.GetComponent(id, "oxygen")
+			c, err := s.GetComponent(id, "oxygen")
 			if err != false {
 				continue
 			}
@@ -106,8 +108,9 @@ func (s *OxygenSystem) Update(dt float32) error {
 	}
 	return nil
 }
+
 func (s *OxygenSystem) setBreakdowns() {
-	bs := s.getter.GetEntitiesByComponent("breakdown")
+	bs := s.GetEntitiesByComponent("breakdown")
 	for id, b := range bs {
 		s.breakdowns[id] = b.(*components.BreakdownComponent)
 	}
