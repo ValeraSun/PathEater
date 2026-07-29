@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { MeshFactory } from "./MeshFactory";
 import { AlienView } from "../Views/AlienView";
 import { PlayerView } from "../Views/PlayerView";
+import { DoorView } from "../Views/DoorView";
 
 export interface AnimatedEntityView {
     AdvanceAnimation(deltaTime: number): void;
@@ -39,7 +40,14 @@ export class EntityViewFactory {
                 };
             }
 
-            case "door":
+            case "door": {
+                const doorView = new DoorView();
+                return {
+                    object: doorView.mesh,
+                    animatedView: doorView, // Если хотите обновлять анимацию через EntityViewManager
+                    ownsResources: false
+                };
+            }
             case "cargo":
                 return {
                     object: MeshFactory.CreateBox(1, 1, 1),

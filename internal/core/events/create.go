@@ -98,3 +98,25 @@ func NewCreateBreakdownEvent(wallID, roomID types.Entity, pos geometry.Vec3) *Cr
 		RoomID:   roomID,
 	}
 }
+
+type Door struct {
+	ID          string
+	RoomA       string
+	RoomB       string
+	Shape       string
+	Center      geometry.Vec3
+	HalfExtents geometry.Vec3
+	Quaternion  geometry.Quaternion
+}
+
+type CreateDoorEvent struct {
+	Door Door
+}
+
+func (*CreateDoorEvent) Type() string { return "createDoor" }
+
+func NewCreateDoorEvent(door Door) *CreateDoorEvent {
+	return &CreateDoorEvent{
+		Door: door,
+	}
+}

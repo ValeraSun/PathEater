@@ -26,9 +26,9 @@ func (s *GameOverSystem) Update(dt float32) error {
 }
 
 func (s *GameOverSystem) OnEvent(event events.Event) error {
-	//	ev := event.(*events.GameOverEvent)
+	ev := event.(*events.GameOverEvent)
 	s.broadcaster.SendGameOverState(sendler.GameOverInfo{
-		Win:    true,
+		Win:    ev.Win,
 		Status: 10,
 	},
 	)

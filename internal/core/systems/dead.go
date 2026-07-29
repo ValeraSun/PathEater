@@ -43,7 +43,7 @@ func (s *DeadSystem) drainEvents() error {
 		case e := <-s.eventQueue:
 			ev := e.(*events.DeadEvent)
 			if ev.ID == s.GetShip() {
-				s.Publish(events.NewGameOverEvent(true))
+				s.Publish(events.NewGameOverEvent(false))
 			} else {
 				s.Publish(events.NewDeleteEvent(ev.ID))
 			}

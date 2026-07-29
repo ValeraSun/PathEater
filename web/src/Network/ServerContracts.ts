@@ -84,3 +84,10 @@ export interface ShipWireData {
     weapon_direction?: Vector3D;
     health?: number;
 }
+
+export interface DoorStateData {
+    position?: Vector3D;
+    rotation?: Vector3D;
+    isOpen?: boolean;
+    openProgress?: number; // 0-1, опционально для плавных анимаций
+}

@@ -24,8 +24,9 @@ func (s *VisionSystem) Update(dt float32) error {
 	for id, collider := range collidersRaw {
 		if !s.getter.HasComponents(id, "movable") {
 			c, _ := collider.(*components.ColliderComponent)
-
-			colliders = append(colliders, c)
+			if c.Enable {
+				colliders = append(colliders, c)
+			}
 		}
 
 	}
