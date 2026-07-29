@@ -37,6 +37,8 @@ type World struct {
 
 	systems []types.System
 
+	WorldStructures config.WorldStructures
+
 	EventBus *events.EventBus
 
 	mu sync.RWMutex

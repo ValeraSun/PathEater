@@ -1,7 +1,8 @@
 import { EntityStore } from "../Models/EntityStore";
 import { RadarModel } from "../Models/RadarModel";
 import type { EntityCreateInfo, EntityTransformData, EntityUpdateInfo } from "../Network/ServerContracts";
-import { IsAsteroidStateData, IsEntityTransformData, IsMonsterStateData, IsShipWireData, IsBulletData} from "../Network/ServerValidators";
+import { IsDoorStateData, IsEntityTransformData, IsAsteroidStateData, IsMonsterStateData, IsShipWireData, IsBulletData } from "../Network/ServerValidators";
+import type { DoorStateData } from "../Network/ServerContracts";
 import { EntityViewManager } from "../Views/EntityViewManager";
 import { ShipView } from "../Views/ShipView";
 
@@ -56,10 +57,16 @@ export class EntityMessageHandler {
             return;
         }
 
+        if (entityInformation.type === "door") {
+        this.UpdateDoor(entityInformation.id, entityInformation.data);
+        return;
+        }
+
         if (!IsEntityTransformData(entityInformation.data)) {
             console.warn("Получены некорректные данные сущности:", entityInformation);
             return;
         }
+
 
         const entityModel = this.entityStore.CreateEntity(
             entityInformation.id,
@@ -93,6 +100,11 @@ export class EntityMessageHandler {
 
         if (entityInformation.type === "ship") {
             this.UpdateShip(entityInformation.data);
+            return;
+        } 
+        
+        if (entityInformation.type === "door" || entityInformation.type === "spacedoor") {
+            this.UpdateDoor(entityInformation.id, entityInformation.data);
             return;
         }
 
@@ -217,4 +229,70 @@ export class EntityMessageHandler {
             y: data.position.y
         });
     }
+
+private HandleDoor(entityId: string, data: unknown): void {
+    if (!IsDoorStateData(data)) {
+        console.warn("Получено некорректное состояние двери:", data);
+        return;
+    }
+
+    // Получаем или создаем модель
+    let entityModel = this.entityStore.GetEntity(entityId);
+    if (!entityModel) {
+        entityModel = this.entityStore.CreateEntity(entityId, "door", data);
+        this.entityViewManager.CreateEntity(entityModel);
+    } else {
+        entityModel = this.entityStore.UpdateEntity(entityId, data);
+    }
+
+    // Обновляем вьюху
+    const view = this.entityViewManager.GetEntityView(entityId);
+    if (view?.object) {
+        // Ищем SpaceDoorView
+        let doorView: SpaceDoorView | null = null;
+        if (view.object instanceof SpaceDoorView) {
+            doorView = view.object;
+        } else {
+            // Ищем в детях
+            view.object.children.forEach(child => {
+                if (child instanceof SpaceDoorView) {
+                    doorView = child;
+                }
+            });
+        }
+
+        if (doorView) {
+            // Обновляем позицию
+            if (data.position) {
+                doorView.mesh.position.set(data.position.x, data.position.y, data.position.z);
+            }
+            if (data.isOpen !== undefined) {
+                doorView.SetState(data.isOpen, data.openProgress);
+            }
+        }
+    }
+}
+
+// Добавляем метод Update для обновления анимаций дверей
+// Вызывайте его из UpdateEntityViews или отдельно
+public UpdateDoor(deltaTime: number): void {
+    for (const entity of this.entityStore.GetAllEntities()) {
+        if (entity.type === "door") {
+            const view = this.entityViewManager.GetEntityView(entity.id);
+            if (view?.object) {
+                let doorView: DoorView | null = null;
+                if (view.object instanceof DoorView) {
+                    doorView = view.object;
+                } else {
+                    view.object.children.forEach(child => {
+                        if (child instanceof DoorView) {
+                            doorView = child;
+                        }
+                    });
+                }
+                doorView?.Update(deltaTime);
+            }
+        }
+    }
+}
 }

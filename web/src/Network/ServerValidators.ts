@@ -120,3 +120,12 @@ export function IsGameOverPayload(value: unknown): value is GameOverPayload {
 export function IsMatchTimerPayload(value: unknown): value is MatchTimerPayload {
     return IsObject(value) && IsFiniteNumber(value.time);
 }
+
+export function IsDoorStateData(value: unknown): value is DoorStateData {
+    return HasValidOptionalFields(value, {
+        position: IsVector3D,
+        rotation: IsVector3D,
+        isOpen: IsBoolean,
+        openProgress: IsFiniteNumber
+    });
+}

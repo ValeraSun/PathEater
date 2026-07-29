@@ -7,6 +7,7 @@ import (
 
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
+	"github.com/ValeraSun/PathEater/internal/core/sendler"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 	"gopkg.in/yaml.v3"
 )
@@ -19,6 +20,23 @@ type componentsGetter interface {
 	GetEntitiesByComponent(componentType string) map[types.Entity]types.Component
 	HasComponents(entity types.Entity, componentTypes ...string) bool
 	GetComponent(entity types.Entity, componentType string) (types.Component, bool)
+}
+
+type entitySendler interface {
+	Send(types.Entity, func(sendler.EntityInfo) error) error
+}
+
+type broadcasterFunc interface {
+	SendEntityCreate(entityInfo sendler.EntityInfo) error
+	SendEntityUpdate(entityInfo sendler.EntityInfo) error
+	SendEntityDelete(entityInfo sendler.EntityInfo) error
+	SendGameOverState(sendler.GameOverInfo) error
+	SendTime(sendler.TimeInfo) error
+}
+
+type broadcaster interface {
+	entitySendler
+	broadcasterFunc
 }
 
 type Wall struct {
@@ -188,19 +206,29 @@ func getRoomsConfigPath() string {
 	return prodPath
 }
 
-func CreateWorldColliders(adder entityAdder, getter componentsGetter) {
-	createWalls(adder)
-	createRooms(adder, getter)
-	createDoors(adder)
+func CreateWorldColliders(adder entityAdder, getter componentsGetter, broadcaster broadcaster) {
+	w := newWorldStructs()
+	w.createWalls(adder)
+	w.createRooms(adder, getter)
+	w.createDoors(adder, broadcaster)
 }
 
-var ExternalWallEntities []types.Entity
-var ExternalWalls = make(map[types.Entity]Wall)
-var Rooms = make(map[types.Entity]types.Entity)
-var DoorsEntities []types.Entity
-var RoomEntities []types.Entity
+type WorldStructures struct {
+	ExternalWallEntities []types.Entity
+	ExternalWalls        map[types.Entity]Wall
+	Rooms                map[types.Entity]types.Entity
+	DoorsEntities        []types.Entity
+	RoomEntities         []types.Entity
+}
 
-func createWalls(adder entityAdder) {
+func newWorldStructs() *WorldStructures {
+	return &WorldStructures{
+		ExternalWalls: make(map[types.Entity]Wall),
+		Rooms:         make(map[types.Entity]types.Entity),
+	}
+}
+
+func (world *WorldStructures) createWalls(adder entityAdder) {
 	path := getWallsConfigPath()
 	walls := getWalls(path)
 
@@ -218,13 +246,13 @@ func createWalls(adder entityAdder) {
 		}
 
 		if wall.Type == "hull" {
-			ExternalWalls[w] = wall
-			ExternalWallEntities = append(ExternalWallEntities, w)
+			world.ExternalWalls[w] = wall
+			world.ExternalWallEntities = append(world.ExternalWallEntities, w)
 		}
 	}
 }
 
-func createDoors(adder entityAdder) {
+func (world *WorldStructures) createDoors(adder entityAdder, broadcaster broadcaster) {
 	path := getDoorsConfigPath()
 	doors := getDoors(path)
 	for _, door := range doors {
@@ -244,11 +272,12 @@ func createDoors(adder entityAdder) {
 			log.Printf("Ошибка создания двери %s: %v", door.ID, err)
 			continue
 		}
-		DoorsEntities = append(DoorsEntities, d)
+		world.DoorsEntities = append(world.DoorsEntities, d)
+		err = broadcaster.Send(d, broadcaster.SendEntityCreate)
 	}
 }
 
-func createRooms(adder entityAdder, getter componentsGetter) {
+func (world *WorldStructures) createRooms(adder entityAdder, getter componentsGetter) {
 	path := getRoomsConfigPath()
 	rooms := getRooms(path)
 
@@ -262,28 +291,24 @@ func createRooms(adder entityAdder, getter componentsGetter) {
 			continue
 		}
 
-		for w, wall := range ExternalWalls {
+		for w, wall := range world.ExternalWalls {
 			if wall.Room == room.ID {
-				Rooms[w] = r
+				world.Rooms[w] = r
 				c, _ := getter.GetComponent(w, "wall")
 				wallComp := c.(*components.WallComponent)
 				wallComp.Room = r
 			}
 		}
-		RoomEntities = append(RoomEntities, r)
+		world.RoomEntities = append(world.RoomEntities, r)
 	}
 
-	log.Printf("CreateRooms: created %d rooms", len(RoomEntities))
+	log.Printf("CreateRooms: created %d rooms", len(world.RoomEntities))
 }
 
-func GetExternalWalls() []types.Entity {
-	return ExternalWallEntities
+func (world *WorldStructures) GetExternalWalls() []types.Entity {
+	return world.ExternalWallEntities
 }
 
-func GetRooms() map[types.Entity]types.Entity {
-	return Rooms
-}
-
-func GetDoors() []types.Entity {
-	return DoorsEntities
+func (world *WorldStructures) GetRooms() map[types.Entity]types.Entity {
+	return world.Rooms
 }

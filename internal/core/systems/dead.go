@@ -33,7 +33,7 @@ func (s *DeadSystem) drainEvents() error {
 		select {
 		case e := <-s.eventQueue:
 			ev := e.(*events.DeadEvent)
-			ship, _ := getShip(s)
+			ship, _ := getShip(s.componentsGetter)
 			if ev.ID == ship {
 				s.Publish(events.NewGameOverEvent(false))
 			} else {

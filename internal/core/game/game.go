@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	timeGame = 999
+	timeGame = 480
 )
 
 type entitySendler interface {
@@ -36,7 +36,7 @@ type broadcaster interface {
 
 func CreateGame(broadcasterFunc broadcasterFunc) *ecs.World {
 	w := ecs.CreateWorld(broadcasterFunc)
-	config.CreateWorldColliders(w, w)
+	config.CreateWorldColliders(w, w, w.Broadcaster)
 	initSystems(w)
 	createEntities(w)
 
@@ -69,7 +69,7 @@ func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewColliderMoveSystem(world))
 	world.AddSystem(systems.NewCollisionSystem(world, world.EventBus)) //передвижение
 
-	world.AddSystem(systems.NewBreakdownSystem(world, world.EventBus, world.EventBus, config.GetExternalWalls()))
+	world.AddSystem(systems.NewBreakdownSystem(world, world.EventBus, world.EventBus, world.WorldStructures))
 	world.AddSystem(systems.NewDoorsSystem(world, world.EventBus))
 	world.AddSystem(systems.NewRoomsSystem(world))
 	world.AddSystem(systems.NewVacuumSystem(world, world.EventBus))
