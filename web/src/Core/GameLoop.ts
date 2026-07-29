@@ -6,13 +6,14 @@ export interface Updatable {
 
 export class GameLoop {
     private systems: Updatable[];
-    private renderFrame: () => void;
+    private renderFrame: (deltaTime: number) => void;
     private finishFrame: (() => void) | null;
+
     private animationFrameId: number | null = null;
     private previousFrameTime = 0;
     private running = false;
 
-    public constructor(systems: Updatable[], renderFrame: () => void, finishFrame?: () => void) {
+    public constructor(systems: Updatable[], renderFrame: (deltaTime: number) => void, finishFrame?: () => void) {
         this.systems = systems;
         this.renderFrame = renderFrame;
         this.finishFrame = finishFrame ?? null;
@@ -41,19 +42,23 @@ export class GameLoop {
         return this.running;
     }
 
-    private HandleAnimationFrame = (currentTime: number): void => {
+    private readonly HandleAnimationFrame = (currentTime: number): void => {
         if (!this.running) {
             return;
         }
 
-        const deltaTime = Math.min((currentTime - this.previousFrameTime) / MILLISECONDS_IN_SECOND, MAX_DELTA_TIME);
+        const deltaTime = Math.min(
+            (currentTime - this.previousFrameTime) / MILLISECONDS_IN_SECOND,
+            MAX_DELTA_TIME
+        );
+
         this.previousFrameTime = currentTime;
 
         for (const system of this.systems) {
             system.Update(deltaTime);
         }
 
-        this.renderFrame();
+        this.renderFrame(deltaTime);
         this.finishFrame?.();
         this.animationFrameId = requestAnimationFrame(this.HandleAnimationFrame);
     };

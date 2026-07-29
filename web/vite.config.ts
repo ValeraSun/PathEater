@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import glsl from "vite-plugin-glsl";
 
 export default defineConfig({
     server: {
@@ -8,5 +9,6 @@ export default defineConfig({
                 ws: true
             }
         }
-    }
+    },
+    plugins: [glsl()]
 });
