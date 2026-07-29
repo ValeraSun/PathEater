@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/ValeraSun/PathEater/internal/core/events"
-	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
 type DeadSystem struct {
@@ -25,14 +24,6 @@ func NewDeadSystem(getter componentsGetter, publisher publisher, subscriber subs
 	return s
 }
 
-func (s *DeadSystem) GetShip() types.Entity {
-	ships := s.GetEntitiesByComponent("ship")
-	for sh := range ships {
-		return sh
-	}
-	return ""
-}
-
 func (s *DeadSystem) Update(dt float32) error {
 	return s.drainEvents()
 }
@@ -42,8 +33,9 @@ func (s *DeadSystem) drainEvents() error {
 		select {
 		case e := <-s.eventQueue:
 			ev := e.(*events.DeadEvent)
-			if ev.ID == s.GetShip() {
-				s.Publish(events.NewGameOverEvent(true))
+			ship, _ := getShip(s)
+			if ev.ID == ship {
+				s.Publish(events.NewGameOverEvent(false))
 			} else {
 				s.Publish(events.NewDeleteEvent(ev.ID))
 			}

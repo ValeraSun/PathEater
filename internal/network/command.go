@@ -233,7 +233,13 @@ func (s Sendler) SendGameOverState(gameOverInfo sendler.GameOverInfo) error {
 	}
 
 	s.room.SendToAll("GameOver", payload)
+
+	for _, c := range s.room.Clients {
+		c.SetState(MainMenuState())
+	}
+
 	return nil
+
 }
 
 func (s Sendler) SendTime(timeInfo sendler.TimeInfo) error {
@@ -252,6 +258,7 @@ func (s Sendler) SendTime(timeInfo sendler.TimeInfo) error {
 	}
 
 	s.room.SendToAll("Time", payload)
+
 	return nil
 }
 
@@ -293,22 +300,6 @@ func (c *playerStateCommand) Execute(client *Client, payload json.RawMessage) er
 	}
 
 	transfer.SendPlayerState(client.room.World.EventBus, state, client.ID)
-
-	return nil
-}
-
-type weaponStateCommand struct{}
-
-func (c *weaponStateCommand) Name() string { return "weaponState" }
-
-func (c *weaponStateCommand) Execute(client *Client, payload json.RawMessage) error {
-	var state events.WeaponState
-
-	if err := json.Unmarshal(payload, &state); err != nil {
-		return client.SendError(err)
-	}
-
-	transfer.SendWeaponState(client.room.World.EventBus, state)
 
 	return nil
 }

@@ -9,8 +9,8 @@ import (
 )
 
 type AttackSystem struct {
-	getter     componentsGetter
-	publisher  publisher
+	componentsGetter
+	publisher
 	eventQueue chan *events.AttackEvent
 }
 
@@ -21,9 +21,9 @@ type entitiesHitbox struct {
 
 func NewAttackSystem(getter componentsGetter, subscriber subscriber, publisher publisher) *AttackSystem {
 	s := &AttackSystem{
-		getter:     getter,
-		eventQueue: make(chan *events.AttackEvent, 20),
-		publisher:  publisher,
+		getter,
+		publisher,
+		make(chan *events.AttackEvent, 20),
 	}
 	subscriber.Subscribe("attack", s.OnEvent)
 	return s
@@ -31,13 +31,13 @@ func NewAttackSystem(getter componentsGetter, subscriber subscriber, publisher p
 }
 
 func (s *AttackSystem) Update(dt float32) error {
-	hitboxRaw := s.getter.GetEntitiesByComponent("hitbox")
+	hitboxRaw := s.GetEntitiesByComponent("hitbox")
 
 	hitboxes := make([]*entitiesHitbox, 0, len(hitboxRaw))
 
 	for id, c := range hitboxRaw {
 
-		if s.getter.HasComponents(id, "transform") {
+		if s.HasComponents(id, "transform") {
 			h := c.(*components.HitboxComponent)
 
 			hitboxes = append(hitboxes, &entitiesHitbox{
@@ -68,8 +68,21 @@ func (s *AttackSystem) handleAttack(event *events.AttackEvent, hitboxes []*entit
 		_, isColliding := hitbox.hitbox.Collide(event.Collider)
 
 		if isColliding && event.Attacker != hitbox.id {
-			e := events.NewDamageDealEvent(hitbox.id, event.Damage)
-			s.publisher.Publish(e)
+			var e events.Event
+
+			switch {
+			case s.HasComponents(hitbox.id, "baggage"):
+				e = events.NewDamageBaggageEvent()
+			case s.HasComponents(hitbox.id, "health"):
+				e = events.NewDamageDealEvent(hitbox.id, event.Damage)
+			default:
+				e = nil
+			}
+
+			if e != nil {
+				s.publisher.Publish(e)
+			}
+
 		}
 	}
 }

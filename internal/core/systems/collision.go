@@ -98,7 +98,7 @@ func (s *CollisionSystem) Update(dt float32) error {
 			mtv.Y = 0
 
 			m.transform.Position = m.transform.Position.Add(mtv)
-			m.collider.PrivMTV = mtv.Scale(float64(1 / dt))
+			m.collider.PrivMTV = m.collider.PrivMTV.Add(mtv)
 		}
 	}
 	return nil

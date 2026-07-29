@@ -192,8 +192,6 @@ export class ComputerView
 
         this.context.strokeStyle = "#800000";
         this.context.lineWidth = 8;
-
-        console.log(x, y, rotationY)
        
         this.context.beginPath()
         this.context.moveTo(x, y);

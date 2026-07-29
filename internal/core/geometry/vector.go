@@ -19,6 +19,14 @@ func GetZeroVector() Vec3 {
 	}
 }
 
+func GetStandartAxes() [3]Vec3 {
+	return [3]Vec3{
+		{X: 1},
+		{Y: 1},
+		{Z: 1},
+	}
+}
+
 func (v Vec3) Add(u Vec3) Vec3      { return Vec3{v.X + u.X, v.Y + u.Y, v.Z + u.Z} }
 func (v Vec3) Sub(u Vec3) Vec3      { return Vec3{v.X - u.X, v.Y - u.Y, v.Z - u.Z} }
 func (v Vec3) Scale(s float64) Vec3 { return Vec3{v.X * s, v.Y * s, v.Z * s} }

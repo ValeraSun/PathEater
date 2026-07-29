@@ -3,9 +3,14 @@ package systems
 import (
 	"time"
 
+	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/sendler"
 	"github.com/ValeraSun/PathEater/internal/core/types"
+)
+
+const (
+	eventQueueSize = 100
 )
 
 type entityAdder interface {
@@ -52,4 +57,13 @@ type broadcasterFunc interface {
 type broadcaster interface {
 	entitySendler
 	broadcasterFunc
+}
+
+func getShip(getter componentsGetter) (types.Entity, *components.ShipComponent) {
+	ships := getter.GetEntitiesByComponent("ship")
+
+	for id, s := range ships {
+		return id, s.(*components.ShipComponent)
+	}
+	return "", nil
 }
