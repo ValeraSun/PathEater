@@ -1,6 +1,7 @@
 package components
 
 type RoomComponent struct {
+	Name         string
 	HasBreakdown bool
 	Oxygen       float64
 	Vacuum       bool
@@ -14,8 +15,9 @@ func (*RoomComponent) Type() string {
 	return "room"
 }
 
-func NewRoomComponent(minX, maxX, minY, maxY float64) *RoomComponent {
+func NewRoomComponent(name string, minX, maxX, minY, maxY float64) *RoomComponent {
 	return &RoomComponent{
+		Name:         name,
 		HasBreakdown: false,
 		Oxygen:       100.0,
 		Vacuum:       false,

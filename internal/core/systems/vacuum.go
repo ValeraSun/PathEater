@@ -13,12 +13,12 @@ const leak = 1.0
 type zone struct {
 	breakdowns  int
 	totalOxygen float64
-	rooms       map[types.Entity]*components.RoomComponent
+	rooms       map[string]*components.RoomComponent
 }
 
 type VacuumSystem struct {
 	getter       componentsGetter
-	rooms        map[types.Entity]*components.RoomComponent
+	rooms        map[string]*components.RoomComponent
 	doors        map[types.Entity]*components.DoorComponent
 	zones        []zone
 	hasBreakdown bool
@@ -36,13 +36,13 @@ func NewVacuumSystem(getter componentsGetter, subscriber subscriber) *VacuumSyst
 	return s
 }
 
-func (s *VacuumSystem) getRooms() map[types.Entity]*components.RoomComponent {
-	rooms := make(map[types.Entity]*components.RoomComponent)
+func (s *VacuumSystem) getRooms() map[string]*components.RoomComponent {
+	rooms := make(map[string]*components.RoomComponent)
 	rs := s.getter.GetEntitiesByComponent("room")
-	for id, room := range rs {
+	for _, room := range rs {
 		r, ok := room.(*components.RoomComponent)
 		if ok && r != nil {
-			rooms[id] = r
+			rooms[r.Name] = r
 		}
 	}
 	return rooms
@@ -90,7 +90,6 @@ func (s *VacuumSystem) Update(dt float32) error {
 			}
 		}
 
-		log.Println("кислород на корабле в зоне ", i, " - ", zone.totalOxygen)
 	}
 	return nil
 }
@@ -101,15 +100,12 @@ func (s *VacuumSystem) OnEvent(event events.Event) error {
 }
 
 func (s *VacuumSystem) recalculateZones() {
-	//log.Println("Зашёл в RECALCULATE")
 	graph := s.makeGraph()
-	//log.Println("ГРАФ: ", graph)
 	s.zones = s.findZones(graph)
-	//log.Println("ЗОНЫ: ", s.zones)
 }
 
-func (s *VacuumSystem) makeGraph() map[types.Entity][]types.Entity {
-	graph := make(map[types.Entity][]types.Entity)
+func (s *VacuumSystem) makeGraph() map[string][]string {
+	graph := make(map[string][]string)
 
 	for _, door := range s.doors {
 		if door.IsOpen {
@@ -120,23 +116,24 @@ func (s *VacuumSystem) makeGraph() map[types.Entity][]types.Entity {
 	return graph
 }
 
-func (s *VacuumSystem) findZones(graph map[types.Entity][]types.Entity) []zone {
+func (s *VacuumSystem) findZones(graph map[string][]string) []zone {
 	s.hasBreakdown = false
-	visited := make(map[types.Entity]bool)
+	visited := make(map[string]bool)
 	var zones []zone
 
 	for roomID := range graph {
-		zone := zone{
-			breakdowns:  0,
-			totalOxygen: 0,
-			rooms:       make(map[types.Entity]*components.RoomComponent),
-		}
 
 		if visited[roomID] {
 			continue
 		}
 
-		queue := []types.Entity{roomID}
+		zone := zone{
+			breakdowns:  0,
+			totalOxygen: 0,
+			rooms:       make(map[string]*components.RoomComponent),
+		}
+
+		queue := []string{roomID}
 		visited[roomID] = true
 
 		for len(queue) > 0 {
@@ -145,7 +142,10 @@ func (s *VacuumSystem) findZones(graph map[types.Entity][]types.Entity) []zone {
 
 			// ПРОВЕРКА: существует ли комната
 			room, exists := s.rooms[current]
-			if !exists || room == nil {
+			if !exists {
+				continue
+			}
+			if room == nil {
 				continue
 			}
 
@@ -154,7 +154,6 @@ func (s *VacuumSystem) findZones(graph map[types.Entity][]types.Entity) []zone {
 				s.hasBreakdown = true
 				zone.breakdowns++
 			}
-
 			zone.totalOxygen = zone.totalOxygen + room.Oxygen
 
 			for _, neighbor := range graph[current] {
@@ -165,6 +164,7 @@ func (s *VacuumSystem) findZones(graph map[types.Entity][]types.Entity) []zone {
 			}
 		}
 
+		log.Printf("  Зона для %v содержит %d комнат", roomID, len(zone.rooms))
 		if len(zone.rooms) > 0 {
 			zones = append(zones, zone)
 		}
