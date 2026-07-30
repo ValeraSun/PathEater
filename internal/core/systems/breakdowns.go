@@ -19,14 +19,15 @@ type BreakdownSystem struct {
 	eventQueue    chan events.Event
 }
 
-func NewBreakdownSystem(getter componentsGetter, publisher publisher, subscriber subscriber, structures config.WorldStructures) *BreakdownSystem {
+func NewBreakdownSystem(getter componentsGetter, publisher publisher, subscriber subscriber, structures *config.WorldStructures) *BreakdownSystem {
 	s := &BreakdownSystem{
 		getter,
 		publisher,
-		structures.GetExternalWalls(),
+		make([]types.Entity, 0),
 		make(map[types.Entity]types.Entity),
 		make(chan events.Event, 100),
 	}
+	s.externalWalls = structures.GetExternalWalls()
 	s.rooms = structures.GetRooms()
 	subscriber.Subscribe("breakdown", s.OnEvent)
 	return s
@@ -38,6 +39,10 @@ func (s *BreakdownSystem) Update(dt float32) error {
 		case e := <-s.eventQueue:
 			ev := e.(*events.BreakdownEvent)
 			wallID, pos, normal := s.generateBreakdown()
+
+			if wallID == "" {
+				return nil
+			}
 
 			// ПРОВЕРЯЕМ СУЩЕСТВОВАНИЕ
 			room := s.rooms[wallID]
@@ -69,9 +74,18 @@ func (s *BreakdownSystem) generateBreakdown() (types.Entity, geometry.Vec3, geom
 	idx := rand.Intn(len(s.externalWalls))
 	wallEntity := s.externalWalls[idx]
 
+	wallComp, _ := s.GetComponent(wallEntity, "wall")
+	wall := wallComp.(*components.WallComponent)
+
+	if wall.HasBreakdown {
+		return "", geometry.Vec3{}, geometry.Vec3{}
+	}
+
 	if !s.HasComponents(s.externalWalls[idx], "collider") {
 		return "", geometry.Vec3{}, geometry.Vec3{}
 	}
+
+	wall.HasBreakdown = true
 
 	colliderComp, _ := s.GetComponent(wallEntity, "collider")
 	collider := colliderComp.(*components.ColliderComponent)

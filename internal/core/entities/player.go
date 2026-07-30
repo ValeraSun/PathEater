@@ -13,6 +13,7 @@ const (
 
 	playerSpeed          = 6
 	playerMaxHealth      = 100
+	playerMaxOxygen      = 100
 	playerHalfHeight     = 1
 	playerRadius         = 0.7
 	playerSpawnX         = 2
@@ -39,6 +40,7 @@ func NewPlayer(adder entityAdder, clientID string) types.Entity {
 		components.NewExternalVelocityComponent(),
 		components.NewVelocityComponent(),
 		components.NewHealthComponent(playerMaxHealth),
+		components.NewOxygenComponent(playerMaxOxygen),
 		components.NewColliderComponent(geometry.NewCapsuleCollider(
 			geometry.Vec3{},
 			geometry.Vec3{Y: 1},

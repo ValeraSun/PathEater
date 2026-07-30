@@ -206,11 +206,12 @@ func getRoomsConfigPath() string {
 	return prodPath
 }
 
-func CreateWorldColliders(adder entityAdder, getter componentsGetter, broadcaster broadcaster) {
+func CreateWorldColliders(adder entityAdder, getter componentsGetter, broadcaster broadcaster) *WorldStructures {
 	w := newWorldStructs()
 	w.createWalls(adder)
 	w.createRooms(adder, getter)
 	w.createDoors(adder, broadcaster)
+	return w
 }
 
 type WorldStructures struct {
@@ -252,38 +253,13 @@ func (world *WorldStructures) createWalls(adder entityAdder) {
 	}
 }
 
-func (world *WorldStructures) createDoors(adder entityAdder, broadcaster broadcaster) {
-	path := getDoorsConfigPath()
-	doors := getDoors(path)
-	for _, door := range doors {
-		tminx := door.Center.X - door.HalfExtents.X
-		tmaxx := door.Center.X + door.HalfExtents.X
-		tminy := door.Center.Y - door.HalfExtents.Y
-		tmaxy := door.Center.Y + door.HalfExtents.Y
-		d, err := adder.AddEntity(
-			components.NewColliderComponent(geometry.NewBoxCollider(
-				door.Center,
-				door.HalfExtents,
-				door.Quaternion.ToRotationMatrix())),
-			components.NewDoorComponent(types.Entity(door.RoomA), types.Entity(door.RoomB), tminx, tmaxx, tminy, tmaxy),
-			components.NewInteractableComponent(door.Center, door.HalfExtents, "down", components.InteractDoor),
-		)
-		if err != nil {
-			log.Printf("Ошибка создания двери %s: %v", door.ID, err)
-			continue
-		}
-		world.DoorsEntities = append(world.DoorsEntities, d)
-		err = broadcaster.Send(d, broadcaster.SendEntityCreate)
-	}
-}
-
 func (world *WorldStructures) createRooms(adder entityAdder, getter componentsGetter) {
 	path := getRoomsConfigPath()
 	rooms := getRooms(path)
 
 	for _, room := range rooms {
 		r, err := adder.AddEntity(
-			components.NewRoomComponent(room.MinX, room.MaxX, room.MinZ, room.MaxZ),
+			components.NewRoomComponent(room.ID, room.MinX, room.MaxX, room.MinZ, room.MaxZ),
 		)
 
 		if err != nil {
@@ -303,6 +279,32 @@ func (world *WorldStructures) createRooms(adder entityAdder, getter componentsGe
 	}
 
 	log.Printf("CreateRooms: created %d rooms", len(world.RoomEntities))
+}
+
+func (world *WorldStructures) createDoors(adder entityAdder, broadcaster broadcaster) {
+	path := getDoorsConfigPath()
+	doors := getDoors(path)
+	for _, door := range doors {
+		tminx := door.Center.X - door.HalfExtents.X
+		tmaxx := door.Center.X + door.HalfExtents.X
+		tminy := door.Center.Y - door.HalfExtents.Y
+		tmaxy := door.Center.Y + door.HalfExtents.Y
+		d, err := adder.AddEntity(
+			components.NewColliderComponent(geometry.NewBoxCollider(
+				door.Center,
+				door.HalfExtents,
+				door.Quaternion.ToRotationMatrix())),
+			components.NewDoorComponent(door.RoomA, door.RoomB, tminx, tmaxx, tminy, tmaxy),
+			components.NewUpdateComponent(),
+			components.NewInteractableComponent(door.Center, door.HalfExtents, "down", components.InteractDoor),
+		)
+		if err != nil {
+			log.Printf("Ошибка создания двери %s: %v", door.ID, err)
+			continue
+		}
+		world.DoorsEntities = append(world.DoorsEntities, d)
+		err = broadcaster.Send(d, broadcaster.SendEntityCreate)
+	}
 }
 
 func (world *WorldStructures) GetExternalWalls() []types.Entity {
