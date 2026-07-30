@@ -14,7 +14,7 @@ const (
 	cosmoSpawnZoneSize    = 100
 	cosmoMaxSpawnAttempts = 50
 	maxCosmoAliens        = 5
-	cosmoSpawnChance      = 0.002
+	cosmoSpawnChance      = 0.003
 	minCosmoAlienDistance = 80
 )
 

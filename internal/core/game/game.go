@@ -85,6 +85,7 @@ func initSystems(world *ecs.World) {
 
 	world.AddSystem(systems.NewAnimationSystem(world, world.EventBus, world.EventBus)) // анимация
 
+	world.AddSystem(systems.NewZonesSystem(world.EventBus))
 	world.AddSystem(systems.NewRenderSystem(world, world.Broadcaster))
 	world.AddSystem(systems.NewCreateSystem(world, world, world.EventBus, world.Broadcaster))
 	world.AddSystem(systems.NewDeleteSystem(world, world, world.EventBus, world.EventBus, world.Broadcaster)) // база
