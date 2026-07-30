@@ -12,7 +12,6 @@ import type {
     RoomPlayersPayload,
     ShipWireData,
     Vector3D,
-    HoleStateData,
     DoorStateData
 } from "./ServerContracts";
 

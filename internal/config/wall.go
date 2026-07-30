@@ -286,12 +286,14 @@ func (world *WorldStructures) createDoors(adder entityAdder) {
 	path := getDoorsConfigPath()
 	doors := getDoors(path)
 	for _, door := range doors {
+		var d types.Entity
+		var err error
 		tminx := door.Center.X - door.HalfExtents.X
 		tmaxx := door.Center.X + door.HalfExtents.X
 		tminy := door.Center.Y - door.HalfExtents.Y
 		tmaxy := door.Center.Y + door.HalfExtents.Y
 		if door.Type != "unused" {
-			d, err := adder.AddEntity(
+			d, err = adder.AddEntity(
 				components.NewColliderComponent(geometry.NewBoxCollider(
 					door.Center,
 					door.HalfExtents,
@@ -301,7 +303,7 @@ func (world *WorldStructures) createDoors(adder entityAdder) {
 				components.NewInteractableComponent(door.Center, door.HalfExtents, "down", components.InteractDoor),
 			)
 		} else {
-			d, err := adder.AddEntity(
+			d, err = adder.AddEntity(
 				components.NewColliderComponent(geometry.NewBoxCollider(
 					door.Center,
 					door.HalfExtents,
