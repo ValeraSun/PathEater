@@ -15,7 +15,7 @@ type breakdownData struct {
 	Normal   geometry.Vec3 `json:"normal,omitempty"`
 }
 
-func (s *sendler) sendBreakdown(id types.Entity, broadcaster func(EntityInfo) error) error {
+func (s *sendler) SendBreakdown(id types.Entity, broadcaster func(EntityInfo) error) error {
 	c, ok := s.GetComponent(id, "transform")
 	if !ok {
 		return errors.New("не найден компонент transform")

@@ -54,6 +54,9 @@ func (s *DeadSystem) drainEvents() error {
 					s.Publish(events.NewGameOverEvent(false))
 				}
 				s.Publish(events.NewDeleteEvent(ev.ID))
+			case s.isBreakdown(ev.ID):
+				s.Publish(events.NewDamageDealEvent(ship, -5))
+				s.Publish(events.NewDeleteEvent(ev.ID))
 			default:
 				s.Publish(events.NewDeleteEvent(ev.ID))
 			}
@@ -76,6 +79,10 @@ func (s *DeadSystem) OnEvent(event events.Event) error {
 
 func (s *DeadSystem) isPlayer(id types.Entity) bool {
 	return s.HasComponents(id, "player")
+}
+
+func (s *DeadSystem) isBreakdown(id types.Entity) bool {
+	return s.HasComponents(id, "breakdown")
 }
 
 func (s *DeadSystem) everyoneIsDead() bool {

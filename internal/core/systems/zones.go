@@ -12,7 +12,7 @@ type ZonesSystem struct {
 	rng       *rand.Rand
 }
 
-const meteoriteZoneSpawnChance = 0.02
+const meteoriteZoneSpawnChance = 0.013
 
 func NewZonesSystem(publisher publisher) *ZonesSystem {
 	return &ZonesSystem{
