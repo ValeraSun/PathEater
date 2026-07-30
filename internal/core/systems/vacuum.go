@@ -1,8 +1,6 @@
 package systems
 
 import (
-	"log"
-
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/types"
@@ -61,7 +59,6 @@ func (s *VacuumSystem) getDoors() map[types.Entity]*components.DoorComponent {
 }
 
 func (s *VacuumSystem) Update(dt float32) error {
-	//log.Println("Зашёл в UPDATE")
 	s.recalculateZones()
 	for i := range s.zones {
 		zone := &s.zones[i]
@@ -164,7 +161,6 @@ func (s *VacuumSystem) findZones(graph map[string][]string) []zone {
 			}
 		}
 
-		log.Printf("  Зона для %v содержит %d комнат", roomID, len(zone.rooms))
 		if len(zone.rooms) > 0 {
 			zones = append(zones, zone)
 		}
