@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	shipHealth      = 9999 //изменить
+	shipHealth      = 100
 	shipSpeed       = 50
 	shipBaggage     = 10
 	shipWeaponSpeed = 10
