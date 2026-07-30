@@ -5,12 +5,6 @@ import { LobbyView } from "../Views/LobbyView";
 import { RoomView } from "../Views/RoomView";
 
 export class LobbyController {
-    private gameServerGateway: GameServerGateway;
-    private musicManager: MusicManager;
-    private appView: AppView;
-    private roomView: RoomView;
-    private lobbyView: LobbyView;
-
     public constructor(
         gameServerGateway: GameServerGateway,
         musicManager: MusicManager,
@@ -55,4 +49,10 @@ export class LobbyController {
     private HandleRoomPlayersChanged = (playerIds: string[]): void => {
         this.lobbyView.RenderPlayers(playerIds, this.gameServerGateway.localPlayerId);
     };
+
+    private gameServerGateway: GameServerGateway;
+    private musicManager: MusicManager;
+    private appView: AppView;
+    private roomView: RoomView;
+    private lobbyView: LobbyView;
 }

@@ -6,19 +6,6 @@ import { GameServerGateway } from "../Network/GameServerGateway";
 import { type PlayerStatePayload } from "../Network/ServerContracts";
 
 export class PlayerController {
-    private playerModel: PlayerModel;
-    private playerView: PlayerView;
-    private input: InputController;
-    private camera: THREE.Camera;
-    private gameServerGateway: GameServerGateway;
-
-    private inputLocked = false;
-
-    private networkAccumulator = 0;
-    private networkInterval = 1 / 20;
-
-    private cameraDirection = new THREE.Vector3();
-
     public constructor(
         playerModel: PlayerModel,
         playerView: PlayerView,
@@ -33,32 +20,32 @@ export class PlayerController {
         this.camera = camera;
         this.gameServerGateway = gameServerGateway;
 
-        this.syncViewWithModel();
+        this.SyncViewWithModel();
     }
 
     public Update(dt: number): void {
-        this.syncViewWithModel();
-        this.updateAnimation();
+        this.SyncViewWithModel();
+        this.UpdateAnimation();
         this.playerView.AdvanceAnimation(dt);
-        this.updateNetwork(dt);
+        this.UpdateNetwork(dt);
     }
 
     public LockInput(): void { this.inputLocked = true; }
     public UnlockInput(): void { this.inputLocked = false; }
     public IsInputLocked(): boolean { return this.inputLocked; }
 
-    private syncViewWithModel(): void {
+    private SyncViewWithModel(): void {
         this.playerView.mesh.position.copy(this.playerModel.position);
     }
 
-    private updateNetwork(dt: number): void {
+    private UpdateNetwork(dt: number): void {
         this.networkAccumulator += dt;
         if (this.networkAccumulator < this.networkInterval) return;
         this.networkAccumulator %= this.networkInterval;
-        this.sendPlayerState();
+        this.SendPlayerState();
     }
 
-    private updateAnimation(): void {
+    private UpdateAnimation(): void {
         const isMoving = !this.inputLocked && (
             this.input.IsKeyDown("KeyW") ||
             this.input.IsKeyDown("KeyA") ||
@@ -69,7 +56,7 @@ export class PlayerController {
         this.playerView.SetMoving(isMoving);
     }
 
-    private sendPlayerState(): void {
+    private SendPlayerState(): void {
         this.camera.getWorldDirection(this.cameraDirection);
         if (this.cameraDirection.lengthSq() === 0) {
             this.cameraDirection.set(0, 0, -1);
@@ -95,4 +82,14 @@ export class PlayerController {
 
         this.gameServerGateway.SendPlayerState(state);
     }
+
+    private playerModel: PlayerModel;
+    private playerView: PlayerView;
+    private input: InputController;
+    private camera: THREE.Camera;
+    private gameServerGateway: GameServerGateway;
+    private inputLocked = false;
+    private networkAccumulator = 0;
+    private networkInterval = 1 / 20;
+    private cameraDirection = new THREE.Vector3();
 }

@@ -8,13 +8,6 @@ import { DoorView } from "../Views/DoorView";
 
 
 export class EntityMessageHandler {
-    private entityStore: EntityStore;
-    private entityViewManager: EntityViewManager;
-    private radarModel: RadarModel;
-    private shipView: ShipView;
-    private localPlayerId: string | null = null;
-    private localPlayerStateHandler: ((playerState: EntityTransformData) => void) | null = null;
-
     public constructor(entityStore: EntityStore, entityViewManager: EntityViewManager, radarModel: RadarModel, shipView: ShipView) {
         this.entityStore = entityStore;
         this.entityViewManager = entityViewManager;
@@ -241,6 +234,12 @@ export class EntityMessageHandler {
         });
     }
 
+    private entityStore: EntityStore;
+    private entityViewManager: EntityViewManager;
+    private radarModel: RadarModel;
+    private shipView: ShipView;
+    private localPlayerId: string | null = null;
+    private localPlayerStateHandler: ((playerState: EntityTransformData) => void) | null = null;
     private UpdateDoor(entityId: string, data: unknown): void {
     if (!IsDoorStateData(data)) {
         console.warn("UpdateDoor: некорректные данные", data);

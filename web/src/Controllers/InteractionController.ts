@@ -5,10 +5,6 @@ import { InteractionView } from "../Views/InteractionView";
 const COMPUTER_INTERACTION_DISTANCE = 2.5;
 
 export class InteractionController {
-    private playerModel: PlayerModel;
-    private computerModel: ComputerModel;
-    private interactionView: InteractionView;
-
     public constructor(playerModel: PlayerModel, computerModel: ComputerModel, interactionView: InteractionView) {
         this.playerModel = playerModel;
         this.computerModel = computerModel;
@@ -31,4 +27,8 @@ export class InteractionController {
     public Dispose(): void {
         this.interactionView.Hide();
     }
+
+    private playerModel: PlayerModel;
+    private computerModel: ComputerModel;
+    private interactionView: InteractionView;
 }

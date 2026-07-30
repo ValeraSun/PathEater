@@ -16,7 +16,6 @@ import { InteractionView } from "../Views/InteractionView";
 export function CreateApplication(): Game {
     const gameView = new GameView();
     const inputController = new InputController();
-
     const entityStore = new EntityStore();
     const radarModel = new RadarModel();
     const entityViewFactory = new EntityViewFactory();

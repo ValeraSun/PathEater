@@ -1,10 +1,6 @@
 import { InputController } from "./InputController";
 
 export class ComputerController {
-    private inputController: InputController;
-
-    private active = false;
-
     public constructor(inputController: InputController) {
         this.inputController = inputController;
     }
@@ -40,4 +36,7 @@ export class ComputerController {
     public Dispose(): void {
         this.active = false;
     }
+
+    private inputController: InputController;
+    private active = false;
 }
