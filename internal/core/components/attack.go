@@ -11,7 +11,7 @@ type AttackComponent struct {
 	attackCooldown        float32
 	attackRange           float64
 	hitbox                geometry.Collider
-	damage                int
+	damage                float32
 }
 
 func (*AttackComponent) Type() string {
@@ -20,7 +20,7 @@ func (*AttackComponent) Type() string {
 
 func NewAttackComponent(damage, cooldown, distant float64, hitbox geometry.Collider) *AttackComponent {
 	return &AttackComponent{
-		damage:         int(damage),
+		damage:         float32(damage),
 		attackCooldown: float32(cooldown),
 		attackRange:    distant,
 		hitbox:         hitbox,

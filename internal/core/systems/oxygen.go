@@ -234,7 +234,7 @@ func (s *OxygenSystem) applyVacuumDamage(playerID types.Entity) {
 
 	if isGasp {
 		log.Printf("applyVacuumDamage: игрок %v задыхается! Наносим урон", playerID)
-		s.publisher.Publish(events.NewDamageDealEvent(playerID, 1))
+		s.publisher.Publish(events.NewDamageDealEvent(playerID, 0.1))
 	}
 }
 

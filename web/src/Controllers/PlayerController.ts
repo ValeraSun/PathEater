@@ -85,7 +85,7 @@ export class PlayerController {
             move_right: canSendInput && this.input.IsKeyDown("KeyD"),
             move_back: canSendInput && this.input.IsKeyDown("KeyS"),
             interact: canSendInput && this.input.IsKeyDown("KeyE"),
-            attack: canSendInput && this.input.WasPressedOnce("Space"),
+            attack: canSendInput && this.input.IsKeyDown("Mouse0"),
             direction: {
                 x: this.cameraDirection.x,
                 y: this.cameraDirection.y,
