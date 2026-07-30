@@ -1,7 +1,7 @@
 import { EntityStore } from "../Models/EntityStore";
 import { RadarModel } from "../Models/RadarModel";
 import type { EntityCreateInfo, EntityTransformData, EntityUpdateInfo } from "../Network/ServerContracts";
-import {  IsEntityTransformData, IsAsteroidStateData, IsMonsterStateData, IsShipWireData, IsBulletData, IsDoorStateData } from "../Network/ServerValidators";
+import {  IsEntityTransformData, IsAsteroidStateData, IsMonsterStateData, IsShipWireData, IsBulletData, IsDoorStateData, IsBreakdownStateData } from "../Network/ServerValidators";
 import { EntityViewManager } from "../Views/EntityViewManager";
 import { ShipView } from "../Views/ShipView";
 import { DoorView } from "../Views/DoorView";
@@ -63,6 +63,11 @@ export class EntityMessageHandler {
             return;
         }
 
+         if (entityInformation.type === "hole" || entityInformation.type === "breakdown") {
+            this.UpdateBreakdown(entityInformation.id, entityInformation.data);
+            return;
+        }
+
         if (!IsEntityTransformData(entityInformation.data)) {
             console.warn("Получены некорректные данные сущности:", entityInformation);
             return;
@@ -106,6 +111,11 @@ export class EntityMessageHandler {
 
         if (entityInformation.type === "door") {
             this.UpdateDoor(entityInformation.id, entityInformation.data);
+            return;
+        }
+
+        if (entityInformation.type === "hole" || entityInformation.type === "breakdown") {
+            this.UpdateBreakdown(entityInformation.id, entityInformation.data);
             return;
         }
 
@@ -268,5 +278,72 @@ export class EntityMessageHandler {
         }
     }
 }
+
+  private UpdateBreakdown(entityId: string, data: unknown): void {
+        // Создаем валидатор для данных поломки
+        if (!IsBreakdownStateData(data)) {
+            console.warn("UpdateBreakdown: некорректные данные", data);
+            return;
+        }
+
+        // Получаем или создаем модель
+        let entityModel = this.entityStore.GetEntity(entityId);
+        const anyData = data as any;
+        
+        if (!entityModel) {
+            // Создаем модель с позицией
+            const tempPos = anyData.position || { x: 0, y: 0, z: 0 };
+            entityModel = this.entityStore.CreateEntity(
+                entityId, 
+                "breakdown", 
+                { position: tempPos }
+            );
+            entityModel.position.set(tempPos.x, tempPos.y, tempPos.z);
+            entityModel.targetPosition.copy(entityModel.position);
+            
+            // Создаем вьюху с данными
+            this.entityViewManager.CreateEntity(entityModel, anyData);
+        } else {
+            // Обновляем позицию
+            if (anyData.position) {
+                entityModel.position.set(anyData.position.x, anyData.position.y, anyData.position.z);
+                entityModel.targetPosition.copy(entityModel.position);
+            }
+        }
+
+        // Обновляем вьюху
+        const view = this.entityViewManager.GetEntityView(entityId);
+        if (view?.object && view.object instanceof THREE.Group) {
+            // Если есть позиция
+            if (anyData.position) {
+                view.object.position.set(anyData.position.x, anyData.position.y, anyData.position.z);
+            }
+            
+            // Если есть радиус
+            if (anyData.radius) {
+                // Ищем Mesh в группе и обновляем его
+                view.object.children.forEach(child => {
+                    if (child instanceof THREE.Mesh) {
+                        const scale = anyData.radius / 1.2; // 1.2 - базовый радиус
+                        child.scale.set(scale, scale, scale);
+                    }
+                });
+            }
+            
+            // Ориентация на стене - если передана нормаль
+            if (anyData.normal) {
+                const normal = new THREE.Vector3(
+                    anyData.normal.x,
+                    anyData.normal.y,
+                    anyData.normal.z
+                );
+                const up = new THREE.Vector3(0, 0, 1);
+                const quaternion = new THREE.Quaternion().setFromUnitVectors(up, normal.clone().normalize());
+                view.object.quaternion.copy(quaternion);
+            }
+        }
+    }
 }
+
+
 

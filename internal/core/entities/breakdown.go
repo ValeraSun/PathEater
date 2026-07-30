@@ -6,6 +6,11 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
+const (
+	breakdownSize   = 1.0
+	breakdownHealth = 10
+)
+
 func NewBreakdown(adder entityAdder, pos geometry.Vec3, wallID, roomID types.Entity) types.Entity {
 	e, _ := adder.AddEntity(
 		components.NewTransformComponent(
@@ -13,6 +18,12 @@ func NewBreakdown(adder entityAdder, pos geometry.Vec3, wallID, roomID types.Ent
 			geometry.GetZeroVector(),
 		),
 		components.NewBreakdownComponent(pos, wallID, roomID),
+		components.NewHealthComponent(breakdownHealth),
+		components.NewHitboxComponent(geometry.NewBoxCollider(
+			pos,
+			geometry.Vec3{X: breakdownSize, Y: breakdownSize, Z: breakdownSize},
+			geometry.GetStandartAxes(),
+		)),
 	)
 	return e
 }
