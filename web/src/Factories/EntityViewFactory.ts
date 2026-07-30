@@ -47,7 +47,7 @@ export class EntityViewFactory {
                 const doorView = new DoorView();
                 return {
                     object: doorView.mesh,        // группа, содержащая модель
-                    animatedView: doorView,       // сам DoorView (реализует AnimatedEntityView)
+                    animatedView: null,       // сам DoorView (реализует AnimatedEntityView)
                     ownsResources: false
                 };
             }

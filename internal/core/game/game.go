@@ -35,8 +35,9 @@ type broadcaster interface {
 
 func CreateGame(broadcasterFunc broadcasterFunc) *ecs.World {
 	w := ecs.CreateWorld(broadcasterFunc)
-	w.WorldStructures = config.CreateWorldColliders(w, w, w.Broadcaster)
+	w.WorldStructures = config.CreateWorldColliders(w, w)
 	initSystems(w)
+	w.WorldStructures.SendDoorsCreate(w.Broadcaster)
 	createEntities(w)
 
 	go w.EventBus.ProcessEvents()

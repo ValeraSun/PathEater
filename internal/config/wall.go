@@ -206,11 +206,11 @@ func getRoomsConfigPath() string {
 	return prodPath
 }
 
-func CreateWorldColliders(adder entityAdder, getter componentsGetter, broadcaster broadcaster) *WorldStructures {
+func CreateWorldColliders(adder entityAdder, getter componentsGetter) *WorldStructures {
 	w := newWorldStructs()
 	w.createWalls(adder)
 	w.createRooms(adder, getter)
-	w.createDoors(adder, broadcaster)
+	w.createDoors(adder)
 	return w
 }
 
@@ -281,7 +281,7 @@ func (world *WorldStructures) createRooms(adder entityAdder, getter componentsGe
 	log.Printf("CreateRooms: created %d rooms", len(world.RoomEntities))
 }
 
-func (world *WorldStructures) createDoors(adder entityAdder, broadcaster broadcaster) {
+func (world *WorldStructures) createDoors(adder entityAdder) {
 	path := getDoorsConfigPath()
 	doors := getDoors(path)
 	for _, door := range doors {
@@ -303,7 +303,12 @@ func (world *WorldStructures) createDoors(adder entityAdder, broadcaster broadca
 			continue
 		}
 		world.DoorsEntities = append(world.DoorsEntities, d)
-		err = broadcaster.Send(d, broadcaster.SendEntityCreate)
+	}
+}
+
+func (world *WorldStructures) SendDoorsCreate(broadcaster broadcaster) {
+	for _, d := range world.DoorsEntities {
+		broadcaster.Send(d, broadcaster.SendEntityCreate)
 	}
 }
 

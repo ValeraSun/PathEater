@@ -2,6 +2,7 @@ package sendler
 
 import (
 	"errors"
+	"log"
 
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
@@ -32,6 +33,7 @@ func (s *sendler) sendDoor(id types.Entity, broadcaster func(EntityInfo) error) 
 	}
 	door := c.(*components.DoorComponent)
 
+	log.Println("ПОСЛАНА ДВЕРЬ: ", door.IsOpen)
 	broadcaster(EntityInfo{
 		ID:   id,
 		Type: "door",

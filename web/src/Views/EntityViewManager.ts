@@ -117,4 +117,12 @@ export class EntityViewManager {
             }
         });
     }
+    public GetEntityView(entityId: string): { object: THREE.Object3D; animatedView: AnimatedEntityView | null } | undefined {
+    const record = this.viewsByEntityId.get(entityId);
+    if (!record) return undefined;
+    return {
+        object: record.object,
+        animatedView: record.animatedView
+    };
+}
 }
