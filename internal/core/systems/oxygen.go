@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	loss            = 1.0 
-	suckForce       = 2.5 
-	maxSuckDistance = 1.5 
+	loss            = 1.0
+	suckForce       = 2.5
+	maxSuckDistance = 1.5
 	maxForce        = 3.0
 	oxygenDamage    = 0.1
 )
@@ -30,7 +30,6 @@ func NewOxygenSystem(getter componentsGetter, publisher publisher) *OxygenSystem
 		make(map[types.Entity]*components.PlayerComponent),
 		make(map[types.Entity]*components.RoomComponent),
 		make(map[types.Entity]*components.BreakdownComponent),
-		0,
 	}
 	s.rooms = s.getRooms()
 	return s
@@ -118,7 +117,6 @@ func (s *OxygenSystem) applySuckForce(playerID types.Entity, player *components.
 
 	toBreakdown := targetBreakdown.Position.Sub(tr.Position)
 	distance := toBreakdown.Length()
-
 
 	if distance < 0.001 {
 		ext.Direction = geometry.Vec3{}
