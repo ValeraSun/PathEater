@@ -1,13 +1,10 @@
 import { EntityStore } from "../Models/EntityStore";
 import { RadarModel } from "../Models/RadarModel";
 import type { EntityCreateInfo, EntityTransformData, EntityUpdateInfo } from "../Network/ServerContracts";
-import { IsDoorStateData, IsEntityTransformData, IsAsteroidStateData, IsMonsterStateData, IsShipWireData, IsBulletData } from "../Network/ServerValidators";
-import type { DoorStateData } from "../Network/ServerContracts";
+import {  IsEntityTransformData, IsAsteroidStateData, IsMonsterStateData, IsShipWireData, IsBulletData } from "../Network/ServerValidators";
 import { EntityViewManager } from "../Views/EntityViewManager";
 import { ShipView } from "../Views/ShipView";
-import { IsHoleStateData } from "../Network/ServerValidators";
-import type { HoleStateData } from "../Network/ServerContracts";
-import { DoorView } from "../Views/DoorView";
+
 
 export class EntityMessageHandler {
     private entityStore: EntityStore;
@@ -60,15 +57,6 @@ export class EntityMessageHandler {
             return;
         }
 
-        if (entityInformation.type === "door") {
-        this.UpdateDoor(entityInformation.id, entityInformation.data);
-        return;
-        }
-
-if (entityInformation.type === "hole") {
-    this.UpdateHole(entityInformation.id, entityInformation.data);
-    return;
-}
         if (!IsEntityTransformData(entityInformation.data)) {
             console.warn("Получены некорректные данные сущности:", entityInformation);
             return;
@@ -109,16 +97,6 @@ if (entityInformation.type === "hole") {
             this.UpdateShip(entityInformation.data);
             return;
         } 
-        
-        if (entityInformation.type === "door" || entityInformation.type === "spacedoor") {
-            this.UpdateDoor(entityInformation.id, entityInformation.data);
-            return;
-        }
-        
-        if (entityInformation.type === "hole") {
-    this.UpdateHole(entityInformation.id, entityInformation.data);
-    return;
-}
 
         if (!IsEntityTransformData(entityInformation.data)) {
             console.warn("Получены некорректные данные обновления сущности:", entityInformation);
@@ -241,77 +219,5 @@ if (entityInformation.type === "hole") {
             y: data.position.y
         });
     }
-
-
-
-private UpdateDoor(entityId: string, data: unknown): void {
-    console.log("[Door] UpdateDoor called", entityId, data);
-    if (!IsDoorStateData(data)) {
-        console.warn("[Door] Некорректные данные двери:", data);
-        return;
-    }
-
-    let entityModel = this.entityStore.GetEntity(entityId);
-    if (!entityModel) {
-        console.log("[Door] Creating new door entity", entityId);
-        entityModel = this.entityStore.CreateEntity(entityId, "door", data);
-        this.entityViewManager.CreateEntity(entityModel);
-    } else {
-        entityModel = this.entityStore.UpdateEntity(entityId, data);
-    }
-
-    const view = this.entityViewManager.GetEntityView(entityId);
-    console.log("[Door] View for door:", view);
-    if (view?.animatedView && view.animatedView instanceof DoorView) {
-        const doorView = view.animatedView;
-        console.log("[Door] DoorView found, applying data");
-        if (data.position) {
-            doorView.mesh.position.set(data.position.x, data.position.y, data.position.z);
-            console.log("[Door] Position set to", data.position);
-        }
-        if (data.rotation) {
-            doorView.mesh.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
-            console.log("[Door] Rotation set to", data.rotation);
-        }
-        if (data.isOpen !== undefined) {
-            doorView.SetState(data.isOpen, data.openProgress);
-            console.log("[Door] State set to open=", data.isOpen, "progress=", data.openProgress);
-        }
-    } else {
-        console.warn("[Door] DoorView not found for entity", entityId);
-    }
-}
-
-private UpdateHole(entityId: string, data: unknown): void {
-    if (!IsHoleStateData(data)) {
-        console.warn("Некорректные данные поломки:", data);
-        return;
-    }
-
-    // Получаем или создаём модель
-    let entityModel = this.entityStore.GetEntity(entityId);
-    if (!entityModel) {
-        entityModel = this.entityStore.CreateEntity(entityId, "hole", data);
-        this.entityViewManager.CreateEntity(entityModel);
-    } else {
-        entityModel = this.entityStore.UpdateEntity(entityId, data);
-    }
-
-    // Обновляем вьюху
-    const view = this.entityViewManager.GetEntityView(entityId);
-    if (view?.object) {
-        if (data.position) {
-            view.object.position.set(data.position.x, data.position.y, data.position.z);
-        }
-        if (data.rotation) {
-            view.object.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
-        }
-        if (data.radius) {
-            // Масштабируем меш (круг) – радиус влияет на размер
-            view.object.scale.set(data.radius, data.radius, data.radius);
-        }
-    }
-}
-
 }
 

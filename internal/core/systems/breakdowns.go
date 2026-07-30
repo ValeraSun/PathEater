@@ -25,7 +25,7 @@ func NewBreakdownSystem(getter componentsGetter, publisher publisher, subscriber
 		publisher,
 		make([]types.Entity, 0),
 		make(map[types.Entity]types.Entity),
-		make(chan events.Event, 100),
+		make(chan events.Event, eventQueueSize),
 	}
 	s.externalWalls = structures.GetExternalWalls()
 	s.rooms = structures.GetRooms()

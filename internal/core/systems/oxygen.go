@@ -13,6 +13,7 @@ const (
 	loss            = 1.0 // потеря кислорода в вакууме
 	suckForce       = 2.5 // сила притяжения к поломке
 	maxSuckDistance = 1.5 // максимальная дистанция притяжения
+	oxygenDamage    = 0.1
 )
 
 type OxygenSystem struct {
@@ -110,10 +111,6 @@ func (s *OxygenSystem) Update(dt float32) error {
 			}
 			s.applyVacuumDamage(id)
 		}
-	}
-
-	if shouldLog {
-		log.Printf("=== Конец OxygenSystem Update ===")
 	}
 
 	return nil
@@ -226,15 +223,10 @@ func (s *OxygenSystem) applyVacuumDamage(playerID types.Entity) {
 		return
 	}
 
-	oldOxygen := ox.Oxygen
 	isGasp := ox.Leak(loss)
 
-	log.Printf("applyVacuumDamage: игрок %v, кислород: %.2f -> %.2f (потеря: %.2f)",
-		playerID, oldOxygen, ox.Oxygen, loss)
-
 	if isGasp {
-		log.Printf("applyVacuumDamage: игрок %v задыхается! Наносим урон", playerID)
-		s.publisher.Publish(events.NewDamageDealEvent(playerID, 0.1))
+		s.publisher.Publish(events.NewDamageDealEvent(playerID, oxygenDamage))
 	}
 }
 

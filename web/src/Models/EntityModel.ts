@@ -10,4 +10,5 @@ export interface EntityModel {
     health?: number;
     dead?: boolean;
     attacking?: boolean;
+    isOpen?: boolean;
 }

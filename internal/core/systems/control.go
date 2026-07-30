@@ -16,7 +16,7 @@ type ControlSystem struct {
 func NewControlSystem(getter componentsGetter, subscriber subscriber) *ControlSystem {
 	s := &ControlSystem{
 		getter:     getter,
-		eventQueue: make(chan *events.SetPlayerStateEvent, 100),
+		eventQueue: make(chan *events.SetPlayerStateEvent, eventQueueSize*6),
 	}
 	subscriber.Subscribe("setPlayerState", s.OnEvent)
 	return s

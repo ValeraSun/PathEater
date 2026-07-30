@@ -12,7 +12,8 @@ import type {
     RoomPlayersPayload,
     ShipWireData,
     Vector3D,
-    HoleStateData
+    HoleStateData,
+    DoorStateData
 } from "./ServerContracts";
 
 function IsObject(value: unknown): value is Record<string, unknown> {
