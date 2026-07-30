@@ -14,11 +14,11 @@ func (*DoorComponent) Type() string {
 	return "door"
 }
 
-func NewDoorComponent(roomA, roomB string, tminx, tmaxx, tminy, tmaxy float64) *DoorComponent {
+func NewDoorComponent(isOpen bool, roomA, roomB string, tminx, tmaxx, tminy, tmaxy float64) *DoorComponent {
 	return &DoorComponent{
 		RoomA:       roomA,
 		RoomB:       roomB,
-		IsOpen:      false,
+		IsOpen:      isOpen,
 		TriggerMinX: tminx,
 		TriggerMaxX: tmaxx,
 		TriggerMinY: tminy,

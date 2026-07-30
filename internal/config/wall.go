@@ -54,6 +54,7 @@ type Door struct {
 	RoomA       string              `json:"roomA"`
 	RoomB       string              `json:"roomB"`
 	Shape       string              `json:"shape"`
+	Type        string              `json:"type"`
 	Center      geometry.Vec3       `json:"center"`
 	HalfExtents geometry.Vec3       `json:"halfExtents"`
 	Quaternion  geometry.Quaternion `json:"rotation"`
@@ -289,20 +290,33 @@ func (world *WorldStructures) createDoors(adder entityAdder) {
 		tmaxx := door.Center.X + door.HalfExtents.X
 		tminy := door.Center.Y - door.HalfExtents.Y
 		tmaxy := door.Center.Y + door.HalfExtents.Y
-		d, err := adder.AddEntity(
-			components.NewColliderComponent(geometry.NewBoxCollider(
-				door.Center,
-				door.HalfExtents,
-				door.Quaternion.ToRotationMatrix())),
-			components.NewDoorComponent(door.RoomA, door.RoomB, tminx, tmaxx, tminy, tmaxy),
-			components.NewUpdateComponent(),
-			components.NewInteractableComponent(door.Center, door.HalfExtents, "down", components.InteractDoor),
-		)
+		if door.Type != "unused" {
+			d, err := adder.AddEntity(
+				components.NewColliderComponent(geometry.NewBoxCollider(
+					door.Center,
+					door.HalfExtents,
+					door.Quaternion.ToRotationMatrix())),
+				components.NewDoorComponent(false, door.RoomA, door.RoomB, tminx, tmaxx, tminy, tmaxy),
+				components.NewUpdateComponent(),
+				components.NewInteractableComponent(door.Center, door.HalfExtents, "down", components.InteractDoor),
+			)
+		} else {
+			d, err := adder.AddEntity(
+				components.NewColliderComponent(geometry.NewBoxCollider(
+					door.Center,
+					door.HalfExtents,
+					door.Quaternion.ToRotationMatrix())),
+				components.NewDoorComponent(true, door.RoomA, door.RoomB, tminx, tmaxx, tminy, tmaxy),
+				components.NewUpdateComponent(),
+			)
+		}
 		if err != nil {
 			log.Printf("Ошибка создания двери %s: %v", door.ID, err)
 			continue
 		}
-		world.DoorsEntities = append(world.DoorsEntities, d)
+		if door.Type != "unused" {
+			world.DoorsEntities = append(world.DoorsEntities, d)
+		}
 	}
 }
 
