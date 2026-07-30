@@ -16,7 +16,7 @@ func (*ColliderComponent) Type() string {
 
 func NewColliderComponent(collider geometry.Collider) *ColliderComponent {
 	return &ColliderComponent{
-		Enable:   true,
+		Enable:   false,
 		Collider: collider,
 	}
 }

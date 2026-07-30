@@ -46,6 +46,9 @@ func (s *sendler) Send(id types.Entity, broadcaster func(EntityInfo) error) erro
 
 	case entities.IsBullet(id, s):
 		s.sendBullet(id, broadcaster)
+
+	case entities.IsDoor(id, s):
+		s.sendDoor(id, broadcaster)
 	}
 	return nil
 }

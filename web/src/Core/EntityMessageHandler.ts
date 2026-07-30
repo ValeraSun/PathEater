@@ -7,6 +7,7 @@ import { EntityViewManager } from "../Views/EntityViewManager";
 import { ShipView } from "../Views/ShipView";
 import { IsHoleStateData } from "../Network/ServerValidators";
 import type { HoleStateData } from "../Network/ServerContracts";
+import { DoorView } from "../Views/DoorView";
 
 export class EntityMessageHandler {
     private entityStore: EntityStore;
@@ -241,69 +242,43 @@ if (entityInformation.type === "hole") {
         });
     }
 
-private HandleDoor(entityId: string, data: unknown): void {
+
+
+private UpdateDoor(entityId: string, data: unknown): void {
+    console.log("[Door] UpdateDoor called", entityId, data);
     if (!IsDoorStateData(data)) {
-        console.warn("Получено некорректное состояние двери:", data);
+        console.warn("[Door] Некорректные данные двери:", data);
         return;
     }
 
-    // Получаем или создаем модель
     let entityModel = this.entityStore.GetEntity(entityId);
     if (!entityModel) {
+        console.log("[Door] Creating new door entity", entityId);
         entityModel = this.entityStore.CreateEntity(entityId, "door", data);
         this.entityViewManager.CreateEntity(entityModel);
     } else {
         entityModel = this.entityStore.UpdateEntity(entityId, data);
     }
 
-    // Обновляем вьюху
     const view = this.entityViewManager.GetEntityView(entityId);
-    if (view?.object) {
-        // Ищем SpaceDoorView
-        let doorView: SpaceDoorView | null = null;
-        if (view.object instanceof SpaceDoorView) {
-            doorView = view.object;
-        } else {
-            // Ищем в детях
-            view.object.children.forEach(child => {
-                if (child instanceof SpaceDoorView) {
-                    doorView = child;
-                }
-            });
+    console.log("[Door] View for door:", view);
+    if (view?.animatedView && view.animatedView instanceof DoorView) {
+        const doorView = view.animatedView;
+        console.log("[Door] DoorView found, applying data");
+        if (data.position) {
+            doorView.mesh.position.set(data.position.x, data.position.y, data.position.z);
+            console.log("[Door] Position set to", data.position);
         }
-
-        if (doorView) {
-            // Обновляем позицию
-            if (data.position) {
-                doorView.mesh.position.set(data.position.x, data.position.y, data.position.z);
-            }
-            if (data.isOpen !== undefined) {
-                doorView.SetState(data.isOpen, data.openProgress);
-            }
+        if (data.rotation) {
+            doorView.mesh.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
+            console.log("[Door] Rotation set to", data.rotation);
         }
-    }
-}
-
-// Добавляем метод Update для обновления анимаций дверей
-// Вызывайте его из UpdateEntityViews или отдельно
-public UpdateDoor(deltaTime: number): void {
-    for (const entity of this.entityStore.GetAllEntities()) {
-        if (entity.type === "door") {
-            const view = this.entityViewManager.GetEntityView(entity.id);
-            if (view?.object) {
-                let doorView: DoorView | null = null;
-                if (view.object instanceof DoorView) {
-                    doorView = view.object;
-                } else {
-                    view.object.children.forEach(child => {
-                        if (child instanceof DoorView) {
-                            doorView = child;
-                        }
-                    });
-                }
-                doorView?.Update(deltaTime);
-            }
+        if (data.isOpen !== undefined) {
+            doorView.SetState(data.isOpen, data.openProgress);
+            console.log("[Door] State set to open=", data.isOpen, "progress=", data.openProgress);
         }
+    } else {
+        console.warn("[Door] DoorView not found for entity", entityId);
     }
 }
 

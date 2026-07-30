@@ -42,13 +42,13 @@ export class EntityViewFactory {
             }
 
             case "door": {
-                const doorView = new DoorView();
-                return {
-                    object: doorView.mesh,
-                    animatedView: doorView, 
-                    ownsResources: false
-                };
-            }
+    const doorView = new DoorView();
+    return {
+        object: doorView.mesh,        // группа, содержащая модель
+        animatedView: doorView,       // сам DoorView (реализует AnimatedEntityView)
+        ownsResources: false
+    };
+}
             case "cargo":
                 return {
                     object: MeshFactory.CreateBox(1, 1, 1),
