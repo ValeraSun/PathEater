@@ -3,12 +3,12 @@ package components
 type RayAttackComponent struct {
 	currentAttackCooldown float32
 	attackCooldown        float32
-	Damage                int
+	Damage                float32
 }
 
 func (*RayAttackComponent) Type() string { return "rayAttack" }
 
-func NewRayAttackComponent(attackCooldown float32, damage int) *RayAttackComponent {
+func NewRayAttackComponent(attackCooldown float32, damage float32) *RayAttackComponent {
 	return &RayAttackComponent{
 		attackCooldown: attackCooldown,
 		Damage:         damage,

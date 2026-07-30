@@ -11,7 +11,7 @@ type AttackComponent struct {
 	attackCooldown        float32
 	attackRange           float64
 	hitbox                geometry.Collider
-	damage                int
+	damage                float32
 }
 
 func (*AttackComponent) Type() string {
@@ -20,7 +20,7 @@ func (*AttackComponent) Type() string {
 
 func NewAttackComponent(damage, cooldown, distant float64, hitbox geometry.Collider) *AttackComponent {
 	return &AttackComponent{
-		damage:         int(damage),
+		damage:         float32(damage),
 		attackCooldown: float32(cooldown),
 		attackRange:    distant,
 		hitbox:         hitbox,
@@ -35,10 +35,9 @@ func (c *AttackComponent) ReduceCooldown(dt float32) {
 	}
 }
 
-func (c *AttackComponent) TryAttack(id types.Entity, pos, distant geometry.Vec3) (*events.AttackEvent, bool) {
-	isAttack := distant.Length() < 2 && c.currentAttackCooldown == 0
-	if isAttack {
-		c.hitbox.ChangeCenter(pos.Add(distant.Normalize().Scale(c.attackRange)))
+func (c *AttackComponent) Attack(id types.Entity, pos, direction geometry.Vec3) (*events.AttackEvent, bool) {
+	if c.currentAttackCooldown == 0 {
+		c.hitbox.ChangeCenter(pos.Add(direction.Scale(c.attackRange)))
 		c.currentAttackCooldown = c.attackCooldown
 
 		e := events.NewAttackEvent(
@@ -46,7 +45,8 @@ func (c *AttackComponent) TryAttack(id types.Entity, pos, distant geometry.Vec3)
 			c.hitbox,
 			id,
 		)
-		return e, isAttack
+
+		return e, true
 	}
-	return nil, isAttack
+	return nil, false
 }

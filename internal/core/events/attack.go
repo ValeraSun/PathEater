@@ -13,7 +13,7 @@ const (
 )
 
 type AttackEvent struct {
-	Damage   int
+	Damage   float32
 	Collider geometry.Collider
 	Team     Target
 	Attacker types.Entity
@@ -21,7 +21,7 @@ type AttackEvent struct {
 
 func (*AttackEvent) Type() string { return "attack" }
 
-func NewAttackEvent(damage int, collider geometry.Collider, attacker types.Entity) *AttackEvent {
+func NewAttackEvent(damage float32, collider geometry.Collider, attacker types.Entity) *AttackEvent {
 	return &AttackEvent{
 		Damage:   damage,
 		Collider: collider,

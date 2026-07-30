@@ -7,7 +7,6 @@ import (
 	"github.com/ValeraSun/PathEater/internal/core/ecs"
 	"github.com/ValeraSun/PathEater/internal/core/entities"
 	"github.com/ValeraSun/PathEater/internal/core/events"
-	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/sendler"
 	"github.com/ValeraSun/PathEater/internal/core/systems"
 	"github.com/ValeraSun/PathEater/internal/core/transfer"
@@ -36,7 +35,7 @@ type broadcaster interface {
 
 func CreateGame(broadcasterFunc broadcasterFunc) *ecs.World {
 	w := ecs.CreateWorld(broadcasterFunc)
-	config.CreateWorldColliders(w, w, w.Broadcaster)
+	w.WorldStructures = config.CreateWorldColliders(w, w, w.Broadcaster)
 	initSystems(w)
 	createEntities(w)
 
@@ -77,7 +76,8 @@ func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewWeaponSystem(world, world.EventBus, world.EventBus))
 
 	world.AddSystem(systems.NewHealthSystem(world, world.EventBus, world.EventBus))
-	world.AddSystem(systems.NewDeadSystem(world, world.EventBus, world.EventBus, world.Broadcaster)) // здоровье
+	world.AddSystem(systems.NewBaggageSystem(world, world.EventBus))
+	world.AddSystem(systems.NewDeadSystem(world, world.EventBus, world.EventBus)) // здоровье
 
 	world.AddSystem(systems.NewTimerSystem(world, world.Broadcaster, &world.Timer))
 	world.AddSystem(systems.NewGameOverSystem(world, world.EventBus, world.Broadcaster, world)) // конец игры
@@ -93,8 +93,6 @@ func initSystems(world *ecs.World) {
 func createEntities(world *ecs.World) {
 	entities.NewTerminal(world)
 	world.EventBus.Publish(events.NewCreateShipEvent())
-	world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
-	world.EventBus.Publish(events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1}))
 	world.EventBus.Publish(events.NewMeteoriteZoneEvent())
 	world.EventBus.Publish(events.NewBreakdownEvent(false))
 }

@@ -34,7 +34,7 @@ func (s *sendler) sendAlien(id types.Entity, broadcaster func(EntityInfo) error)
 		Data: alienData{
 			Position:  transform.Position,
 			Rotation:  ai.Direction,
-			Health:    hp.Health,
+			Health:    int(hp.Health),
 			Attacking: anime.CurrentAnimation() == "attack",
 			Dead:      hp.Health == 0,
 		},

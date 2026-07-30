@@ -37,15 +37,12 @@ func (s *AttackSystem) Update(dt float32) error {
 
 	for id, c := range hitboxRaw {
 
-		if s.HasComponents(id, "transform") {
-			h := c.(*components.HitboxComponent)
+		h := c.(*components.HitboxComponent)
 
-			hitboxes = append(hitboxes, &entitiesHitbox{
-				hitbox: h,
-				id:     id,
-			})
-		}
-
+		hitboxes = append(hitboxes, &entitiesHitbox{
+			hitbox: h,
+			id:     id,
+		})
 	}
 
 	s.drainEvents(hitboxes)

@@ -7,3 +7,10 @@ doors_path_dev: "web/data/ship_door_colliders_v3.json"
 doors_path: "web/dist/data/ship_door_colliders_v3.json"
 rooms_path_dev: "web/data/ship_room_colliders_v3.json"
 rooms_path: "web/dist/data/ship_room_colliders_v3.json"
+
+alien_spawns: 
+  - x: 3 
+    z: -1
+
+
+

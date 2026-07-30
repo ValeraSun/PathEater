@@ -25,7 +25,7 @@ export class InteractionController {
             return;
         }
 
-        this.interactionView.Show("Нажмите E, чтобы управлять кораблём");
+        this.interactionView.Show("Наведитесь на терминал и нажмите E, чтобы управлять кораблём");
     }
 
     public Dispose(): void {

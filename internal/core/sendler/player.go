@@ -28,7 +28,7 @@ func (s *sendler) sendPlayer(id types.Entity, broadcaster func(EntityInfo) error
 		Data: playerData{
 			Position: transform.Position,
 			Rotation: control.Direction,
-			Health:   hp.Health,
+			Health:   int(hp.Health),
 		},
 	},
 	)

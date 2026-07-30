@@ -11,7 +11,9 @@ import type {
     RoomInfoPayload,
     RoomPlayersPayload,
     ShipWireData,
-    Vector3D
+    Vector3D,
+    HoleStateData,
+    DoorStateData
 } from "./ServerContracts";
 
 function IsObject(value: unknown): value is Record<string, unknown> {
@@ -127,5 +129,13 @@ export function IsDoorStateData(value: unknown): value is DoorStateData {
         rotation: IsVector3D,
         isOpen: IsBoolean,
         openProgress: IsFiniteNumber
+    });
+}
+
+export function IsHoleStateData(value: unknown): value is HoleStateData {
+    return HasValidOptionalFields(value, {
+        position: IsVector3D,
+        rotation: IsVector3D,
+        radius: IsFiniteNumber
     });
 }

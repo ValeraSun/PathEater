@@ -40,7 +40,7 @@ func (s *sendler) sendCosmoAlien(id types.Entity, broadcaster func(EntityInfo) e
 		Data: cosmoAlienData{
 			Position: transform.Position,
 			Rotation: transform.Direction,
-			Health:   hp.Health,
+			Health:   int(hp.Health),
 			Died:     alien.Died,
 		},
 	})

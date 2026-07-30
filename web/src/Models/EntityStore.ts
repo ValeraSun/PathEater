@@ -59,6 +59,11 @@ export class EntityStore {
         if (typeof transformData.attacking === "boolean") {
             entity.attacking = transformData.attacking;
         }
+
+        if (typeof transformData.isOpen === "boolean") {
+            console.log("передано состояние")
+            entity.isOpen = transformData.isOpen;
+        }
         return entity;
     }
 

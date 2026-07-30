@@ -61,7 +61,7 @@ func (s *sendler) sendShip(id types.Entity, broadcaster func(EntityInfo) error) 
 			WeaponDirection: *geometry.AngleToVec(weapon.Direction),
 			ShootSuccess:    false,
 			BaggageStatus:   ship.BaggageStatus,
-			Health:          hp.Health,
+			Health:          int(hp.Health),
 		}})
 
 	return nil

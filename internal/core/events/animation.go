@@ -2,6 +2,11 @@ package events
 
 import "github.com/ValeraSun/PathEater/internal/core/types"
 
+const (
+	attackState    = "attack"
+	attackCooldown = 0.7
+)
+
 type AnimationEvent struct {
 	State    string
 	ID       types.Entity
@@ -16,4 +21,12 @@ func NewAnimationEvent(id types.Entity, state string, cooldwon float32) *Animati
 		id,
 		cooldwon,
 	}
+}
+
+func NewAlienAttackAnimationEvent(id types.Entity) *AnimationEvent {
+	return NewAnimationEvent(
+		id,
+		attackState,
+		attackCooldown,
+	)
 }

@@ -3,11 +3,13 @@ import { MeshFactory } from "./MeshFactory";
 import { AlienView } from "../Views/AlienView";
 import { PlayerView } from "../Views/PlayerView";
 import { DoorView } from "../Views/DoorView";
+import { BreakdownView } from "../Views/BreakdownView";
 
 export interface AnimatedEntityView {
     AdvanceAnimation(deltaTime: number): void;
     SetMoving?(moving: boolean): void;
     SetAttacking?(attacking: boolean): void;
+    SetState?(isOpen: boolean): void;
 }
 
 export interface CreatedEntityView {
@@ -41,13 +43,24 @@ export class EntityViewFactory {
             }
 
             case "door": {
+                console.log("Создана дверь")
                 const doorView = new DoorView();
                 return {
-                    object: doorView.mesh,
-                    animatedView: null, 
+                    object: doorView.mesh,        // группа, содержащая модель
+                    animatedView: doorView,       // сам DoorView (реализует AnimatedEntityView)
                     ownsResources: false
                 };
             }
+
+            case "hole": {
+             const holeView = new BreakdownView();
+                return {
+                    object: holeView.mesh,        // группа, содержащая модель
+                    animatedView: null,       // сам DoorView (реализует AnimatedEntityView)
+                    ownsResources: false
+                };
+            }
+
             case "cargo":
                 return {
                     object: MeshFactory.CreateBox(1, 1, 1),

@@ -11,10 +11,9 @@ const (
 )
 
 type VisionComponent struct {
-	CanSee   bool
-	Distant  geometry.Vec3
-	LastSeen geometry.Vec3
-	Target   Target
+	GoingToLastSee bool
+	WantPossition  geometry.Vec3
+	Target         Target
 }
 
 func NewVisionComponent() *VisionComponent {

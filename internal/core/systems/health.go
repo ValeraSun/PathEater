@@ -36,7 +36,6 @@ func (s *HealthSystem) Update(dt float32) error {
 
 			hp := c.(*components.HealthComponent)
 			isDead := hp.Damage(ev.Damage)
-			log.Println("ПОРАНИЛСЯ, КАК ЛОХ: ", hp.Health)
 			if isDead {
 				log.Println("СДОХ, КАК ЛОХ")
 				e := events.NewDeadEvent(ev.ID)

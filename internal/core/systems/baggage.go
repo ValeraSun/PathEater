@@ -9,19 +9,18 @@ import (
 type BaggageSystem struct {
 	componentsGetter
 	subscriber
-	publisher
+
 	eventQueue chan *events.DamageBaggageEvent
 }
 
-func NewBaggageSystem(getter componentsGetter, subscriber subscriber, publisher publisher) *BaggageSystem {
+func NewBaggageSystem(getter componentsGetter, subscriber subscriber) *BaggageSystem {
 	s := &BaggageSystem{
 		getter,
 		subscriber,
-		publisher,
 		make(chan *events.DamageBaggageEvent, eventQueueSize),
 	}
 
-	s.Subscribe("boarding", s.OnEvent)
+	s.Subscribe("damageBaggage", s.OnEvent)
 	return s
 }
 
@@ -30,7 +29,7 @@ func (s *BaggageSystem) Update(dt float32) error {
 	for {
 		select {
 		case <-s.eventQueue:
-			ship.BaggageStatus -= 1
+			ship.BaggageStatus = ship.BaggageStatus - 1
 		default:
 			return nil
 		}
