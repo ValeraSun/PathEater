@@ -8,12 +8,11 @@ import vertexShader from "../Shaders/DamageGlitch.vert.glsl";
 import fragmentShader from "../Shaders/DamageGlitch.frag.glsl";
 import bloodFragmentShader from "../Shaders/MonsterBloodSplatter.frag.glsl";
 
-const DamageDecayPerSecond = 2.2;
-const BloodDecayPerSecond = 0.4;
-const DropletCount = 12;
-
-const DebugAlwaysGlitch = false;
-const DebugGlitchIntensity = 0.35;
+const DAMAGE_DECAY_PER_SECOND = 2.3;
+const BLOOD_DECAY_PER_SEC = 0.4;
+const DROPLET_COUNT = 12;
+const DEBUG_GLITCH = false;
+const DEBUG_INTENSITY = 0.35;
 
 const DamageShader = {
     uniforms: {
@@ -33,18 +32,18 @@ const BloodShader = {
         uAspect: { value: window.innerWidth / window.innerHeight },
         uDropletPositions: {
             value: Array.from(
-                { length: DropletCount },
+                { length: DROPLET_COUNT },
                 () => new THREE.Vector2()
             )
         },
         uDropletSizes: {
-            value: new Array(DropletCount).fill(0)
+            value: new Array(DROPLET_COUNT).fill(0)
         },
         uDropletSpeeds: {
-            value: new Array(DropletCount).fill(0)
+            value: new Array(DROPLET_COUNT).fill(0)
         },
         uDropletDarkness: {
-            value: new Array(DropletCount).fill(0)
+            value: new Array(DROPLET_COUNT).fill(0)
         }
     },
     vertexShader,
@@ -92,7 +91,7 @@ export class DamageGlitchEffect {
 
         uniforms.uTime.value = 0;
 
-        for (let index = 0; index < DropletCount; index++) {
+        for (let index = 0; index < DROPLET_COUNT; index++) {
             positions[index].set(Math.random() * 0.9 + 0.05, Math.random() * 0.84 + 0.08);
             sizes[index] = Math.random() * 0.011 + 0.009;
             speeds[index] = Math.random() * 0.028 + 0.018;
@@ -120,12 +119,12 @@ export class DamageGlitchEffect {
     }
 
     private UpdateGlitch(deltaTime: number): void {
-        if (DebugAlwaysGlitch) {
-            this.GlitchIntensity = DebugGlitchIntensity;
+        if (DEBUG_GLITCH) {
+            this.GlitchIntensity = DEBUG_INTENSITY;
             return;
         }
 
-        this.GlitchIntensity = Math.max(0, this.GlitchIntensity - DamageDecayPerSecond * deltaTime);
+        this.GlitchIntensity = Math.max(0, this.GlitchIntensity - DAMAGE_DECAY_PER_SECOND * deltaTime);
     }
 
     private UpdateBlood(deltaTime: number): void {
@@ -133,7 +132,7 @@ export class DamageGlitchEffect {
             return;
         }
 
-        this.BloodIntensity = Math.max(0, this.BloodIntensity - BloodDecayPerSecond * deltaTime);
+        this.BloodIntensity = Math.max(0, this.BloodIntensity - BLOOD_DECAY_PER_SEC * deltaTime);
         this.BloodPass.uniforms.uTime.value += deltaTime;
     }
 
