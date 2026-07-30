@@ -2,7 +2,10 @@ package systems
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 
+	"github.com/ValeraSun/PathEater/internal/config"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
 )
@@ -11,7 +14,9 @@ type BoardingSystem struct {
 	componentsGetter
 	subscriber
 	publisher
+	spawns     []geometry.Vec3
 	eventQueue chan *events.BoardingEvent
+	rng        *rand.Rand
 }
 
 func NewBoardingSystem(getter componentsGetter, subscriber subscriber, publisher publisher) *BoardingSystem {
@@ -19,22 +24,29 @@ func NewBoardingSystem(getter componentsGetter, subscriber subscriber, publisher
 		getter,
 		subscriber,
 		publisher,
+		config.GetAlienSpawns(),
 		make(chan *events.BoardingEvent, 100),
+		rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 
 	s.Subscribe("boarding", s.OnEvent)
 	return s
 }
 
+func (s *BoardingSystem) GetAlienSpawn() geometry.Vec3 {
+	i := s.rng.Intn(len(s.spawns))
+
+	return s.spawns[i]
+}
+
 func (s *BoardingSystem) Update(dt float32) error {
 	for {
 		select {
-		case e := <-s.eventQueue:
-			del := events.NewDeleteEvent(e.ID)
-			s.Publish(del)
+		case <-s.eventQueue:
 
-			create := events.NewCreateAlienEvent(geometry.Vec3{X: 3, Y: 2, Z: -1})
-			s.Publish(create)
+			// create := events.NewCreateAlienEvent(s.GetAlienSpawn())
+			// s.Publish(create)
+
 		default:
 			return nil
 		}

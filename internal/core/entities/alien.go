@@ -45,13 +45,13 @@ func NewAlien(adder entityAdder, position geometry.Vec3) types.Entity {
 		components.NewHealthComponent(alienMaxHealth),
 		components.NewAIComponent(),
 		components.NewColliderComponent(geometry.NewCapsuleCollider(
-			geometry.Vec3{},
+			position,
 			geometry.Vec3{Y: 2},
 			alienHalfHeight,
 			alienRadius,
 		)),
 		components.NewHitboxComponent(geometry.NewCapsuleCollider(
-			geometry.Vec3{},
+			position,
 			geometry.Vec3{Y: 2},
 			alienHalfHeight,
 			alienRadius,
