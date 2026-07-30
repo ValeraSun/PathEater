@@ -4,6 +4,7 @@ import type { EntityCreateInfo, EntityTransformData, EntityUpdateInfo } from "..
 import {  IsEntityTransformData, IsAsteroidStateData, IsMonsterStateData, IsShipWireData, IsBulletData, IsDoorStateData, IsBreakdownStateData } from "../Network/ServerValidators";
 import { EntityViewManager } from "../Views/EntityViewManager";
 import { ShipView } from "../Views/ShipView";
+import * as THREE from "three";
 
 export class EntityMessageHandler {
     public constructor(entityStore: EntityStore, entityViewManager: EntityViewManager, radarModel: RadarModel, shipView: ShipView) {
@@ -311,7 +312,7 @@ export class EntityMessageHandler {
             entityModel.targetPosition.copy(entityModel.position);
             
             // Создаем вьюху с данными
-            this.entityViewManager.CreateEntity(entityModel, anyData);
+            this.entityViewManager.CreateEntity(entityModel);
         } else {
             // Обновляем позицию
             if (anyData.position) {
