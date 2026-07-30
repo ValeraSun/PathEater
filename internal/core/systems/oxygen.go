@@ -2,7 +2,6 @@ package systems
 
 import (
 	"github.com/ValeraSun/PathEater/internal/core/components"
-	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
@@ -165,7 +164,7 @@ func (s *OxygenSystem) applyVacuumDamage(playerID types.Entity) {
 	isGasp := ox.Leak(loss)
 
 	if isGasp {
-		s.publisher.Publish(events.NewDamageDealEvent(playerID, oxygenDamage))
+		//s.publisher.Publish(events.NewDamageDealEvent(playerID, oxygenDamage))
 	}
 }
 

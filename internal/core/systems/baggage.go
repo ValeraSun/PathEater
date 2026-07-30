@@ -34,8 +34,8 @@ func (s *BaggageSystem) Update(dt float32) error {
 		case <-s.eventQueue:
 			ship.BaggageStatus -= 1
 			if ship.BaggageStatus == 0 {
-				e := events.NewGameOverEvent(false)
-				s.Publish(e)
+				// e := events.NewGameOverEvent(false)
+				// s.Publish(e)
 			}
 
 		default:

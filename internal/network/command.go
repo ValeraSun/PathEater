@@ -234,10 +234,6 @@ func (s Sendler) SendGameOverState(gameOverInfo sendler.GameOverInfo) error {
 
 	s.room.SendToAll("GameOver", payload)
 
-	for _, c := range s.room.Clients {
-		c.SetState(MainMenuState())
-	}
-
 	return nil
 
 }

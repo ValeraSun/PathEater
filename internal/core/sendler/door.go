@@ -33,12 +33,18 @@ func (s *sendler) sendDoor(id types.Entity, broadcaster func(EntityInfo) error) 
 	}
 	door := c.(*components.DoorComponent)
 
+	pos := col.Collider.GetCenter()
+
+	if door.IsOpen {
+		pos.Y = pos.Y + 2
+	}
+
 	log.Println("ПОСЛАНА ДВЕРЬ: ", door.IsOpen)
 	broadcaster(EntityInfo{
 		ID:   id,
 		Type: "door",
 		Data: doorData{
-			Position: col.Collider.GetCenter(),
+			Position: pos,
 			Rotation: rotation,
 			IsOpen:   door.IsOpen,
 		},
