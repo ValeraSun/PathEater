@@ -3,6 +3,7 @@ import { MeshFactory } from "./MeshFactory";
 import { AlienView } from "../Views/AlienView";
 import { PlayerView } from "../Views/PlayerView";
 import { DoorView } from "../Views/DoorView";
+import { CreateHole } from "../Views/BreakdownView";
 
 export interface AnimatedEntityView {
     AdvanceAnimation(deltaTime: number): void;
@@ -44,7 +45,7 @@ export class EntityViewFactory {
                 const doorView = new DoorView();
                 return {
                     object: doorView.mesh,
-                    animatedView: doorView, // Если хотите обновлять анимацию через EntityViewManager
+                    animatedView: doorView, 
                     ownsResources: false
                 };
             }
@@ -54,7 +55,15 @@ export class EntityViewFactory {
                     animatedView: null,
                     ownsResources: true
                 };
-
+case "hole": {
+    const mesh = CreateHole();
+     mesh.scale.set(1, 1, 1);
+    return {
+        object: mesh,
+        animatedView: null, // анимация не нужна
+        ownsResources: true // мы создали новый меш
+    };
+}
             default:
                 return null;
         }

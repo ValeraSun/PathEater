@@ -91,3 +91,9 @@ export interface DoorStateData {
     isOpen?: boolean;
     openProgress?: number; // 0-1, опционально для плавных анимаций
 }
+
+export interface HoleStateData {
+    position?: Vector3D;
+    rotation?: Vector3D;
+    radius?: number;   // опционально – для масштабирования
+}

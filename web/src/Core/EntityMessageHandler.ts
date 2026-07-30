@@ -5,6 +5,8 @@ import { IsDoorStateData, IsEntityTransformData, IsAsteroidStateData, IsMonsterS
 import type { DoorStateData } from "../Network/ServerContracts";
 import { EntityViewManager } from "../Views/EntityViewManager";
 import { ShipView } from "../Views/ShipView";
+import { IsHoleStateData } from "../Network/ServerValidators";
+import type { HoleStateData } from "../Network/ServerContracts";
 
 export class EntityMessageHandler {
     private entityStore: EntityStore;
@@ -62,6 +64,10 @@ export class EntityMessageHandler {
         return;
         }
 
+if (entityInformation.type === "hole") {
+    this.UpdateHole(entityInformation.id, entityInformation.data);
+    return;
+}
         if (!IsEntityTransformData(entityInformation.data)) {
             console.warn("Получены некорректные данные сущности:", entityInformation);
             return;
@@ -107,6 +113,11 @@ export class EntityMessageHandler {
             this.UpdateDoor(entityInformation.id, entityInformation.data);
             return;
         }
+        
+        if (entityInformation.type === "hole") {
+    this.UpdateHole(entityInformation.id, entityInformation.data);
+    return;
+}
 
         if (!IsEntityTransformData(entityInformation.data)) {
             console.warn("Получены некорректные данные обновления сущности:", entityInformation);
@@ -295,4 +306,37 @@ public UpdateDoor(deltaTime: number): void {
         }
     }
 }
+
+private UpdateHole(entityId: string, data: unknown): void {
+    if (!IsHoleStateData(data)) {
+        console.warn("Некорректные данные поломки:", data);
+        return;
+    }
+
+    // Получаем или создаём модель
+    let entityModel = this.entityStore.GetEntity(entityId);
+    if (!entityModel) {
+        entityModel = this.entityStore.CreateEntity(entityId, "hole", data);
+        this.entityViewManager.CreateEntity(entityModel);
+    } else {
+        entityModel = this.entityStore.UpdateEntity(entityId, data);
+    }
+
+    // Обновляем вьюху
+    const view = this.entityViewManager.GetEntityView(entityId);
+    if (view?.object) {
+        if (data.position) {
+            view.object.position.set(data.position.x, data.position.y, data.position.z);
+        }
+        if (data.rotation) {
+            view.object.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
+        }
+        if (data.radius) {
+            // Масштабируем меш (круг) – радиус влияет на размер
+            view.object.scale.set(data.radius, data.radius, data.radius);
+        }
+    }
 }
+
+}
+
