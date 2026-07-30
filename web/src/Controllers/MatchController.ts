@@ -5,12 +5,6 @@ import { MusicManager } from "../Services/MusicManager";
 import { AppView } from "../Views/AppView";
 
 export class MatchController {
-    private application: Game;
-    private gameServerGateway: GameServerGateway;
-    private musicManager: MusicManager;
-    private appView: AppView;
-    private matchTimerElement: HTMLElement;
-
     public constructor(application: Game, gameServerGateway: GameServerGateway, musicManager: MusicManager, appView: AppView) {
         this.application = application;
         this.gameServerGateway = gameServerGateway;
@@ -65,4 +59,10 @@ export class MatchController {
 
         return element;
     }
+
+    private application: Game;
+    private gameServerGateway: GameServerGateway;
+    private musicManager: MusicManager;
+    private appView: AppView;
+    private matchTimerElement: HTMLElement;
 }

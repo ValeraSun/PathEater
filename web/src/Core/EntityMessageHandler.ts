@@ -7,13 +7,6 @@ import { ShipView } from "../Views/ShipView";
 
 
 export class EntityMessageHandler {
-    private entityStore: EntityStore;
-    private entityViewManager: EntityViewManager;
-    private radarModel: RadarModel;
-    private shipView: ShipView;
-    private localPlayerId: string | null = null;
-    private localPlayerStateHandler: ((playerState: EntityTransformData) => void) | null = null;
-
     public constructor(entityStore: EntityStore, entityViewManager: EntityViewManager, radarModel: RadarModel, shipView: ShipView) {
         this.entityStore = entityStore;
         this.entityViewManager = entityViewManager;
@@ -219,5 +212,12 @@ export class EntityMessageHandler {
             y: data.position.y
         });
     }
+
+    private entityStore: EntityStore;
+    private entityViewManager: EntityViewManager;
+    private radarModel: RadarModel;
+    private shipView: ShipView;
+    private localPlayerId: string | null = null;
+    private localPlayerStateHandler: ((playerState: EntityTransformData) => void) | null = null;
 }
 

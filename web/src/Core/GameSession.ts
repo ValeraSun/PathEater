@@ -20,13 +20,12 @@ const DAMAGE_GLITCH_BASE_STRENGTH = 0.35;
 const DAMAGE_GLITCH_HEALTH_SCALE = 100;
 
 export class GameSession {
-    private readonly gameView: GameView;
-    private readonly inputController: InputController;
-    private readonly gameServerGateway: GameServerGateway;
-    private readonly entityMessageHandler: EntityMessageHandler;
-    private readonly computerModel: ComputerModel;
-    private readonly interactionView: InteractionView;
-
+    private gameView: GameView;
+    private inputController: InputController;
+    private gameServerGateway: GameServerGateway;
+    private entityMessageHandler: EntityMessageHandler;
+    private computerModel: ComputerModel;
+    private interactionView: InteractionView;
     private gameLoop: GameLoop | null = null;
     private playerModel: PlayerModel | null = null;
     private playerView: PlayerView | null = null;
@@ -34,8 +33,7 @@ export class GameSession {
     private cameraController: CameraController | null = null;
     private interactionController: InteractionController | null = null;
     private computerController: ComputerController | null = null;
-
-    private readonly targetPlayerPosition = new THREE.Vector3();
+    private targetPlayerPosition = new THREE.Vector3();
     private targetPlayerRotationY = 0;
     private lastKnownHealth: number | null = null;
 
@@ -206,11 +204,7 @@ export class GameSession {
         }
 
         const positionInterpolation = 1 - Math.exp(-POSITION_INTERPOLATION_SPEED * deltaTime);
-
-        this.playerModel.position.lerp(
-            this.targetPlayerPosition,
-            positionInterpolation
-        );
+        this.playerModel.position.lerp(this.targetPlayerPosition, positionInterpolation);
 
         if (!this.playerView) {
             return;

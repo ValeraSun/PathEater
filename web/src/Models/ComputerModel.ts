@@ -3,7 +3,6 @@ import * as THREE from "three";
 export class ComputerModel {
     public id: string;
     public interactionPosition: THREE.Vector3;
-
     private controllingPlayerId: string | null = null;
 
     public constructor(id: string, interactionPosition: THREE.Vector3) {

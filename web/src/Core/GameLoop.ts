@@ -8,7 +8,6 @@ export class GameLoop {
     private systems: Updatable[];
     private renderFrame: (deltaTime: number) => void;
     private finishFrame: (() => void) | null;
-
     private animationFrameId: number | null = null;
     private previousFrameTime = 0;
     private running = false;
@@ -42,16 +41,12 @@ export class GameLoop {
         return this.running;
     }
 
-    private readonly HandleAnimationFrame = (currentTime: number): void => {
+    private HandleAnimationFrame = (currentTime: number): void => {
         if (!this.running) {
             return;
         }
 
-        const deltaTime = Math.min(
-            (currentTime - this.previousFrameTime) / MILLISECONDS_IN_SECOND,
-            MAX_DELTA_TIME
-        );
-
+        const deltaTime = Math.min((currentTime - this.previousFrameTime) / MILLISECONDS_IN_SECOND, MAX_DELTA_TIME);
         this.previousFrameTime = currentTime;
 
         for (const system of this.systems) {

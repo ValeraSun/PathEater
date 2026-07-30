@@ -5,12 +5,6 @@ import { LobbyView } from "../Views/LobbyView";
 import { RoomView } from "../Views/RoomView";
 
 export class RoomController {
-    private gameServerGateway: GameServerGateway;
-    private musicManager: MusicManager;
-    private appView: AppView;
-    private roomView: RoomView;
-    private lobbyView: LobbyView;
-
     public constructor(
         gameServerGateway: GameServerGateway,
         musicManager: MusicManager,
@@ -80,4 +74,10 @@ export class RoomController {
         this.roomView.SetStatus(errorMessage);
         this.roomView.SetControlsEnabled(true);
     }
+
+    private gameServerGateway: GameServerGateway;
+    private musicManager: MusicManager;
+    private appView: AppView;
+    private roomView: RoomView;
+    private lobbyView: LobbyView;
 }

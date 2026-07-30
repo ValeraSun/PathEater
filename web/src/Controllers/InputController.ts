@@ -1,7 +1,4 @@
 export class InputController {
-    private heldKeys = new Set<string>();
-    private pressedKeys = new Set<string>();
-
     public constructor() {
         window.addEventListener("keydown", this.HandleKeyDown);
         window.addEventListener("keyup", this.HandleKeyUp);
@@ -45,4 +42,7 @@ export class InputController {
         this.heldKeys.clear();
         this.pressedKeys.clear();
     };
+
+    private heldKeys = new Set<string>();
+    private pressedKeys = new Set<string>();
 }

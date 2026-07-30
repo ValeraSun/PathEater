@@ -7,13 +7,6 @@ const CAMERA_EYE_HEIGHT = 1.9;
 const CAMERA_FORWARD_OFFSET = 0.5;
 
 export class CameraController {
-    private camera: THREE.PerspectiveCamera;
-    private playerModel: PlayerModel;
-    private controls: PointerLockControls;
-    private interactionElement: HTMLElement;
-    private horizontalDirection = new THREE.Vector3();
-    private targetCameraPosition = new THREE.Vector3();
-
     public constructor(camera: THREE.PerspectiveCamera, playerModel: PlayerModel, interactionElement: HTMLElement) {
         this.camera = camera;
         this.playerModel = playerModel;
@@ -52,4 +45,11 @@ export class CameraController {
             this.controls.lock();
         }
     };
+
+    private camera: THREE.PerspectiveCamera;
+    private playerModel: PlayerModel;
+    private controls: PointerLockControls;
+    private interactionElement: HTMLElement;
+    private horizontalDirection = new THREE.Vector3();
+    private targetCameraPosition = new THREE.Vector3();
 }
