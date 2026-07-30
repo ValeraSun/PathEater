@@ -118,11 +118,6 @@ export class GameSession {
                     Update: (deltaTime: number): void => {
                         this.entityMessageHandler.UpdateEntityViews(deltaTime);
                     }
-                },
-                {
-                    Update: (): void => {
-                        this.HandleAttackInput();
-                    }
                 }
             ],
             (deltaTime: number): void => {
@@ -190,12 +185,6 @@ export class GameSession {
 
         this.lastKnownHealth = newHealth;
         this.gameView.SetPlayerHealth(newHealth);
-    }
-
-    private HandleAttackInput(): void {
-        if (this.inputController.WasPressedOnce("KeyE")) {
-            this.gameView.TriggerMonsterBloodSplatter();
-        }
     }
 
     private UpdateLocalPlayer(deltaTime: number): void {

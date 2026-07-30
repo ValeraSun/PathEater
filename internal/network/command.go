@@ -305,6 +305,7 @@ type exitGameCommand struct{}
 func (c *exitGameCommand) Name() string { return "exitGame" }
 
 func (c *exitGameCommand) Execute(client *Client, payload json.RawMessage) error {
+	client.room.RemoveClient(client)
 	if client.room != nil {
 		client.SetState(GameRoomState())
 	} else {

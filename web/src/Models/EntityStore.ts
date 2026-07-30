@@ -63,6 +63,7 @@ export class EntityStore {
         if (typeof transformData.isOpen === "boolean") {
             console.log("передано состояние")
             entity.isOpen = transformData.isOpen;
+            console.log(transformData.isOpen);
         }
         return entity;
     }

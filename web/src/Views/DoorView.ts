@@ -26,23 +26,22 @@ export class DoorView {
 
     public SetBasePosition(x: number, y: number, z: number): void {
         this.basePosition.set(x, y, z);
-        this.mesh.position.set(x, y, z);
+        this.ApplyState();
     }
 
     public SetState(isOpen: boolean): void {
         this.isOpen = isOpen;
-        
-        // 1. Управление видимостью
-        this.mesh.visible = !isOpen;
-        
-        // 2. Мгновенное изменение позиции (поднимаем/опускаем)
-        if (isOpen) {
-            this.mesh.position.y = this.basePosition.y + this.openOffset;
-        } else {
-            this.mesh.position.y = this.basePosition.y;
-        }
-        
-        console.log(`DoorView: SetState(${isOpen}), позиция y = ${this.mesh.position.y}`);
+        this.ApplyState();
+    }
+
+    private ApplyState(): void {
+        this.mesh.position.set(
+            this.basePosition.x,
+            this.isOpen
+                ? this.basePosition.y + this.openOffset
+                : this.basePosition.y,
+            this.basePosition.z
+        );
     }
 
     private LoadModel(): void {

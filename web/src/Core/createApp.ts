@@ -54,5 +54,9 @@ export function CreateApplication(): Game {
         gameSession.ApplyLocalPlayerState(playerState);
     });
 
+    entityMessageHandler.SetMonsterDamagedHandler((): void => {
+        gameView.TriggerMonsterBloodSplatter();
+    });
+
     return new Game(gameServerGateway, gameView, gameSession, musicManager);
 }

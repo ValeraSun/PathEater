@@ -540,7 +540,7 @@ input {
 #lose-screen .menu,
 #win-screen .menu {
     width: auto;
-    align-items: center; /* чтобы кнопка не растягивалась на всю flex-ширину */
+    align-items: center; 
 }
 
 #lose-screen .button,
@@ -549,7 +549,7 @@ input {
     width: auto;
     font-size: clamp(20px, 2vw, 32px);
     letter-spacing: clamp(2px, 0.3vw, 5px);
-    padding: 15px 40px; /* достаточный запас по бокам */
+    padding: 15px 40px; 
 }
 
 .lobby-header {
