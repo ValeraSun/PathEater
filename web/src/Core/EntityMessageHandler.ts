@@ -4,8 +4,6 @@ import type { EntityCreateInfo, EntityTransformData, EntityUpdateInfo } from "..
 import {  IsEntityTransformData, IsAsteroidStateData, IsMonsterStateData, IsShipWireData, IsBulletData, IsDoorStateData } from "../Network/ServerValidators";
 import { EntityViewManager } from "../Views/EntityViewManager";
 import { ShipView } from "../Views/ShipView";
-import { DoorView } from "../Views/DoorView";
-
 
 export class EntityMessageHandler {
     public constructor(entityStore: EntityStore, entityViewManager: EntityViewManager, radarModel: RadarModel, shipView: ShipView) {
@@ -23,6 +21,10 @@ export class EntityMessageHandler {
 
     public SetLocalPlayerStateHandler(handler: (playerState: EntityTransformData) => void): void {
         this.localPlayerStateHandler = handler;
+    }
+
+    public SetMonsterDamagedHandler(handler: () => void): void {
+        this.monsterDamagedHandler = handler;
     }
 
     public CreateEntity(entityInformation: EntityCreateInfo): void {
@@ -107,11 +109,15 @@ export class EntityMessageHandler {
             return;
         }
 
+        const previousHealth = this.entityStore.GetEntity(entityInformation.id)?.health;
         const entityModel = this.entityStore.UpdateEntity(entityInformation.id, entityInformation.data);
 
         if (!entityModel) {
             this.CreateEntity(entityInformation);
+            return;
         }
+
+        this.CheckMonsterDamage(entityInformation.type, previousHealth, entityModel.health);
     }
 
     public RemoveEntity(entityId: string): void {
@@ -125,6 +131,22 @@ export class EntityMessageHandler {
     public UpdateEntityViews(deltaTime: number): void {
         for (const entityModel of this.entityStore.GetAllEntities()) {
             this.entityViewManager.UpdateEntity(entityModel, deltaTime);
+        }
+    }
+
+    private CheckMonsterDamage(entityType: string, previousHealth: number | undefined, currentHealth: number | undefined): void {
+        const isMonster = entityType === "alien" || entityType === "monster";
+
+        if (!isMonster) {
+            return;
+        }
+
+        if (typeof previousHealth !== "number" || typeof currentHealth !== "number") {
+            return;
+        }
+
+        if (currentHealth < previousHealth) {
+            this.monsterDamagedHandler?.();
         }
     }
 
@@ -230,6 +252,7 @@ export class EntityMessageHandler {
     private shipView: ShipView;
     private localPlayerId: string | null = null;
     private localPlayerStateHandler: ((playerState: EntityTransformData) => void) | null = null;
+    private monsterDamagedHandler: (() => void) | null = null;
     private UpdateDoor(entityId: string, data: unknown): void {
     if (!IsDoorStateData(data)) {
         console.warn("UpdateDoor: некорректные данные", data);
@@ -251,20 +274,7 @@ export class EntityMessageHandler {
             entityModel.position.set(data.position.x, data.position.y, data.position.z);
             entityModel.targetPosition.copy(entityModel.position);
         }
-        this.entityStore.UpdateEntity(entityId, entityModel);
-    }
-
-    // Применяем isOpen к вьюхе
-    const view = this.entityViewManager.GetEntityView(entityId);
-    if (view?.animatedView && view.animatedView instanceof DoorView) {
-        const doorView = view.animatedView;
-        // Если есть позиция, обновляем базовую позицию группы
-        if (data.position) {
-            doorView.SetBasePosition(data.position.x, data.position.y, data.position.z);
-        }
-        if (data.isOpen !== undefined) {
-            doorView.SetState(data.isOpen);
-        }
+        this.entityStore.UpdateEntity(entityId, data);
     }
 }
 }

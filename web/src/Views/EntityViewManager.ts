@@ -66,7 +66,11 @@ export class EntityViewManager {
             interpolation
         );
 
-        entityView.object.visible = !(entityModel.dead ?? false);
+        if (entityModel.type === "door") {
+            entityView.object.visible = !(entityModel.isOpen ?? false);
+        } else {
+            entityView.object.visible = !(entityModel.dead ?? false);
+        }
     }
 
     public RemoveEntity(entityId: string): void {

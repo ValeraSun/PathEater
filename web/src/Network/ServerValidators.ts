@@ -93,7 +93,7 @@ export function IsDoorStateData(value: unknown): value is DoorStateData {
     return HasValidOptionalFields(value, {
         position: IsVector3D,
         rotation: IsVector3D,
-        isOpen: Boolean
+        isOpen: IsBoolean
     });
 }
 
