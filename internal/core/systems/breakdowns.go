@@ -40,6 +40,10 @@ func (s *BreakdownSystem) Update(dt float32) error {
 			ev := e.(*events.BreakdownEvent)
 			wallID, pos, normal := s.generateBreakdown()
 
+			if wallID == "" {
+				return nil
+			}
+
 			// ПРОВЕРЯЕМ СУЩЕСТВОВАНИЕ
 			room := s.rooms[wallID]
 			if room == "" {
@@ -70,9 +74,18 @@ func (s *BreakdownSystem) generateBreakdown() (types.Entity, geometry.Vec3, geom
 	idx := rand.Intn(len(s.externalWalls))
 	wallEntity := s.externalWalls[idx]
 
+	wallComp, _ := s.GetComponent(wallEntity, "wall")
+	wall := wallComp.(*components.WallComponent)
+
+	if wall.HasBreakdown {
+		return "", geometry.Vec3{}, geometry.Vec3{}
+	}
+
 	if !s.HasComponents(s.externalWalls[idx], "collider") {
 		return "", geometry.Vec3{}, geometry.Vec3{}
 	}
+
+	wall.HasBreakdown = true
 
 	colliderComp, _ := s.GetComponent(wallEntity, "collider")
 	collider := colliderComp.(*components.ColliderComponent)
