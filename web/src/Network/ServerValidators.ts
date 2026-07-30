@@ -16,6 +16,13 @@ import type {
     DoorStateData
 } from "./ServerContracts";
 
+
+export interface BreakdownStateData {
+    position?: Vector3D;
+    radius?: number;
+    normal?: Vector3D;
+}
+
 function IsObject(value: unknown): value is Record<string, unknown> {
     return value !== null && typeof value === "object";
 }
@@ -97,11 +104,11 @@ export function IsDoorStateData(value: unknown): value is DoorStateData {
     });
 }
 
-export function IsHoleStateData(value: unknown): value is HoleStateData {
+export function IsBreakdownStateData(value: unknown): value is BreakdownStateData {
     return HasValidOptionalFields(value, {
         position: IsVector3D,
-        rotation: IsVector3D,
-        radius: IsFiniteNumber
+        radius: IsFiniteNumber,
+        normal: IsVector3D
     });
 }
 

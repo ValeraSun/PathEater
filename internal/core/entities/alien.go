@@ -10,7 +10,7 @@ const (
 	alienHalfHeight       = 1
 	alienMaxHealth        = 100
 	alienRadius           = 0.6
-	alienAttackDamage     = 0
+	alienAttackDamage     = 20
 	alienAttackCooldown   = 2
 	alienAttackDistant    = 1
 	alienAttackHalfHeight = 1

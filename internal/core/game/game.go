@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	timeGame = 480
+	timeGame = 300
 )
 
 type entitySendler interface {
@@ -77,7 +77,7 @@ func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewWeaponSystem(world, world.EventBus, world.EventBus))
 
 	world.AddSystem(systems.NewHealthSystem(world, world.EventBus, world.EventBus))
-	world.AddSystem(systems.NewBaggageSystem(world, world.EventBus))
+	world.AddSystem(systems.NewBaggageSystem(world, world.EventBus, world.EventBus))
 	world.AddSystem(systems.NewDeadSystem(world, world.EventBus, world.EventBus)) // здоровье
 
 	world.AddSystem(systems.NewTimerSystem(world, world.Broadcaster, &world.Timer))
@@ -94,8 +94,8 @@ func initSystems(world *ecs.World) {
 func createEntities(world *ecs.World) {
 	entities.NewTerminal(world)
 	world.EventBus.Publish(events.NewCreateShipEvent())
-	world.EventBus.Publish(events.NewMeteoriteZoneEvent())
-	world.EventBus.Publish(events.NewBreakdownEvent(false))
+	//world.EventBus.Publish(events.NewMeteoriteZoneEvent())
+	//world.EventBus.Publish(events.NewBreakdownEvent(false))
 }
 
 func timerIsOver(publisher transfer.EventPublisher) {

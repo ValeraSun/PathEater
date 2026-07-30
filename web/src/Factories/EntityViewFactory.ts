@@ -52,11 +52,12 @@ export class EntityViewFactory {
                 };
             }
 
-            case "hole": {
-             const holeView = new BreakdownView();
+            case "hole":
+            case "breakdown": {
+                const holeView = new BreakdownView();
                 return {
-                    object: holeView.mesh,        // группа, содержащая модель
-                    animatedView: null,       // сам DoorView (реализует AnimatedEntityView)
+                    object: holeView.mesh,
+                    animatedView: null,
                     ownsResources: false
                 };
             }

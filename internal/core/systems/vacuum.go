@@ -22,14 +22,12 @@ type VacuumSystem struct {
 	doors        map[types.Entity]*components.DoorComponent
 	zones        []zone
 	hasBreakdown bool
-	frameCount   int // для ограничения логов
 }
 
 func NewVacuumSystem(getter componentsGetter, subscriber subscriber) *VacuumSystem {
 	s := &VacuumSystem{
 		getter:       getter,
 		hasBreakdown: false,
-		frameCount:   0,
 	}
 	s.rooms = s.getRooms()
 	s.doors = s.getDoors()
@@ -64,8 +62,6 @@ func (s *VacuumSystem) getDoors() map[types.Entity]*components.DoorComponent {
 }
 
 func (s *VacuumSystem) Update(dt float32) error {
-	s.frameCount++
-	shouldLog := s.frameCount%60 == 0 // логировать раз в секунду (при 60 FPS)
 
 	s.recalculateZones()
 
@@ -97,16 +93,6 @@ func (s *VacuumSystem) Update(dt float32) error {
 				room.Oxygen = localOxygen
 				room.Vacuum = (room.Oxygen < 0.001)
 			}
-		}
-
-		// Логирование изменения кислорода в зоне
-		if shouldLog {
-			// Получаем имена комнат в зоне для идентификации
-			var roomNames []string
-			for name := range zone.rooms {
-				roomNames = append(roomNames, name)
-			}
-			sort.Strings(roomNames)
 		}
 	}
 
@@ -143,7 +129,6 @@ func (s *VacuumSystem) findZones(graph map[string][]string) []zone {
 	visited := make(map[string]bool)
 	var zones []zone
 
-	// 1. Обрабатываем комнаты, которые есть в графе (связанные через открытые двери)
 	for roomID := range graph {
 		if visited[roomID] {
 			continue
@@ -186,7 +171,6 @@ func (s *VacuumSystem) findZones(graph map[string][]string) []zone {
 
 		if len(zone.rooms) > 0 {
 			zones = append(zones, zone)
-			// Логируем создание зоны из графа
 			var roomNames []string
 			for name := range zone.rooms {
 				roomNames = append(roomNames, name)
@@ -195,7 +179,6 @@ func (s *VacuumSystem) findZones(graph map[string][]string) []zone {
 		}
 	}
 
-	// 2. Обрабатываем изолированные комнаты (которых нет в графе)
 	isolatedCount := 0
 	for roomName := range s.rooms {
 		if !visited[roomName] {

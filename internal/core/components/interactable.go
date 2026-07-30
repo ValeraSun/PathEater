@@ -28,10 +28,8 @@ func (*InteractableComponent) Type() string { return "interactable" }
 
 func InteractTerminal(source, target types.Entity) events.Event {
 	return events.NewInteractTerminalEvent(source)
-
 }
 
 func InteractDoor(source, target types.Entity) events.Event {
 	return events.NewDoorEvent(target)
-
 }
