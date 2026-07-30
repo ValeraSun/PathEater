@@ -11,7 +11,6 @@
       "id": "Lounge_Nose_Door",
       "roomA": "lounge",
       "roomB": "nose",
-      "type": "unused",
       "shape": "obb",
       "center": {
         "x": 32.0,
@@ -35,7 +34,6 @@
       "id": "Lounge_Hall_Door",
       "roomA": "lounge",
       "roomB": "hallway",
-      "type": "unused",
       "shape": "obb",
       "center": {
         "x": 26.67,
@@ -105,7 +103,6 @@
       "id": "Hall_Nose_Door",
       "roomA": "hallway",
       "roomB": "nose",
-      "type": "unused",
       "shape": "obb",
       "center": {
         "x": 32.0,
@@ -129,7 +126,6 @@
       "id": "Armory_Nose_Door",
       "roomA": "armory",
       "roomB": "nose",
-      "type": "unused",
       "shape": "obb",
       "center": {
         "x": 32.0,

@@ -237,9 +237,9 @@
       "layer": "static"
     },
     {
-      "id": "Hull_Hallway_Bottom",
+      "id": "Hull_Nose_Bottom",
       "type": "hull",
-      "room": "hallway",
+      "room": "nose",
       "shape": "obb",
       "center": {
         "x": 37.0,

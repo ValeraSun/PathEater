@@ -54,7 +54,6 @@ type Door struct {
 	RoomA       string              `json:"roomA"`
 	RoomB       string              `json:"roomB"`
 	Shape       string              `json:"shape"`
-	Type        string              `json:"type"`
 	Center      geometry.Vec3       `json:"center"`
 	HalfExtents geometry.Vec3       `json:"halfExtents"`
 	Quaternion  geometry.Quaternion `json:"rotation"`
@@ -286,39 +285,24 @@ func (world *WorldStructures) createDoors(adder entityAdder) {
 	path := getDoorsConfigPath()
 	doors := getDoors(path)
 	for _, door := range doors {
-		var d types.Entity
-		var err error
 		tminx := door.Center.X - door.HalfExtents.X
 		tmaxx := door.Center.X + door.HalfExtents.X
 		tminy := door.Center.Y - door.HalfExtents.Y
 		tmaxy := door.Center.Y + door.HalfExtents.Y
-		if door.Type != "unused" {
-			d, err = adder.AddEntity(
-				components.NewColliderComponent(geometry.NewBoxCollider(
-					door.Center,
-					door.HalfExtents,
-					door.Quaternion.ToRotationMatrix())),
-				components.NewDoorComponent(false, door.RoomA, door.RoomB, tminx, tmaxx, tminy, tmaxy),
-				components.NewUpdateComponent(),
-				components.NewInteractableComponent(door.Center, door.HalfExtents, "down", components.InteractDoor),
-			)
-		} else {
-			d, err = adder.AddEntity(
-				components.NewColliderComponent(geometry.NewBoxCollider(
-					door.Center,
-					door.HalfExtents,
-					door.Quaternion.ToRotationMatrix())),
-				components.NewDoorComponent(true, door.RoomA, door.RoomB, tminx, tmaxx, tminy, tmaxy),
-				components.NewUpdateComponent(),
-			)
-		}
+		d, err := adder.AddEntity(
+			components.NewColliderComponent(geometry.NewBoxCollider(
+				door.Center,
+				door.HalfExtents,
+				door.Quaternion.ToRotationMatrix())),
+			components.NewDoorComponent(door.RoomA, door.RoomB, tminx, tmaxx, tminy, tmaxy),
+			components.NewUpdateComponent(),
+			components.NewInteractableComponent(door.Center, door.HalfExtents, "down", components.InteractDoor),
+		)
 		if err != nil {
 			log.Printf("Ошибка создания двери %s: %v", door.ID, err)
 			continue
 		}
-		if door.Type != "unused" {
-			world.DoorsEntities = append(world.DoorsEntities, d)
-		}
+		world.DoorsEntities = append(world.DoorsEntities, d)
 	}
 }
 

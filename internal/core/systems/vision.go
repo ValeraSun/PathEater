@@ -142,7 +142,7 @@ func (s *VisionSystem) Update(dt float32) error {
 			switch {
 			case canSee && bestTarget == nil:
 				bestTarget = target
-			case canSee && target.typ == components.Player && target.typ == components.Player:
+			case canSee && target.typ == components.Player:
 
 				bestDistant := bestTarget.Collider.GetCenter().Sub(enemy.Position).Length()
 				currDistant := targetDistant.Length()
