@@ -2,105 +2,62 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
-const MODEL_URL = "/models/metal_fnaf_door.glb";
-
-const ANIMATION_SPEED = 1;
-
-
-
-let modelPromise: Promise<THREE.Group> | null = null;
-
-function loadModel(): Promise<THREE.Group> {
-    if (!modelPromise) {
-        const loader = new GLTFLoader();
-        modelPromise = loader.loadAsync(MODEL_URL).then(glft => glft.scene);
-    }
-    return modelPromise;
-}
+const MODEL_URL = "/models/door.glb";
 
 export class DoorView {
     public mesh = new THREE.Group();
-    public isOpen: boolean = false
-    private doorModel: THREE.Object3D | null = null;
-    private progress: number = 0;
-    private targetProgress: number = 0;
-    private state: string = "close";
-    private animationSpeed: number = ANIMATION_SPEED;
-    private doorParts: { wholeDoor?: THREE.Object3D } = {};
-    private doorHeight: number = 3.0;
+    public isOpen: boolean = false;
+    private basePosition: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
+    private openOffset: number = 3.0; // высота подъёма при открытии
+    private model: THREE.Object3D | null = null;
 
-   constructor() {
-    console.log("[DoorView] Constructor called");
-        loadModel()      
-            .then(( scene ) => {
-                const model = cloneSkeleton(scene) as THREE.Group;
-                model.position.y = 0;
+    constructor() {
+        console.log("DoorView: конструктор");
+        // Создаём заглушку
+        const geo = new THREE.BoxGeometry(2, 3, 0.2);
+        const mat = new THREE.MeshStandardMaterial({ color: 0xff8800 });
+        const cube = new THREE.Mesh(geo, mat);
+        this.mesh.add(cube);
+        this.model = cube;
 
-                this.mesh.add(model);
-                this.doorParts.wholeDoor = model;
-
-            })
-            .catch(error => {
-                console.error("Не удалось загрузить модель двери:", error);
-            });;
-}
-
-    // Реализация AnimatedEntityView
-    public AdvanceAnimation(deltaTime: number): void {
-        if (this.isOpen && this.state === "close") {
-            this.Open()
-        }
-
-        if (!this.isOpen && this.state === "open") {
-            this.Close()
-        }
-
-        this.Update(deltaTime);
+        // Пытаемся загрузить модель
+        this.LoadModel();
     }
 
-    public SetState(isOpen: boolean, progress?: number): void {
-        if (progress !== undefined) {
-            this.progress = Math.max(0, Math.min(1, progress));
-            this.targetProgress = this.progress;
-            this.state = isOpen ? "open" : "close";
-            this.UpdateDoorPosition();
-            return;
-        }
-        if (isOpen) this.Open();
-        else this.Close();
+    public SetBasePosition(x: number, y: number, z: number): void {
+        this.basePosition.set(x, y, z);
+        this.mesh.position.set(x, y, z);
     }
 
-    public Open(): void {
-        console.log("открыли")
-        if (this.state === "close") {
-            this.state = "open";
-            this.targetProgress = 1;
+    public SetState(isOpen: boolean): void {
+        this.isOpen = isOpen;
+        
+        // 1. Управление видимостью
+        this.mesh.visible = !isOpen;
+        
+        // 2. Мгновенное изменение позиции (поднимаем/опускаем)
+        if (isOpen) {
+            this.mesh.position.y = this.basePosition.y + this.openOffset;
+        } else {
+            this.mesh.position.y = this.basePosition.y;
         }
+        
+        console.log(`DoorView: SetState(${isOpen}), позиция y = ${this.mesh.position.y}`);
     }
 
-    public Close(): void {
-          console.log("закрыли")
-        if (this.state === "open") {
-            this.state = "close";
-            this.targetProgress = 0;
-        }
-    }
-
-    private Update(deltaTime: number): void {
-        if (this.state === "open") {
-            this.progress += deltaTime * this.animationSpeed;
-            if (this.progress >= 1) { this.progress = 1; }
-            this.UpdateDoorPosition();
-        } else if (this.state === "close") {
-            this.progress -= deltaTime * this.animationSpeed;
-            if (this.progress <= 0) { this.progress = 0; }
-            this.UpdateDoorPosition();
-        }
-    }
-
-    private UpdateDoorPosition(): void {
-        if (!this.doorParts.wholeDoor) return;
-        const offset = this.progress * this.doorHeight;
-        this.doorParts.wholeDoor.position.y = -offset;
+    private LoadModel(): void {
+        const loader = new GLTFLoader();
+        loader.load(MODEL_URL, (gltf) => {
+            const model = cloneSkeleton(gltf.scene) as THREE.Group;
+            // Удаляем заглушку
+            if (this.model) {
+                this.mesh.remove(this.model);
+            }
+            this.mesh.add(model);
+            this.model = model;
+            console.log("DoorView: модель загружена");
+        }, undefined, (error) => {
+            console.error("DoorView: ошибка загрузки модели", error);
+        });
     }
 }

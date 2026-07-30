@@ -1,9 +1,10 @@
 import { EntityStore } from "../Models/EntityStore";
 import { RadarModel } from "../Models/RadarModel";
 import type { EntityCreateInfo, EntityTransformData, EntityUpdateInfo } from "../Network/ServerContracts";
-import {  IsEntityTransformData, IsAsteroidStateData, IsMonsterStateData, IsShipWireData, IsBulletData } from "../Network/ServerValidators";
+import {  IsEntityTransformData, IsAsteroidStateData, IsMonsterStateData, IsShipWireData, IsBulletData, IsDoorStateData } from "../Network/ServerValidators";
 import { EntityViewManager } from "../Views/EntityViewManager";
 import { ShipView } from "../Views/ShipView";
+import { DoorView } from "../Views/DoorView";
 
 
 export class EntityMessageHandler {
@@ -50,6 +51,11 @@ export class EntityMessageHandler {
             return;
         }
 
+        if (entityInformation.type === "door") {
+            this.UpdateDoor(entityInformation.id, entityInformation.data);
+            return;
+        }
+
         if (!IsEntityTransformData(entityInformation.data)) {
             console.warn("Получены некорректные данные сущности:", entityInformation);
             return;
@@ -90,6 +96,11 @@ export class EntityMessageHandler {
             this.UpdateShip(entityInformation.data);
             return;
         } 
+
+        if (entityInformation.type === "door") {
+            this.UpdateDoor(entityInformation.id, entityInformation.data);
+            return;
+        }
 
         if (!IsEntityTransformData(entityInformation.data)) {
             console.warn("Получены некорректные данные обновления сущности:", entityInformation);
@@ -219,5 +230,42 @@ export class EntityMessageHandler {
     private shipView: ShipView;
     private localPlayerId: string | null = null;
     private localPlayerStateHandler: ((playerState: EntityTransformData) => void) | null = null;
+    private UpdateDoor(entityId: string, data: unknown): void {
+    if (!IsDoorStateData(data)) {
+        console.warn("UpdateDoor: некорректные данные", data);
+        return;
+    }
+
+    let entityModel = this.entityStore.GetEntity(entityId);
+    if (!entityModel) {
+        // Создаём модель с временной позицией, если position нет
+        const tempPos = data.position || { x: 0, y: 0, z: 0 };
+        entityModel = this.entityStore.CreateEntity(entityId, "door", data);
+        entityModel.position.set(tempPos.x, tempPos.y, tempPos.z);
+        entityModel.targetPosition.copy(entityModel.position);
+        // Всегда создаём вьюху
+        this.entityViewManager.CreateEntity(entityModel);
+        console.log("UpdateDoor: создана новая дверь", entityId);
+    } else {
+        if (data.position) {
+            entityModel.position.set(data.position.x, data.position.y, data.position.z);
+            entityModel.targetPosition.copy(entityModel.position);
+        }
+        this.entityStore.UpdateEntity(entityId, entityModel);
+    }
+
+    // Применяем isOpen к вьюхе
+    const view = this.entityViewManager.GetEntityView(entityId);
+    if (view?.animatedView && view.animatedView instanceof DoorView) {
+        const doorView = view.animatedView;
+        // Если есть позиция, обновляем базовую позицию группы
+        if (data.position) {
+            doorView.SetBasePosition(data.position.x, data.position.y, data.position.z);
+        }
+        if (data.isOpen !== undefined) {
+            doorView.SetState(data.isOpen);
+        }
+    }
+}
 }
 

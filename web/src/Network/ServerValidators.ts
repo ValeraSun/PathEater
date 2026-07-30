@@ -89,6 +89,22 @@ export function IsShipWireData(value: unknown): value is ShipWireData {
     });
 }
 
+export function IsDoorStateData(value: unknown): value is DoorStateData {
+    return HasValidOptionalFields(value, {
+        position: IsVector3D,
+        rotation: IsVector3D,
+        isOpen: Boolean
+    });
+}
+
+export function IsHoleStateData(value: unknown): value is HoleStateData {
+    return HasValidOptionalFields(value, {
+        position: IsVector3D,
+        rotation: IsVector3D,
+        radius: IsFiniteNumber
+    });
+}
+
 export function IsEntityInfo(value: unknown): value is EntityCreateInfo {
     if (!IsObject(value)) return false;
     return typeof value.id === "string" && typeof value.type === "string" && "data" in value;
@@ -121,21 +137,4 @@ export function IsGameOverPayload(value: unknown): value is GameOverPayload {
 
 export function IsMatchTimerPayload(value: unknown): value is MatchTimerPayload {
     return IsObject(value) && IsFiniteNumber(value.time);
-}
-
-export function IsDoorStateData(value: unknown): value is DoorStateData {
-    return HasValidOptionalFields(value, {
-        position: IsVector3D,
-        rotation: IsVector3D,
-        isOpen: IsBoolean,
-        openProgress: IsFiniteNumber
-    });
-}
-
-export function IsHoleStateData(value: unknown): value is HoleStateData {
-    return HasValidOptionalFields(value, {
-        position: IsVector3D,
-        rotation: IsVector3D,
-        radius: IsFiniteNumber
-    });
 }
