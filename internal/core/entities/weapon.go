@@ -8,7 +8,7 @@ import (
 const (
 	weaponSpeed  = 0.5
 	weaponAmmo   = 30
-	turningSpeed = 360
+	turningSpeed = 70
 	cooldown     = 1
 	length       = 42
 )
