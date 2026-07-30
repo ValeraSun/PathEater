@@ -9,14 +9,17 @@ import (
 type BaggageSystem struct {
 	componentsGetter
 	subscriber
+	publisher
 
 	eventQueue chan *events.DamageBaggageEvent
 }
 
-func NewBaggageSystem(getter componentsGetter, subscriber subscriber) *BaggageSystem {
+func NewBaggageSystem(getter componentsGetter, subscriber subscriber, publisher publisher) *BaggageSystem {
 	s := &BaggageSystem{
 		getter,
 		subscriber,
+		publisher,
+
 		make(chan *events.DamageBaggageEvent, eventQueueSize),
 	}
 
@@ -29,7 +32,12 @@ func (s *BaggageSystem) Update(dt float32) error {
 	for {
 		select {
 		case <-s.eventQueue:
-			ship.BaggageStatus = ship.BaggageStatus - 1
+			ship.BaggageStatus -= 1
+			if ship.BaggageStatus == 0 {
+				e := events.NewGameOverEvent(false)
+				s.Publish(e)
+			}
+
 		default:
 			return nil
 		}

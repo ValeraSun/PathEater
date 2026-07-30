@@ -77,7 +77,7 @@ func initSystems(world *ecs.World) {
 	world.AddSystem(systems.NewWeaponSystem(world, world.EventBus, world.EventBus))
 
 	world.AddSystem(systems.NewHealthSystem(world, world.EventBus, world.EventBus))
-	world.AddSystem(systems.NewBaggageSystem(world, world.EventBus))
+	world.AddSystem(systems.NewBaggageSystem(world, world.EventBus, world.EventBus))
 	world.AddSystem(systems.NewDeadSystem(world, world.EventBus, world.EventBus)) // здоровье
 
 	world.AddSystem(systems.NewTimerSystem(world, world.Broadcaster, &world.Timer))
