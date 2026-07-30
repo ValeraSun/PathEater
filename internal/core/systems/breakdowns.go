@@ -19,14 +19,15 @@ type BreakdownSystem struct {
 	eventQueue    chan events.Event
 }
 
-func NewBreakdownSystem(getter componentsGetter, publisher publisher, subscriber subscriber, structures config.WorldStructures) *BreakdownSystem {
+func NewBreakdownSystem(getter componentsGetter, publisher publisher, subscriber subscriber, structures *config.WorldStructures) *BreakdownSystem {
 	s := &BreakdownSystem{
 		getter,
 		publisher,
-		structures.GetExternalWalls(),
+		make([]types.Entity, 0),
 		make(map[types.Entity]types.Entity),
 		make(chan events.Event, 100),
 	}
+	s.externalWalls = structures.GetExternalWalls()
 	s.rooms = structures.GetRooms()
 	subscriber.Subscribe("breakdown", s.OnEvent)
 	return s

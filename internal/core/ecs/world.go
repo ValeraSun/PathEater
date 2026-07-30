@@ -38,7 +38,7 @@ type World struct {
 
 	systems []types.System
 
-	WorldStructures config.WorldStructures
+	WorldStructures *config.WorldStructures
 
 	EventBus *events.EventBus
 

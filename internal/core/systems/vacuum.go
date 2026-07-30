@@ -1,12 +1,14 @@
 package systems
 
 import (
+	"sort"
+
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/types"
 )
 
-const leak = 1.0
+const leak = 25.0
 
 type zone struct {
 	breakdowns  int
@@ -20,17 +22,20 @@ type VacuumSystem struct {
 	doors        map[types.Entity]*components.DoorComponent
 	zones        []zone
 	hasBreakdown bool
+	frameCount   int // для ограничения логов
 }
 
 func NewVacuumSystem(getter componentsGetter, subscriber subscriber) *VacuumSystem {
 	s := &VacuumSystem{
 		getter:       getter,
 		hasBreakdown: false,
+		frameCount:   0,
 	}
 	s.rooms = s.getRooms()
 	s.doors = s.getDoors()
 	s.recalculateZones()
 	subscriber.Subscribe("vacuum_recalculate", s.OnEvent)
+
 	return s
 }
 
@@ -59,12 +64,17 @@ func (s *VacuumSystem) getDoors() map[types.Entity]*components.DoorComponent {
 }
 
 func (s *VacuumSystem) Update(dt float32) error {
+	s.frameCount++
+	shouldLog := s.frameCount%60 == 0 // логировать раз в секунду (при 60 FPS)
+
 	s.recalculateZones()
+
 	for i := range s.zones {
 		zone := &s.zones[i]
 		leakAmount := float64(zone.breakdowns) * leak * float64(dt)
 		maxOxygen := float64(len(zone.rooms) * 100)
 
+		// Утечка, если есть поломки
 		if zone.breakdowns > 0 && zone.totalOxygen > 0 {
 			zone.totalOxygen -= leakAmount
 			if zone.totalOxygen < 0 {
@@ -72,13 +82,15 @@ func (s *VacuumSystem) Update(dt float32) error {
 			}
 		}
 
-		if !s.hasBreakdown && zone.totalOxygen < maxOxygen {
+		// Восстановление, если поломок нет
+		if zone.breakdowns == 0 && zone.totalOxygen < maxOxygen {
 			zone.totalOxygen += leakAmount
 			if zone.totalOxygen > maxOxygen {
 				zone.totalOxygen = maxOxygen
 			}
 		}
 
+		// Распределение кислорода по комнатам
 		if len(zone.rooms) > 0 {
 			localOxygen := zone.totalOxygen / float64(len(zone.rooms))
 			for _, room := range zone.rooms {
@@ -87,7 +99,17 @@ func (s *VacuumSystem) Update(dt float32) error {
 			}
 		}
 
+		// Логирование изменения кислорода в зоне
+		if shouldLog {
+			// Получаем имена комнат в зоне для идентификации
+			var roomNames []string
+			for name := range zone.rooms {
+				roomNames = append(roomNames, name)
+			}
+			sort.Strings(roomNames)
+		}
 	}
+
 	return nil
 }
 
@@ -104,12 +126,15 @@ func (s *VacuumSystem) recalculateZones() {
 func (s *VacuumSystem) makeGraph() map[string][]string {
 	graph := make(map[string][]string)
 
+	openDoors := 0
 	for _, door := range s.doors {
 		if door.IsOpen {
+			openDoors++
 			graph[door.RoomA] = append(graph[door.RoomA], door.RoomB)
 			graph[door.RoomB] = append(graph[door.RoomB], door.RoomA)
 		}
 	}
+
 	return graph
 }
 
@@ -118,8 +143,8 @@ func (s *VacuumSystem) findZones(graph map[string][]string) []zone {
 	visited := make(map[string]bool)
 	var zones []zone
 
+	// 1. Обрабатываем комнаты, которые есть в графе (связанные через открытые двери)
 	for roomID := range graph {
-
 		if visited[roomID] {
 			continue
 		}
@@ -132,26 +157,24 @@ func (s *VacuumSystem) findZones(graph map[string][]string) []zone {
 
 		queue := []string{roomID}
 		visited[roomID] = true
+		zoneSize := 0
 
 		for len(queue) > 0 {
 			current := queue[0]
 			queue = queue[1:]
 
-			// ПРОВЕРКА: существует ли комната
 			room, exists := s.rooms[current]
-			if !exists {
-				continue
-			}
-			if room == nil {
+			if !exists || room == nil {
 				continue
 			}
 
 			zone.rooms[current] = room
+			zoneSize++
 			if room.HasBreakdown {
 				s.hasBreakdown = true
 				zone.breakdowns++
 			}
-			zone.totalOxygen = zone.totalOxygen + room.Oxygen
+			zone.totalOxygen += room.Oxygen
 
 			for _, neighbor := range graph[current] {
 				if !visited[neighbor] {
@@ -162,6 +185,39 @@ func (s *VacuumSystem) findZones(graph map[string][]string) []zone {
 		}
 
 		if len(zone.rooms) > 0 {
+			zones = append(zones, zone)
+			// Логируем создание зоны из графа
+			var roomNames []string
+			for name := range zone.rooms {
+				roomNames = append(roomNames, name)
+			}
+			sort.Strings(roomNames)
+		}
+	}
+
+	// 2. Обрабатываем изолированные комнаты (которых нет в графе)
+	isolatedCount := 0
+	for roomName := range s.rooms {
+		if !visited[roomName] {
+			room, exists := s.rooms[roomName]
+			if !exists || room == nil {
+				continue
+			}
+
+			isolatedCount++
+			zone := zone{
+				breakdowns:  0,
+				totalOxygen: 0,
+				rooms:       make(map[string]*components.RoomComponent),
+			}
+
+			zone.rooms[roomName] = room
+			if room.HasBreakdown {
+				s.hasBreakdown = true
+				zone.breakdowns++
+			}
+			zone.totalOxygen = room.Oxygen
+
 			zones = append(zones, zone)
 		}
 	}

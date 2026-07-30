@@ -1,6 +1,8 @@
 package systems
 
 import (
+	"log"
+
 	"github.com/ValeraSun/PathEater/internal/core/components"
 	"github.com/ValeraSun/PathEater/internal/core/events"
 	"github.com/ValeraSun/PathEater/internal/core/geometry"
@@ -8,9 +10,9 @@ import (
 )
 
 const (
-	loss            = 1.0  // кислород не тратится для отладки
-	suckForce       = 5.0  // сила притяжения к поломке
-	maxSuckDistance = 10.0 // максимальная дистанция притяжения
+	loss            = 1.0 // потеря кислорода в вакууме
+	suckForce       = 2.5 // сила притяжения к поломке
+	maxSuckDistance = 1.5 // максимальная дистанция притяжения
 )
 
 type OxygenSystem struct {
@@ -19,6 +21,7 @@ type OxygenSystem struct {
 	players    map[types.Entity]*components.PlayerComponent
 	rooms      map[types.Entity]*components.RoomComponent
 	breakdowns map[types.Entity]*components.BreakdownComponent
+	frameCount int // для ограничения логов
 }
 
 func NewOxygenSystem(getter componentsGetter, publisher publisher) *OxygenSystem {
@@ -28,8 +31,11 @@ func NewOxygenSystem(getter componentsGetter, publisher publisher) *OxygenSystem
 		make(map[types.Entity]*components.PlayerComponent),
 		make(map[types.Entity]*components.RoomComponent),
 		make(map[types.Entity]*components.BreakdownComponent),
+		0,
 	}
 	s.rooms = s.getRooms()
+	log.Println("=== OxygenSystem инициализирован ===")
+	log.Printf("Загружено комнат: %d", len(s.rooms))
 	return s
 }
 
@@ -58,28 +64,58 @@ func (s *OxygenSystem) getRooms() map[types.Entity]*components.RoomComponent {
 }
 
 func (s *OxygenSystem) Update(dt float32) error {
+	s.frameCount++
+	shouldLog := s.frameCount%60 == 0 // логировать раз в секунду (при 60 FPS)
+
 	s.players = s.getPlayers()
 	s.setBreakdowns()
+
+	if shouldLog {
+		log.Printf("=== OxygenSystem Update (кадр %d) ===", s.frameCount)
+		log.Printf("Игроков: %d, Поломок: %d", len(s.players), len(s.breakdowns))
+	}
 
 	for id, player := range s.players {
 		room, exists := s.rooms[player.RoomID]
 		if !exists || room == nil {
+			if shouldLog {
+				log.Printf("Игрок %v не находится ни в одной комнате (RoomID: %v)", id, player.RoomID)
+			}
 			continue
+		}
+
+		if shouldLog {
+			log.Printf("Игрок %v в комнате %s (вакуум: %v, поломка: %v)",
+				id, room.Name, room.Vacuum, room.HasBreakdown)
 		}
 
 		// 1. Если есть поломка и НЕТ вакуума - притягиваем к поломке
 		if room.HasBreakdown && !room.Vacuum {
+			if shouldLog {
+				log.Printf("Применяем силу притяжения для игрока %v в комнате %s", id, room.Name)
+			}
 			s.applySuckForce(id, player)
 		} else {
 			// Если нет поломки или уже вакуум - сбрасываем силу притяжения
+			if shouldLog && room.HasBreakdown && room.Vacuum {
+				log.Printf("Сбрасываем силу притяжения для игрока %v (вакуум в комнате %s)", id, room.Name)
+			}
 			s.clearSuckForce(id)
 		}
 
 		// 2. Если вакуум - теряем кислород
 		if room.Vacuum {
+			if shouldLog {
+				log.Printf("Вакуум в комнате %s! Игрок %v теряет кислород", room.Name, id)
+			}
 			s.applyVacuumDamage(id)
 		}
 	}
+
+	if shouldLog {
+		log.Printf("=== Конец OxygenSystem Update ===")
+	}
+
 	return nil
 }
 
@@ -88,20 +124,24 @@ func (s *OxygenSystem) applySuckForce(playerID types.Entity, player *components.
 	// Получаем externalVelocity
 	c, ok := s.GetComponent(playerID, "externalVelocity")
 	if !ok {
+		log.Printf("applySuckForce: игрок %v не имеет externalVelocity", playerID)
 		return
 	}
 	ext, ok := c.(*components.ExternalVelocityComponent)
 	if !ok || ext == nil {
+		log.Printf("applySuckForce: externalVelocity игрока %v имеет неверный тип", playerID)
 		return
 	}
 
 	// Получаем transform (позиция игрока)
 	c, ok = s.GetComponent(playerID, "transform")
 	if !ok {
+		log.Printf("applySuckForce: игрок %v не имеет transform", playerID)
 		return
 	}
 	tr, ok := c.(*components.TransformComponent)
 	if !ok || tr == nil {
+		log.Printf("applySuckForce: transform игрока %v имеет неверный тип", playerID)
 		return
 	}
 
@@ -116,6 +156,7 @@ func (s *OxygenSystem) applySuckForce(playerID types.Entity, player *components.
 
 	if targetBreakdown == nil {
 		// Поломка исчезла - сбрасываем силу
+		log.Printf("applySuckForce: поломка в комнате %v не найдена, сбрасываем силу", player.RoomID)
 		ext.Direction = geometry.Vec3{}
 		return
 	}
@@ -124,8 +165,11 @@ func (s *OxygenSystem) applySuckForce(playerID types.Entity, player *components.
 	toBreakdown := targetBreakdown.Position.Sub(tr.Position)
 	distance := toBreakdown.Length()
 
+	log.Printf("applySuckForce: игрок %v, расстояние до поломки: %.2f", playerID, distance)
+
 	if distance < 0.001 {
 		// Игрок уже на месте поломки - сбрасываем силу
+		log.Printf("applySuckForce: игрок %v уже на месте поломки, сбрасываем силу", playerID)
 		ext.Direction = geometry.Vec3{}
 		return
 	}
@@ -146,7 +190,12 @@ func (s *OxygenSystem) applySuckForce(playerID types.Entity, player *components.
 	}
 
 	// Устанавливаем направление и силу в одном векторе
-	ext.Direction = direction.Scale(suckForce * forceMultiplier)
+	force := suckForce * forceMultiplier
+	ext.Direction = direction.Scale(force)
+	ext.Direction.Y = 0
+
+	log.Printf("applySuckForce: игрок %v, сила: %.2f, множитель: %.2f, расстояние: %.2f",
+		playerID, force, forceMultiplier, distance)
 }
 
 // clearSuckForce сбрасывает силу притяжения
@@ -168,20 +217,29 @@ func (s *OxygenSystem) clearSuckForce(playerID types.Entity) {
 func (s *OxygenSystem) applyVacuumDamage(playerID types.Entity) {
 	c, ok := s.GetComponent(playerID, "oxygen")
 	if !ok {
+		log.Printf("applyVacuumDamage: игрок %v не имеет oxygen", playerID)
 		return
 	}
 	ox, ok := c.(*components.OxygenComponent)
 	if !ok || ox == nil {
+		log.Printf("applyVacuumDamage: oxygen игрока %v имеет неверный тип", playerID)
 		return
 	}
 
+	oldOxygen := ox.Oxygen
 	isGasp := ox.Leak(loss)
+
+	log.Printf("applyVacuumDamage: игрок %v, кислород: %.2f -> %.2f (потеря: %.2f)",
+		playerID, oldOxygen, ox.Oxygen, loss)
+
 	if isGasp {
+		log.Printf("applyVacuumDamage: игрок %v задыхается! Наносим урон", playerID)
 		s.publisher.Publish(events.NewDamageDealEvent(playerID, 1))
 	}
 }
 
 func (s *OxygenSystem) setBreakdowns() {
+	oldCount := len(s.breakdowns)
 	s.breakdowns = make(map[types.Entity]*components.BreakdownComponent)
 
 	bs := s.GetEntitiesByComponent("breakdown")
@@ -189,5 +247,9 @@ func (s *OxygenSystem) setBreakdowns() {
 		if breakdown, ok := b.(*components.BreakdownComponent); ok && breakdown != nil {
 			s.breakdowns[id] = breakdown
 		}
+	}
+
+	if len(s.breakdowns) != oldCount {
+		log.Printf("setBreakdowns: поломок было %d, стало %d", oldCount, len(s.breakdowns))
 	}
 }
